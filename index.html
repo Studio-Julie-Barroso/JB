@@ -307,6 +307,12 @@ footer strong{color:#fff;font-weight:600;}
 .empty-state-icon{font-size:40px;margin-bottom:10px;}
 .empty-state p{font-size:13px;}
 
+/* ── EMOJI PICKER ── */
+.emoji-picker{display:flex;flex-wrap:wrap;gap:6px;background:var(--b-blush);border:1px solid var(--border);border-radius:10px;padding:10px;}
+.emoji-opt{font-size:22px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all .15s;user-select:none;}
+.emoji-opt:hover{background:var(--b-pale);transform:scale(1.15);}
+.emoji-opt.selected{border-color:var(--b);background:var(--b-pale);box-shadow:0 0 0 2px rgba(240,98,146,.2);}
+
 @media(max-width:768px){
   .site-body{flex-direction:column;padding:20px 16px 32px;gap:20px;}
   .video-col,.sidebar-col{width:100%;flex:none;}
@@ -513,6 +519,8 @@ footer strong{color:#fff;font-weight:600;}
 
             <div class="proc-form-body">
               <input type="hidden" id="editIdx" value="">
+              <input type="hidden" id="fpImgPosY" value="50">
+              <input type="hidden" id="fpImgAltura" value="145">
 
               <!-- upload de imagem em destaque -->
               <div class="form-row">
@@ -528,6 +536,40 @@ footer strong{color:#fff;font-weight:600;}
                   <button class="img-upload-change" type="button" onclick="document.getElementById('imgFile').click()">Trocar foto</button>
                 </div>
                 <input type="hidden" id="fpImg" value="">
+
+                <!-- ajuste de enquadramento (aparece após foto selecionada ou existente) -->
+                <div id="imgAjusteBox" style="display:none;margin-top:12px;background:var(--b-blush);border:1px solid var(--border);border-radius:12px;padding:14px;">
+                  <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-mid);margin-bottom:12px;">Ajustar Enquadramento</div>
+                  <!-- slider posição -->
+                  <div style="margin-bottom:12px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                      <span style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-mid);">Posição vertical</span>
+                      <span style="font-size:11px;color:var(--b);font-weight:600;" id="imgPosLabel">Centro</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span style="font-size:10px;color:var(--text-lt);">Topo</span>
+                      <input type="range" id="imgSliderPos" min="0" max="100" value="50"
+                        style="flex:1;accent-color:var(--b);height:4px;cursor:pointer;"
+                        oninput="atualizarImgPos()">
+                      <span style="font-size:10px;color:var(--text-lt);">Base</span>
+                    </div>
+                  </div>
+                  <!-- slider altura -->
+                  <div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                      <span style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-mid);">Altura da foto</span>
+                      <span style="font-size:11px;color:var(--b);font-weight:600;" id="imgAltLabel">145px</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span style="font-size:10px;color:var(--text-lt);">Menor</span>
+                      <input type="range" id="imgSliderAlt" min="100" max="280" value="145"
+                        style="flex:1;accent-color:var(--b);height:4px;cursor:pointer;"
+                        oninput="atualizarImgAlt()">
+                      <span style="font-size:10px;color:var(--text-lt);">Maior</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div style="margin-top:6px;font-size:11px;color:var(--text-lt);" id="imgLabel"></div>
               </div>
 
@@ -696,7 +738,8 @@ footer strong{color:#fff;font-weight:600;}
     </div>
     <div class="form-row">
       <label class="form-label">Emoji (ícone)</label>
-      <input class="form-input" id="novaAbaEmoji" placeholder="👁" maxlength="4" style="max-width:80px;font-size:22px;">
+      <div id="emojiPickerNovaAba" class="emoji-picker"></div>
+      <input class="form-input" id="novaAbaEmoji" placeholder="ou cole aqui" maxlength="4" style="max-width:90px;font-size:20px;margin-top:8px;" oninput="sincEmojiInput('novaAbaEmoji','emojiPickerNovaAba')">
     </div>
     <div style="display:flex;gap:9px;margin-top:4px;">
       <button class="btn-primary" onclick="confirmarNovaAba()">Criar Aba</button>
@@ -748,11 +791,42 @@ const CLOUD   = { cloud:'dsxcqq4yv', preset:'jo9fb1yf' };
    ESTADO
 ════════════════════════════════════════ */
 let ABAS  = [];  // [{id,nome,emoji}]
-let PROCS = [];  // [{aba,nome,descricao,valor,duracao,fixacao,indicado,imagem}]
-let abaAtiva  = null;   // aba sendo editada no admin
+let PROCS = [];  // [{aba,nome,descricao,valor,duracao,fixacao,indicado,imagem,imgPosY,imgAltura}]
+let abaAtiva  = null;
 let imgPend   = null;
 let vidPend   = null;
 let confirmCb = null;
+
+/* ════════════════════════════════════════
+   EMOJIS
+════════════════════════════════════════ */
+const EMOJIS_ABA = [
+  '👁','✨','💆','💅','🌸','🌺','💄','💋','🪷','🌷',
+  '⭐','✦','🦋','🌟','💎','🪞','🧖','🧴','🪄','🎀',
+  '🌙','☀️','🌈','🍃','🌿','🪻','💐','🌻','🫧','🧸'
+];
+
+function renderEmojiPicker(containerId, inputId, current=''){
+  const container=document.getElementById(containerId);
+  if(!container)return;
+  container.innerHTML=EMOJIS_ABA.map(e=>`
+    <div class="emoji-opt${e===current?' selected':''}" onclick="selecionarEmoji('${containerId}','${inputId}','${e}')">${e}</div>
+  `).join('');
+}
+
+function selecionarEmoji(containerId, inputId, emoji){
+  document.getElementById(inputId).value=emoji;
+  document.querySelectorAll(`#${containerId} .emoji-opt`).forEach(el=>{
+    el.classList.toggle('selected', el.textContent===emoji);
+  });
+}
+
+function sincEmojiInput(inputId, containerId){
+  const val=document.getElementById(inputId).value.trim();
+  document.querySelectorAll(`#${containerId} .emoji-opt`).forEach(el=>{
+    el.classList.toggle('selected', el.textContent===val);
+  });
+}
 
 /* ════════════════════════════════════════
    GAS JSONP
@@ -824,7 +898,18 @@ async function loadAbas(){
 async function loadProcs(){
   try{
     const d=await gasCall({aba:'PROCEDIMENTOS'});
-    PROCS=(d||[]).map(r=>({aba:r.col1||'',nome:r.col2||'',descricao:r.col3||'',valor:r.col4||'',duracao:r.col5||'',fixacao:r.col6||'',indicado:r.col7||'',imagem:r.col8||''})).filter(p=>p.nome);
+    PROCS=(d||[]).map(r=>({
+      aba:      r.col1||'',
+      nome:     r.col2||'',
+      descricao:r.col3||'',
+      valor:    r.col4||'',
+      duracao:  r.col5||'',
+      fixacao:  r.col6||'',
+      indicado: r.col7||'',
+      imagem:   r.col8||'',
+      imgPosY:  parseInt(r.col9||'50'),
+      imgAltura:parseInt(r.col10||'145')
+    })).filter(p=>p.nome);
   }catch{PROCS=[];}
 }
 async function carregarVideoSite(){
@@ -909,7 +994,10 @@ function showAba(nome){
   panel.innerHTML=`<div class="panel-heading">${nome}</div><div class="panel-rule"></div>`+
     lista.map(p=>{
       const idx=PROCS.indexOf(p);
-      const thumb=p.imagem?`<div class="pub-card-thumb"><img src="${p.imagem}" alt="${p.nome}"></div>`:`<div class="pub-card-thumb">${emoji}</div>`;
+      const posY  = p.imgPosY??50;
+      const thumb=p.imagem
+        ?`<div class="pub-card-thumb"><img src="${p.imagem}" alt="${p.nome}" style="object-position:center ${posY}%"></div>`
+        :`<div class="pub-card-thumb">${emoji}</div>`;
       return `<div class="pub-card" onclick="verDetalhe(${idx})">${thumb}
         <div class="pub-card-info"><div class="pub-card-title">${p.nome}</div><div class="pub-card-desc">${p.valor?p.valor+' · ':''}${p.duracao||''}</div></div>
         <span class="pub-card-arrow">›</span>
@@ -918,7 +1006,11 @@ function showAba(nome){
 }
 function verDetalhe(idx){
   const p=PROCS[idx],emoji=ABAS.find(a=>a.nome===p.aba)?.emoji||'✦';
-  const imgHtml=p.imagem?`<img src="${p.imagem}" alt="${p.nome}" style="width:100%;height:100%;object-fit:cover;">`:`<span>${emoji}</span>`;
+  const posY  = p.imgPosY??50;
+  const altura= p.imgAltura??145;
+  const imgHtml=p.imagem
+    ?`<img src="${p.imagem}" alt="${p.nome}" style="width:100%;height:${Math.max(altura,160)}px;object-fit:cover;object-position:center ${posY}%;">`
+    :`<span>${emoji}</span>`;
   let badges='';
   if(p.duracao)  badges+=`<span class="detalhe-badge">⏱ ${p.duracao}</span>`;
   if(p.fixacao)  badges+=`<span class="detalhe-badge">📅 ${p.fixacao}</span>`;
@@ -972,7 +1064,7 @@ async function salvarAbas(){
   catch{toast('Erro ao salvar abas','err');}
 }
 async function salvarProcs(){
-  try{await gasCall({action:'setProcs',dados:JSON.stringify(PROCS.map(p=>[p.aba,p.nome,p.descricao,p.valor,p.duracao,p.fixacao,p.indicado,p.imagem]))});}
+  try{await gasCall({action:'setProcs',dados:JSON.stringify(PROCS.map(p=>[p.aba,p.nome,p.descricao,p.valor,p.duracao,p.fixacao,p.indicado,p.imagem,p.imgPosY??50,p.imgAltura??145]))});}
   catch{toast('Erro ao salvar procedimentos','err');}
 }
 
@@ -1044,8 +1136,10 @@ function renderProcsAbaGrid(){
   let html='';
   lista.forEach(p=>{
     const idx=PROCS.indexOf(p);
+    const posY  = p.imgPosY??50;
+    const altura= p.imgAltura??145;
     const imgHtml=p.imagem
-      ?`<img class="proc-aba-img" src="${p.imagem}" alt="${p.nome}">`
+      ?`<img class="proc-aba-img" src="${p.imagem}" alt="${p.nome}" style="height:${altura}px;object-position:center ${posY}%;">`
       :`<div class="proc-aba-ph">${abaAtiva.emoji}</div>`;
     html+=`<div class="proc-aba-card">
       ${imgHtml}
@@ -1091,6 +1185,15 @@ function confirmarNovaAba(){
   toast('Aba criada!','ok');
 }
 
+// Inicializa picker ao abrir modal
+const _origAbrirModal = window.abrirModal;
+function abrirModal(id){
+  document.getElementById(id)?.classList.add('open');
+  if(id==='modalNovaAba'){
+    renderEmojiPicker('emojiPickerNovaAba','novaAbaEmoji', document.getElementById('novaAbaEmoji').value||'');
+  }
+}
+
 function abrirEditarAba(id){
   const a=ABAS.find(x=>x.id===id);if(!a)return;
   document.getElementById('editAbaId').value=id;
@@ -1118,16 +1221,12 @@ function confirmarEditarAba(){
    ADMIN — FORM PROCEDIMENTO
 ════════════════════════════════════════ */
 function abrirFormProc(idx){
-  // idx = índice em PROCS (edição) ou -1 (novo)
   document.getElementById('telaAbaDetalhe').style.display='none';
   document.getElementById('telaProcForm').style.display='block';
-
-  // breadcrumb
   document.getElementById('bcEmoji').textContent=abaAtiva.emoji;
   document.getElementById('bcAba').textContent=abaAtiva.nome;
 
   if(idx===-1){
-    // NOVO
     document.getElementById('formProcSubtitle').textContent='Novo';
     document.getElementById('editIdx').value='';
     ['fpNome','fpDesc','fpValor','fpDur','fpFix','fpInd','fpImg'].forEach(id=>document.getElementById(id).value='');
@@ -1135,9 +1234,15 @@ function abrirFormProc(idx){
     document.getElementById('imgPlaceholder').classList.remove('hidden');
     document.getElementById('imgLabel').textContent='';
     document.getElementById('bcProc').textContent='Novo Procedimento';
+    document.getElementById('imgAjusteBox').style.display='none';
+    document.getElementById('imgSliderPos').value=50;
+    document.getElementById('imgSliderAlt').value=145;
+    document.getElementById('fpImgPosY').value=50;
+    document.getElementById('fpImgAltura').value=145;
+    document.getElementById('imgPosLabel').textContent='Centro';
+    document.getElementById('imgAltLabel').textContent='145px';
     imgPend=null;
   } else {
-    // EDITAR
     const p=PROCS[idx];
     document.getElementById('formProcSubtitle').textContent=p.nome;
     document.getElementById('editIdx').value=String(idx);
@@ -1149,9 +1254,27 @@ function abrirFormProc(idx){
     document.getElementById('fpInd').value=p.indicado;
     document.getElementById('fpImg').value=p.imagem;
     document.getElementById('bcProc').textContent=p.nome;
+    // sliders
+    const posY  = p.imgPosY??50;
+    const altura= p.imgAltura??145;
+    document.getElementById('imgSliderPos').value=posY;
+    document.getElementById('imgSliderAlt').value=altura;
+    document.getElementById('fpImgPosY').value=posY;
+    document.getElementById('fpImgAltura').value=altura;
+    atualizarImgPos(); atualizarImgAlt();
     const prev=document.getElementById('imgPreview');
-    if(p.imagem){prev.src=p.imagem;prev.style.display='block';document.getElementById('imgPlaceholder').classList.add('hidden');}
-    else{prev.style.display='none';document.getElementById('imgPlaceholder').classList.remove('hidden');}
+    if(p.imagem){
+      prev.src=p.imagem;
+      prev.style.objectPosition=`center ${posY}%`;
+      prev.style.height=altura+'px';
+      prev.style.display='block';
+      document.getElementById('imgPlaceholder').classList.add('hidden');
+      document.getElementById('imgAjusteBox').style.display='block';
+    } else {
+      prev.style.display='none';
+      document.getElementById('imgPlaceholder').classList.remove('hidden');
+      document.getElementById('imgAjusteBox').style.display='none';
+    }
     document.getElementById('imgLabel').textContent=p.imagem?'✓ Foto salva (novo upload substituirá)':'';
     imgPend=null;
   }
@@ -1182,13 +1305,15 @@ async function salvarProc(){
   const dur=document.getElementById('fpDur').value.trim();
   const fix=document.getElementById('fpFix').value.trim();
   const ind=document.getElementById('fpInd').value.trim();
-  let img=document.getElementById('fpImg').value.trim();
+  let   img=document.getElementById('fpImg').value.trim();
+  const posY  =parseInt(document.getElementById('fpImgPosY').value||'50');
+  const altura=parseInt(document.getElementById('fpImgAltura').value||'145');
   if(!nome){toast('Informe o nome do procedimento','warn');return;}
   if(!desc){toast('Informe a descrição','warn');return;}
   btn.innerHTML='<span class="spinner"></span> Salvando...';btn.disabled=true;
   try{
     if(imgPend){toast('Enviando foto...','info');img=await cloudUpload(imgPend,'image');document.getElementById('fpImg').value=img;}
-    const obj={aba:abaAtiva.nome,nome,descricao:desc,valor,duracao:dur,fixacao:fix,indicado:ind,imagem:img};
+    const obj={aba:abaAtiva.nome,nome,descricao:desc,valor,duracao:dur,fixacao:fix,indicado:ind,imagem:img,imgPosY:posY,imgAltura:altura};
     const ei=document.getElementById('editIdx').value;
     if(ei!=='')PROCS[parseInt(ei)]=obj;else PROCS.push(obj);
     await salvarProcs();
@@ -1200,17 +1325,36 @@ async function salvarProc(){
 }
 
 /* ════════════════════════════════════════
-   UPLOAD IMAGEM
+   UPLOAD IMAGEM PROC — com ajuste
 ════════════════════════════════════════ */
+function mostrarAjusteImg(src){
+  const prev=document.getElementById('imgPreview');
+  prev.src=src; prev.style.display='block';
+  document.getElementById('imgPlaceholder').classList.add('hidden');
+  document.getElementById('imgAjusteBox').style.display='block';
+  atualizarImgPos(); atualizarImgAlt();
+}
+
+function atualizarImgPos(){
+  const val=parseInt(document.getElementById('imgSliderPos').value);
+  document.getElementById('fpImgPosY').value=val;
+  document.getElementById('imgPreview').style.objectPosition=`center ${val}%`;
+  const labels=['Topo','Quase topo','Centro','Quase base','Base'];
+  document.getElementById('imgPosLabel').textContent=labels[Math.min(Math.round(val/25),4)];
+}
+
+function atualizarImgAlt(){
+  const val=parseInt(document.getElementById('imgSliderAlt').value);
+  document.getElementById('fpImgAltura').value=val;
+  document.getElementById('imgPreview').style.height=val+'px';
+  document.getElementById('imgAltLabel').textContent=val+'px';
+}
+
 function onImgPick(e){
   const f=e.target.files[0];if(!f)return;
   imgPend=f;
   const r=new FileReader();
-  r.onload=ev=>{
-    const prev=document.getElementById('imgPreview');
-    prev.src=ev.target.result;prev.style.display='block';
-    document.getElementById('imgPlaceholder').classList.add('hidden');
-  };
+  r.onload=ev=>mostrarAjusteImg(ev.target.result);
   r.readAsDataURL(f);
   document.getElementById('imgLabel').textContent=`✓ ${f.name}`;
 }
@@ -1220,10 +1364,7 @@ const imgArea=document.getElementById('imgArea');
 imgArea.addEventListener('drop',e=>{
   e.preventDefault();const f=e.dataTransfer?.files?.[0];if(!f)return;imgPend=f;
   const r=new FileReader();
-  r.onload=ev=>{
-    const prev=document.getElementById('imgPreview');prev.src=ev.target.result;prev.style.display='block';
-    document.getElementById('imgPlaceholder').classList.add('hidden');
-  };
+  r.onload=ev=>mostrarAjusteImg(ev.target.result);
   r.readAsDataURL(f);document.getElementById('imgLabel').textContent=`✓ ${f.name}`;
 });
 

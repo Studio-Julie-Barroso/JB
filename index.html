@@ -73,6 +73,7 @@ body{font-family:'Jost',sans-serif;background:var(--b-blush);min-height:100vh;co
 .video-col{flex:3;}
 .video-frame{position:relative;border-radius:20px;overflow:hidden;background:var(--b-pale);box-shadow:0 20px 60px rgba(240,98,146,.18),0 4px 16px rgba(0,0,0,.06);border:1.5px solid rgba(255,255,255,.9);}
 .video-frame video{width:100%;height:420px;object-fit:cover;display:block;}
+#mainPhoto{width:100%;height:420px;object-fit:cover;object-position:center top;display:none;}
 .video-frame::after{content:"";position:absolute;bottom:0;left:0;right:0;height:90px;background:linear-gradient(to top,rgba(50,0,25,.32),transparent);pointer-events:none;}
 .sound-btn{position:absolute;bottom:18px;left:18px;z-index:3;display:inline-flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:9px 16px 9px 9px;cursor:pointer;color:#fff;background:rgba(60,0,30,.45);backdrop-filter:blur(14px);transition:background .25s,transform .22s;font-family:'Jost',sans-serif;}
 .sound-btn:hover{background:rgba(240,98,146,.7);transform:translateY(-2px);}
@@ -310,6 +311,7 @@ footer strong{color:#fff;font-weight:600;}
   .site-body{flex-direction:column;padding:20px 16px 32px;gap:20px;}
   .video-col,.sidebar-col{width:100%;flex:none;}
   .video-frame video{height:220px;}
+  #mainPhoto{height:220px !important;}
   .intro-name{font-size:32px;letter-spacing:6px;}
   .intro-deco-line{width:30px;}
   .logo-main{font-size:30px;letter-spacing:6px;}
@@ -386,8 +388,7 @@ footer strong{color:#fff;font-weight:600;}
           <source id="videoSrc" src="apresentacao.mp4" type="video/mp4">
         </video>
         <!-- FOTO (alternativa) -->
-        <img id="mainPhoto" src="" alt="Studio Julie Barroso"
-          style="display:none;width:100%;height:420px;object-fit:cover;">
+        <img id="mainPhoto" src="" alt="Studio Julie Barroso">
         <button class="sound-btn is-muted" id="soundBtn" onclick="toggleSound()">
           <span class="sound-btn-icon" id="soundIcon">&#9835;</span>
           <span class="sound-btn-label">

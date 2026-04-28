@@ -618,6 +618,8 @@ footer strong{color:#fff;font-weight:600;}
         <!-- Upload FOTO -->
         <div class="form-card" id="uploadFotoBox" style="display:none;">
           <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-mid);margin-bottom:14px;">Enviar Foto</div>
+
+          <!-- Zona de upload -->
           <div class="form-row">
             <div class="upload-zone" id="fotoZone">
               <input type="file" id="fotoFile" accept="image/*" onchange="onFotoPick(event)">
@@ -625,11 +627,57 @@ footer strong{color:#fff;font-weight:600;}
               <div class="upload-text">Clique ou arraste a foto<br><small style="opacity:.7">JPG · PNG · WEBP</small></div>
             </div>
           </div>
+
+          <!-- Preview + ajustes (aparece após selecionar foto) -->
+          <div id="fotoAjusteBox" style="display:none;margin-top:4px;">
+
+            <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-mid);margin-bottom:10px;">Ajustar Enquadramento</div>
+
+            <!-- Preview interativo -->
+            <div id="fotoPreviewFrame" style="width:100%;height:240px;border-radius:12px;overflow:hidden;background:var(--b-pale);margin-bottom:16px;border:1px solid var(--border);position:relative;cursor:ns-resize;" title="Arraste para ajustar">
+              <img id="fotoPreviewImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 50%;pointer-events:none;transition:object-position .1s;">
+              <!-- linha guia de corte -->
+              <div style="position:absolute;inset:0;border:2px dashed rgba(255,255,255,.4);border-radius:10px;pointer-events:none;"></div>
+              <div style="position:absolute;bottom:8px;right:10px;background:rgba(0,0,0,.45);color:#fff;font-size:10px;padding:3px 8px;border-radius:6px;pointer-events:none;backdrop-filter:blur(4px);">↕ arraste para mover</div>
+            </div>
+
+            <!-- Slider posição vertical -->
+            <div style="margin-bottom:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-mid);">Posição Vertical</span>
+                <span style="font-size:11px;color:var(--b);font-weight:600;" id="fotoPosLabel">Centro</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:11px;color:var(--text-lt);">Topo</span>
+                <input type="range" id="fotoSliderPos" min="0" max="100" value="50"
+                  style="flex:1;accent-color:var(--b);height:4px;cursor:pointer;"
+                  oninput="atualizarFotoPos()">
+                <span style="font-size:11px;color:var(--text-lt);">Base</span>
+              </div>
+            </div>
+
+            <!-- Slider altura -->
+            <div style="margin-bottom:18px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-mid);">Altura do Frame</span>
+                <span style="font-size:11px;color:var(--b);font-weight:600;" id="fotoAltLabel">420px</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:11px;color:var(--text-lt);">Menor</span>
+                <input type="range" id="fotoSliderAlt" min="280" max="600" value="420"
+                  style="flex:1;accent-color:var(--b);height:4px;cursor:pointer;"
+                  oninput="atualizarFotoAlt()">
+                <span style="font-size:11px;color:var(--text-lt);">Maior</span>
+              </div>
+            </div>
+
+          </div>
+
           <div id="fotoProgressWrap" style="display:none;margin-bottom:12px;">
             <div style="font-size:12px;color:var(--text-mid);margin-bottom:6px;" id="fotoProgLabel">Enviando...</div>
             <div class="prog-wrap"><div class="prog-bar" id="fotoProgBar"></div></div>
           </div>
-          <button class="btn-primary" id="btnFoto" onclick="uploadFoto()" disabled>Enviar Foto</button>
+          <button class="btn-primary" id="btnFoto" onclick="uploadFoto()" disabled>Publicar Foto</button>
         </div>
       </div>
 
@@ -781,38 +829,49 @@ async function loadProcs(){
 }
 async function carregarVideoSite(){
   try{
-    // Tenta ler configuração de mídia salva no GAS
     const dm=await gasCall({aba:'MIDIA_CONFIG'});
     const tipo=(dm?.[0]?.col1||localStorage.getItem('studio_midia_tipo')||'video');
     if(tipo==='foto'){
-      const df=await gasCall({aba:'FOTO'});
-      const url=df?.[0]?.col1||localStorage.getItem('studio_foto_url')||'';
-      if(url) aplicarMidiaNoSite('foto',url);
+      const [df, dc] = await Promise.all([
+        gasCall({aba:'FOTO'}),
+        gasCall({aba:'FOTO_CONFIG'})
+      ]);
+      const url  = df?.[0]?.col1 || localStorage.getItem('studio_foto_url') || '';
+      const posY = parseInt(dc?.[0]?.col1 ?? localStorage.getItem('studio_foto_posY') ?? 50);
+      const alt  = parseInt(dc?.[0]?.col2 ?? localStorage.getItem('studio_foto_altura') ?? 420);
+      if(url) aplicarMidiaNoSite('foto', url, posY, alt);
     } else {
       const dv=await gasCall({aba:'VIDEO'});
       const url=dv?.[0]?.col1||localStorage.getItem('studio_video_url')||'';
       if(url) aplicarMidiaNoSite('video',url);
     }
   }catch{
-    // Fallback: tenta vídeo do localStorage
     const url=localStorage.getItem('studio_video_url')||'';
     if(url) aplicarMidiaNoSite('video',url);
   }
 }
 
-function aplicarMidiaNoSite(tipo, url){
+function aplicarMidiaNoSite(tipo, url, posY, altura){
   const video=document.getElementById('videoPlayer');
   const foto=document.getElementById('mainPhoto');
   const soundBtn=document.getElementById('soundBtn');
+  const py  = posY  ?? parseInt(localStorage.getItem('studio_foto_posY')  ||'50');
+  const alt = altura?? parseInt(localStorage.getItem('studio_foto_altura') ||'420');
   if(tipo==='foto'){
-    foto.src=url;foto.style.display='block';
+    foto.src=url;
+    foto.style.objectPosition=`center ${py}%`;
+    foto.style.height=alt+'px';
+    foto.style.display='block';
     video.pause();video.style.display='none';
     soundBtn.style.display='none';
+    // ajusta altura do frame visível
+    document.querySelector('.video-frame').style.setProperty('--frame-h', alt+'px');
   } else {
     document.getElementById('videoSrc').src=url;
     video.load();video.play().catch(()=>{});
     video.style.display='block';foto.style.display='none';
     soundBtn.style.display='';
+    document.querySelector('.video-frame').style.removeProperty('--frame-h');
   }
 }
 
@@ -1246,11 +1305,92 @@ async function uploadVideo(){
 }
 
 // ── FOTO ──
-function onFotoPick(e){const f=e.target.files[0];if(!f)return;fotoPend=f;document.getElementById('btnFoto').disabled=false;document.getElementById('vidLabel').textContent=`✓ ${f.name}`;}
+let fotoPosY  = 50;   // 0=topo 100=base
+let fotoAltura= 420;  // altura em px
+
+function onFotoPick(e){
+  const f=e.target.files[0];if(!f)return;
+  fotoPend=f;
+  document.getElementById('btnFoto').disabled=false;
+  document.getElementById('vidLabel').textContent=`✓ ${f.name}`;
+  // Mostra preview + ajustes
+  const r=new FileReader();
+  r.onload=ev=>{
+    document.getElementById('fotoPreviewImg').src=ev.target.result;
+    document.getElementById('fotoAjusteBox').style.display='block';
+    atualizarFotoPos();
+    atualizarFotoAlt();
+  };
+  r.readAsDataURL(f);
+}
+
+function atualizarFotoPos(){
+  fotoPosY=parseInt(document.getElementById('fotoSliderPos').value);
+  document.getElementById('fotoPreviewImg').style.objectPosition=`center ${fotoPosY}%`;
+  const labels=['Topo','Quase topo','Centro','Quase base','Base'];
+  const idx=Math.round(fotoPosY/25);
+  document.getElementById('fotoPosLabel').textContent=labels[Math.min(idx,4)];
+  // Aplica em tempo real no site público se já publicada
+  const mainPhoto=document.getElementById('mainPhoto');
+  if(mainPhoto.style.display!=='none') mainPhoto.style.objectPosition=`center ${fotoPosY}%`;
+}
+
+function atualizarFotoAlt(){
+  fotoAltura=parseInt(document.getElementById('fotoSliderAlt').value);
+  document.getElementById('fotoAjusteBox').querySelector('#fotoPreviewFrame').style.height=Math.round(fotoAltura*0.57)+'px';
+  document.getElementById('fotoAltLabel').textContent=fotoAltura+'px';
+  // Aplica em tempo real no site público se já publicada
+  const mainPhoto=document.getElementById('mainPhoto');
+  if(mainPhoto.style.display!=='none'){
+    mainPhoto.style.height=fotoAltura+'px';
+    document.querySelector('.video-frame video').style.height=fotoAltura+'px';
+  }
+}
+
+// Arrastar preview verticalmente com mouse/touch
+(function(){
+  let dragging=false,startY=0,startPos=0;
+  function getFrame(){return document.getElementById('fotoPreviewFrame');}
+  function onDown(e){
+    if(!document.getElementById('fotoAjusteBox').style.display||document.getElementById('fotoAjusteBox').style.display==='none')return;
+    dragging=true;startY=e.clientY||e.touches?.[0]?.clientY||0;
+    startPos=parseInt(document.getElementById('fotoSliderPos').value);
+    e.preventDefault();
+  }
+  function onMove(e){
+    if(!dragging)return;
+    const y=e.clientY||e.touches?.[0]?.clientY||0;
+    const delta=y-startY;
+    const frame=getFrame();
+    const newVal=Math.max(0,Math.min(100,startPos+(delta/frame.offsetHeight*100)));
+    document.getElementById('fotoSliderPos').value=newVal;
+    atualizarFotoPos();
+    e.preventDefault();
+  }
+  function onUp(){dragging=false;}
+  document.addEventListener('mousedown',e=>{if(e.target.closest('#fotoPreviewFrame'))onDown(e);});
+  document.addEventListener('mousemove',e=>{if(dragging)onMove(e);});
+  document.addEventListener('mouseup',onUp);
+  document.addEventListener('touchstart',e=>{if(e.target.closest('#fotoPreviewFrame'))onDown(e);},{passive:false});
+  document.addEventListener('touchmove',e=>{if(dragging)onMove(e);},{passive:false});
+  document.addEventListener('touchend',onUp);
+})();
+
 const fotoZ=document.getElementById('fotoZone');
 ['dragover','dragenter'].forEach(ev=>fotoZ.addEventListener(ev,e=>{e.preventDefault();fotoZ.classList.add('drag-over');}));
 ['dragleave','drop'].forEach(ev=>fotoZ.addEventListener(ev,()=>fotoZ.classList.remove('drag-over')));
-fotoZ.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer?.files?.[0];if(!f)return;fotoPend=f;document.getElementById('btnFoto').disabled=false;document.getElementById('vidLabel').textContent=`✓ ${f.name}`;});
+fotoZ.addEventListener('drop',e=>{
+  e.preventDefault();const f=e.dataTransfer?.files?.[0];if(!f)return;
+  fotoPend=f;document.getElementById('btnFoto').disabled=false;
+  const r=new FileReader();
+  r.onload=ev=>{
+    document.getElementById('fotoPreviewImg').src=ev.target.result;
+    document.getElementById('fotoAjusteBox').style.display='block';
+    atualizarFotoPos();atualizarFotoAlt();
+  };
+  r.readAsDataURL(f);
+  document.getElementById('vidLabel').textContent=`✓ ${f.name}`;
+});
 
 async function uploadFoto(){
   if(!fotoPend){toast('Selecione uma foto','warn');return;}
@@ -1258,19 +1398,25 @@ async function uploadFoto(){
   const pw=document.getElementById('fotoProgressWrap');
   const bar=document.getElementById('fotoProgBar');
   const lbl=document.getElementById('fotoProgLabel');
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Enviando...';pw.style.display='block';
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Publicando...';pw.style.display='block';
   try{
     toast('Enviando foto...','info');
     const url=await cloudUpload(fotoPend,'image',pct=>{bar.style.width=pct+'%';lbl.textContent=`Enviando... ${pct}%`;});
-    try{localStorage.setItem('studio_foto_url',url);localStorage.setItem('studio_midia_tipo','foto');}catch{}
+    try{
+      localStorage.setItem('studio_foto_url',url);
+      localStorage.setItem('studio_midia_tipo','foto');
+      localStorage.setItem('studio_foto_posY',fotoPosY);
+      localStorage.setItem('studio_foto_altura',fotoAltura);
+    }catch{}
     await gasCall({action:'setFoto',url});
     await gasCall({action:'setMidiaConfig',tipoMidia:'foto'});
+    await gasCall({action:'setFotoConfig',posY:fotoPosY,altura:fotoAltura});
     atualizarVidPreview(url,'foto');
-    aplicarMidiaNoSite('foto', url);
+    aplicarMidiaNoSite('foto',url,fotoPosY,fotoAltura);
     bar.style.width='100%';lbl.textContent='Concluído!';
     updateStats();toast('Foto publicada!','ok');fotoPend=null;document.getElementById('fotoFile').value='';
   }catch(e){toast('Erro: '+e.message,'err');}
-  finally{btn.innerHTML='Enviar Foto';btn.disabled=false;setTimeout(()=>{pw.style.display='none';bar.style.width='0%';},3000);}
+  finally{btn.innerHTML='Publicar Foto';btn.disabled=false;setTimeout(()=>{pw.style.display='none';bar.style.width='0%';},3000);}
 }
 
 /* ════════════════════════════════════════

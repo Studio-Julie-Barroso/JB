@@ -1032,7 +1032,7 @@ function showAba(nome){
         ?`<div class="pub-card-thumb"><img src="${p.imagem}" alt="${p.nome}" style="object-position:center ${posY}%"></div>`
         :`<div class="pub-card-thumb">${emoji}</div>`;
       return `<div class="pub-card" onclick="verDetalhe(${idx})">${thumb}
-        <div class="pub-card-info"><div class="pub-card-title">${p.nome}</div><div class="pub-card-desc">${p.valor?p.valor+' · ':''}${p.duracao||''}</div></div>
+        <div class="pub-card-info"><div class="pub-card-title">${p.nome}</div><div class="pub-card-desc">${p.valor?formatarValor(p.valor)+' · ':''}${p.duracao||''}</div></div>
         <span class="pub-card-arrow">›</span>
       </div>`;
     }).join('');
@@ -1054,12 +1054,12 @@ function verDetalhe(idx){
       ${p.valor ? `
         <div style="background:linear-gradient(135deg,var(--b),#EC407A);border-radius:14px;padding:16px 18px;color:#fff;">
           <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;opacity:.8;margin-bottom:5px;">Valor da sessão</div>
-          <div style="font-size:20px;font-weight:700;letter-spacing:.5px;">${p.valor}</div>
+          <div style="font-size:20px;font-weight:700;letter-spacing:.5px;">${formatarValor(p.valor)}</div>
         </div>` : ''}
       ${p.temManut ? `
         <div style="background:var(--b-pale);border:1px solid rgba(240,98,146,.25);border-radius:14px;padding:16px 18px;">
           <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text-lt);margin-bottom:5px;">Manutenção</div>
-          <div style="font-size:15px;font-weight:700;color:var(--b-deep);">${p.manutValor||'Consultar'}</div>
+          <div style="font-size:15px;font-weight:700;color:var(--b-deep);">${p.manutValor?formatarValor(p.manutValor):'Consultar'}</div>
           ${p.manutPrazo?`<div style="font-size:11px;color:var(--text-lt);margin-top:3px;">🔄 ${p.manutPrazo}</div>`:''}
         </div>` : ''}
     </div>` : '';
@@ -1210,26 +1210,27 @@ function renderProcsAbaGrid(){
   document.getElementById('detSub').textContent=`${cnt} procedimento${cnt!==1?'s':''}`;
   let html='';
   lista.forEach(p=>{
-    const idx=PROCS.indexOf(p);
+    // usa nome+aba como chave para edição — seguro mesmo após re-render
+    const chave=encodeURIComponent(p.nome);
     const posY  = p.imgPosY??50;
     const altura= p.imgAltura??145;
     const imgHtml=p.imagem
       ?`<img class="proc-aba-img" src="${p.imagem}" alt="${p.nome}" style="height:${altura}px;object-position:center ${posY}%;">`
       :`<div class="proc-aba-ph">${abaAtiva.emoji}</div>`;
+    const valorFmt=p.valor?formatarValor(p.valor):'';
     html+=`<div class="proc-aba-card">
       ${imgHtml}
       <div class="proc-aba-body">
         <div class="proc-aba-name">${p.nome}</div>
-        ${p.valor?`<div class="proc-aba-valor">${p.valor}</div>`:''}
+        ${valorFmt?`<div class="proc-aba-valor">${valorFmt}</div>`:''}
         ${p.duracao?`<div class="proc-aba-dur">⏱ ${p.duracao}</div>`:''}
         <div class="proc-aba-actions">
-          <button class="btn-sm" onclick="editarProc(${idx})">✎ Editar</button>
-          <button class="btn-sm danger" onclick="removerProc(${idx})">✕ Remover</button>
+          <button class="btn-sm" onclick="editarProcPorNome('${chave}')">✎ Editar</button>
+          <button class="btn-sm danger" onclick="removerProcPorNome('${chave}')">✕ Remover</button>
         </div>
       </div>
     </div>`;
   });
-  // Card adicionar
   html+=`<div class="proc-aba-add" onclick="novoProc()">
     <div class="proc-aba-add-icon">+</div>
     <div class="proc-aba-add-txt">Adicionar Procedimento</div>
@@ -1377,6 +1378,27 @@ function atualizarBcProc(){
   document.getElementById('bcProc').textContent=nome||'Novo Procedimento';
 }
 
+// Busca pelo nome (URL-encoded) dentro da aba ativa — evita problema de índice desatualizado
+function editarProcPorNome(chave){
+  if(!abaAtiva)return;
+  const nome=decodeURIComponent(chave);
+  const idx=PROCS.findIndex(p=>p.aba===abaAtiva.nome&&p.nome===nome);
+  if(idx===-1){toast('Procedimento não encontrado','err');return;}
+  abrirFormProc(idx);
+}
+
+function removerProcPorNome(chave){
+  const nome=decodeURIComponent(chave);
+  const idx=PROCS.findIndex(p=>p.aba===abaAtiva.nome&&p.nome===nome);
+  if(idx===-1)return;
+  confirmar(`Excluir "${PROCS[idx].nome}"?`,async()=>{
+    PROCS.splice(idx,1);
+    await salvarProcs();
+    renderProcsAbaGrid();updateStats();renderTabsPub();
+    toast('Procedimento removido!','ok');
+  });
+}
+
 function removerProc(idx){
   confirmar(`Excluir "${PROCS[idx].nome}"?`,async()=>{
     PROCS.splice(idx,1);
@@ -1384,6 +1406,15 @@ function removerProc(idx){
     renderProcsAbaGrid();updateStats();renderTabsPub();
     toast('Procedimento removido!','ok');
   });
+}
+
+// Garante "R$ " na frente do valor
+function formatarValor(v){
+  if(!v)return '';
+  const s=String(v).trim();
+  if(/^R\s?\$|^\$|^€/.test(s))return s;
+  // só dígitos/vírgula/ponto → adiciona R$
+  return 'R$ '+s;
 }
 
 async function salvarProc(){

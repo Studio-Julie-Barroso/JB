@@ -72,8 +72,8 @@ body{font-family:'Jost',sans-serif;background:var(--b-blush);min-height:100vh;co
 .site-body{max-width:1100px;margin:0 auto;padding:32px 24px 40px;display:flex;gap:28px;align-items:flex-start;}
 .video-col{flex:3;}
 .video-frame{position:relative;border-radius:20px;overflow:hidden;background:var(--b-pale);box-shadow:0 20px 60px rgba(240,98,146,.18),0 4px 16px rgba(0,0,0,.06);border:1.5px solid rgba(255,255,255,.9);}
-.video-frame video{width:100%;height:420px;object-fit:cover;display:block;}
-#mainPhoto{width:100%;height:420px;object-fit:cover;object-position:center top;display:none;}
+.video-frame video{width:100%;height:var(--frame-h,420px);object-fit:cover;display:block;}
+#mainPhoto{width:100%;height:var(--frame-h,420px);object-fit:cover;object-position:center top;display:none;}
 .video-frame::after{content:"";position:absolute;bottom:0;left:0;right:0;height:90px;background:linear-gradient(to top,rgba(50,0,25,.32),transparent);pointer-events:none;}
 .sound-btn{position:absolute;bottom:18px;left:18px;z-index:3;display:inline-flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:9px 16px 9px 9px;cursor:pointer;color:#fff;background:rgba(60,0,30,.45);backdrop-filter:blur(14px);transition:background .25s,transform .22s;font-family:'Jost',sans-serif;}
 .sound-btn:hover{background:rgba(240,98,146,.7);transform:translateY(-2px);}
@@ -316,8 +316,9 @@ footer strong{color:#fff;font-weight:600;}
 @media(max-width:768px){
   .site-body{flex-direction:column;padding:20px 16px 32px;gap:20px;}
   .video-col,.sidebar-col{width:100%;flex:none;}
-  .video-frame video{height:220px;}
-  #mainPhoto{height:220px !important;}
+  /* no mobile a altura do frame é proporcional: 56vw mínimo, respeitando o var salvo mas nunca maior que 72vw */
+  .video-frame video{height:clamp(220px, 56vw, min(var(--frame-h,420px), 72vw)) !important;}
+  #mainPhoto{height:clamp(220px, 56vw, min(var(--frame-h,420px), 72vw)) !important;}
   .intro-name{font-size:32px;letter-spacing:6px;}
   .intro-deco-line{width:30px;}
   .logo-main{font-size:30px;letter-spacing:6px;}
@@ -330,6 +331,8 @@ footer strong{color:#fff;font-weight:600;}
 }
 @media(max-width:480px){
   .abas-grid,.procs-aba-grid{grid-template-columns:1fr;}
+  .video-frame video{height:clamp(200px, 60vw, 320px) !important;}
+  #mainPhoto{height:clamp(200px, 60vw, 320px) !important;}
 }
 </style>
 </head>
@@ -736,7 +739,7 @@ footer strong{color:#fff;font-weight:600;}
               </div>
               <div style="display:flex;align-items:center;gap:10px;">
                 <span style="font-size:11px;color:var(--text-lt);">Menor</span>
-                <input type="range" id="fotoSliderAlt" min="280" max="600" value="420"
+                <input type="range" id="fotoSliderAlt" min="280" max="700" value="420"
                   style="flex:1;accent-color:var(--b);height:4px;cursor:pointer;"
                   oninput="atualizarFotoAlt()">
                 <span style="font-size:11px;color:var(--text-lt);">Maior</span>
@@ -970,26 +973,29 @@ async function carregarVideoSite(){
 }
 
 function aplicarMidiaNoSite(tipo, url, posY, altura){
-  const video=document.getElementById('videoPlayer');
-  const foto=document.getElementById('mainPhoto');
-  const soundBtn=document.getElementById('soundBtn');
-  const py  = posY  ?? parseInt(localStorage.getItem('studio_foto_posY')  ||'50');
-  const alt = altura?? parseInt(localStorage.getItem('studio_foto_altura') ||'420');
+  const video    = document.getElementById('videoPlayer');
+  const foto     = document.getElementById('mainPhoto');
+  const soundBtn = document.getElementById('soundBtn');
+  const frame    = document.querySelector('.video-frame');
+  const py  = posY   ?? parseInt(localStorage.getItem('studio_foto_posY')   || '50');
+  const alt = altura ?? parseInt(localStorage.getItem('studio_foto_altura')  || '420');
+
   if(tipo==='foto'){
-    foto.src=url;
-    foto.style.objectPosition=`center ${py}%`;
-    foto.style.height=alt+'px';
-    foto.style.display='block';
-    video.pause();video.style.display='none';
-    soundBtn.style.display='none';
-    // ajusta altura do frame visível
-    document.querySelector('.video-frame').style.setProperty('--frame-h', alt+'px');
+    foto.src = url;
+    foto.style.objectPosition = `center ${py}%`;
+    frame.style.setProperty('--frame-h', alt + 'px');
+    foto.style.display = 'block';
+    video.pause();
+    video.style.display = 'none';
+    soundBtn.style.display = 'none';
   } else {
-    document.getElementById('videoSrc').src=url;
-    video.load();video.play().catch(()=>{});
-    video.style.display='block';foto.style.display='none';
-    soundBtn.style.display='';
-    document.querySelector('.video-frame').style.removeProperty('--frame-h');
+    document.getElementById('videoSrc').src = url;
+    video.load();
+    video.play().catch(()=>{});
+    frame.style.setProperty('--frame-h', alt + 'px');
+    video.style.display = 'block';
+    foto.style.display  = 'none';
+    soundBtn.style.display = '';
   }
 }
 
@@ -1601,14 +1607,12 @@ function atualizarFotoPos(){
 
 function atualizarFotoAlt(){
   fotoAltura=parseInt(document.getElementById('fotoSliderAlt').value);
-  document.getElementById('fotoAjusteBox').querySelector('#fotoPreviewFrame').style.height=Math.round(fotoAltura*0.57)+'px';
+  // redimensiona o preview (proporcional ao frame real)
+  document.getElementById('fotoAjusteBox').querySelector('#fotoPreviewFrame').style.height=Math.round(fotoAltura*0.50)+'px';
   document.getElementById('fotoAltLabel').textContent=fotoAltura+'px';
-  // Aplica em tempo real no site público se já publicada
-  const mainPhoto=document.getElementById('mainPhoto');
-  if(mainPhoto.style.display!=='none'){
-    mainPhoto.style.height=fotoAltura+'px';
-    document.querySelector('.video-frame video').style.height=fotoAltura+'px';
-  }
+  // aplica em tempo real no site público se já publicada
+  const frame=document.querySelector('.video-frame');
+  if(frame) frame.style.setProperty('--frame-h', fotoAltura+'px');
 }
 
 // Arrastar preview verticalmente com mouse/touch

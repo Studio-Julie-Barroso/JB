@@ -609,6 +609,36 @@ footer strong{color:#fff;font-weight:600;}
                 </div>
               </div>
 
+              <div class="form-divider">Manutenção</div>
+
+              <!-- toggle manutenção -->
+              <div style="display:flex;align-items:center;justify-content:space-between;background:var(--b-blush);border:1px solid var(--border);border-radius:11px;padding:14px 16px;margin-bottom:14px;">
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:var(--text);">Tem manutenção?</div>
+                  <div style="font-size:11px;color:var(--text-lt);margin-top:2px;">Ative para informar prazo e valor</div>
+                </div>
+                <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;">
+                  <input type="checkbox" id="fpTemManutencao" style="opacity:0;width:0;height:0;" onchange="toggleManutencao()">
+                  <span id="toggleManutSpan" style="position:absolute;cursor:pointer;inset:0;background:#ddd;border-radius:24px;transition:.2s;">
+                    <span style="position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;display:block;" id="toggleManutThumb"></span>
+                  </span>
+                </label>
+              </div>
+
+              <!-- campos de manutenção (ocultos por padrão) -->
+              <div id="boxManutencao" style="display:none;">
+                <div class="form-cols">
+                  <div class="form-row">
+                    <label class="form-label">🔄 Prazo de Manutenção</label>
+                    <input class="form-input" id="fpManutPrazo" placeholder="Ex: A cada 3 semanas">
+                  </div>
+                  <div class="form-row">
+                    <label class="form-label">💳 Valor da Manutenção</label>
+                    <input class="form-input" id="fpManutValor" placeholder="Ex: R$ 80,00">
+                  </div>
+                </div>
+              </div>
+
               <div class="btn-row">
                 <button class="btn-primary" id="btnSalvar" onclick="salvarProc()">Salvar Procedimento</button>
                 <button class="btn-secondary" onclick="voltarParaAbaDetalhe()">Cancelar</button>
@@ -899,16 +929,19 @@ async function loadProcs(){
   try{
     const d=await gasCall({aba:'PROCEDIMENTOS'});
     PROCS=(d||[]).map(r=>({
-      aba:      r.col1||'',
-      nome:     r.col2||'',
-      descricao:r.col3||'',
-      valor:    r.col4||'',
-      duracao:  r.col5||'',
-      fixacao:  r.col6||'',
-      indicado: r.col7||'',
-      imagem:   r.col8||'',
-      imgPosY:  parseInt(r.col9||'50'),
-      imgAltura:parseInt(r.col10||'145')
+      aba:        r.col1||'',
+      nome:       r.col2||'',
+      descricao:  r.col3||'',
+      valor:      r.col4||'',
+      duracao:    r.col5||'',
+      fixacao:    r.col6||'',
+      indicado:   r.col7||'',
+      imagem:     r.col8||'',
+      imgPosY:    parseInt(r.col9||'50'),
+      imgAltura:  parseInt(r.col10||'145'),
+      temManut:   r.col11==='true'||r.col11===true,
+      manutPrazo: r.col12||'',
+      manutValor: r.col13||''
     })).filter(p=>p.nome);
   }catch{PROCS=[];}
 }
@@ -1015,12 +1048,21 @@ function verDetalhe(idx){
          style="width:100%;height:${Math.max(altura,160)}px;object-fit:cover;object-position:center ${posY}%;display:block;">`
     : `<div style="height:90px;display:flex;align-items:center;justify-content:center;font-size:44px;background:var(--b-pale);">${emoji}</div>`;
 
-  // preço em destaque
-  const precoHtml = p.valor
-    ? `<div style="display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,var(--b),#EC407A);color:#fff;padding:8px 18px;border-radius:30px;font-size:15px;font-weight:700;letter-spacing:.5px;margin-bottom:16px;">
-        ${p.valor}
-       </div>`
-    : '';
+  // bloco de preços
+  const precoHtml = p.valor || p.temManut ? `
+    <div style="display:grid;grid-template-columns:${p.valor&&p.temManut?'1fr 1fr':'1fr'};gap:10px;margin-bottom:16px;">
+      ${p.valor ? `
+        <div style="background:linear-gradient(135deg,var(--b),#EC407A);border-radius:14px;padding:16px 18px;color:#fff;">
+          <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;opacity:.8;margin-bottom:5px;">Valor da sessão</div>
+          <div style="font-size:20px;font-weight:700;letter-spacing:.5px;">${p.valor}</div>
+        </div>` : ''}
+      ${p.temManut ? `
+        <div style="background:var(--b-pale);border:1px solid rgba(240,98,146,.25);border-radius:14px;padding:16px 18px;">
+          <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text-lt);margin-bottom:5px;">Manutenção</div>
+          <div style="font-size:15px;font-weight:700;color:var(--b-deep);">${p.manutValor||'Consultar'}</div>
+          ${p.manutPrazo?`<div style="font-size:11px;color:var(--text-lt);margin-top:3px;">🔄 ${p.manutPrazo}</div>`:''}
+        </div>` : ''}
+    </div>` : '';
 
   // linhas de informação estruturadas
   const infos = [
@@ -1097,7 +1139,7 @@ async function salvarAbas(){
   catch{toast('Erro ao salvar abas','err');}
 }
 async function salvarProcs(){
-  try{await gasCall({action:'setProcs',dados:JSON.stringify(PROCS.map(p=>[p.aba,p.nome,p.descricao,p.valor,p.duracao,p.fixacao,p.indicado,p.imagem,p.imgPosY??50,p.imgAltura??145]))});}
+  try{await gasCall({action:'setProcs',dados:JSON.stringify(PROCS.map(p=>[p.aba,p.nome,p.descricao,p.valor,p.duracao,p.fixacao,p.indicado,p.imagem,p.imgPosY??50,p.imgAltura??145,p.temManut?'true':'false',p.manutPrazo||'',p.manutValor||'']))});}
   catch{toast('Erro ao salvar procedimentos','err');}
 }
 
@@ -1262,7 +1304,7 @@ function abrirFormProc(idx){
   if(idx===-1){
     document.getElementById('formProcSubtitle').textContent='Novo';
     document.getElementById('editIdx').value='';
-    ['fpNome','fpDesc','fpValor','fpDur','fpFix','fpInd','fpImg'].forEach(id=>document.getElementById(id).value='');
+    ['fpNome','fpDesc','fpValor','fpDur','fpFix','fpInd','fpImg','fpManutPrazo','fpManutValor'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('imgPreview').style.display='none';
     document.getElementById('imgPlaceholder').classList.remove('hidden');
     document.getElementById('imgLabel').textContent='';
@@ -1274,6 +1316,7 @@ function abrirFormProc(idx){
     document.getElementById('fpImgAltura').value=145;
     document.getElementById('imgPosLabel').textContent='Centro';
     document.getElementById('imgAltLabel').textContent='145px';
+    setToggleManut(false);
     imgPend=null;
   } else {
     const p=PROCS[idx];
@@ -1286,8 +1329,10 @@ function abrirFormProc(idx){
     document.getElementById('fpFix').value=p.fixacao;
     document.getElementById('fpInd').value=p.indicado;
     document.getElementById('fpImg').value=p.imagem;
+    document.getElementById('fpManutPrazo').value=p.manutPrazo||'';
+    document.getElementById('fpManutValor').value=p.manutValor||'';
     document.getElementById('bcProc').textContent=p.nome;
-    // sliders
+    setToggleManut(p.temManut||false);
     const posY  = p.imgPosY??50;
     const altura= p.imgAltura??145;
     document.getElementById('imgSliderPos').value=posY;
@@ -1313,8 +1358,19 @@ function abrirFormProc(idx){
   }
 }
 
-function novoProc(){if(!abaAtiva)return;abrirFormProc(-1);}
-function editarProc(idx){if(!abaAtiva)return;abrirFormProc(idx);}
+function toggleManutencao(){
+  const on=document.getElementById('fpTemManutencao').checked;
+  document.getElementById('boxManutencao').style.display=on?'block':'none';
+  const span=document.getElementById('toggleManutSpan');
+  const thumb=document.getElementById('toggleManutThumb');
+  span.style.background=on?'var(--b)':'#ddd';
+  thumb.style.transform=on?'translateX(20px)':'translateX(0)';
+}
+
+function setToggleManut(val){
+  document.getElementById('fpTemManutencao').checked=val;
+  toggleManutencao();
+}
 
 function atualizarBcProc(){
   const nome=document.getElementById('fpNome').value.trim();
@@ -1341,12 +1397,15 @@ async function salvarProc(){
   let   img=document.getElementById('fpImg').value.trim();
   const posY  =parseInt(document.getElementById('fpImgPosY').value||'50');
   const altura=parseInt(document.getElementById('fpImgAltura').value||'145');
+  const temManut   = document.getElementById('fpTemManutencao').checked;
+  const manutPrazo = document.getElementById('fpManutPrazo').value.trim();
+  const manutValor = document.getElementById('fpManutValor').value.trim();
   if(!nome){toast('Informe o nome do procedimento','warn');return;}
   if(!desc){toast('Informe a descrição','warn');return;}
   btn.innerHTML='<span class="spinner"></span> Salvando...';btn.disabled=true;
   try{
     if(imgPend){toast('Enviando foto...','info');img=await cloudUpload(imgPend,'image');document.getElementById('fpImg').value=img;}
-    const obj={aba:abaAtiva.nome,nome,descricao:desc,valor,duracao:dur,fixacao:fix,indicado:ind,imagem:img,imgPosY:posY,imgAltura:altura};
+    const obj={aba:abaAtiva.nome,nome,descricao:desc,valor,duracao:dur,fixacao:fix,indicado:ind,imagem:img,imgPosY:posY,imgAltura:altura,temManut,manutPrazo,manutValor};
     const ei=document.getElementById('editIdx').value;
     if(ei!=='')PROCS[parseInt(ei)]=obj;else PROCS.push(obj);
     await salvarProcs();

@@ -835,8 +835,30 @@ footer strong{color:#fff;font-weight:600;}
    CONFIG
 ════════════════════════════════════════ */
 const SENHA   = 'studiojuliebarroso2026';
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzxXuqE0VEmkxK_jgri79zeGwcR7HNp2MLqcUw95HtBrZwaHD4nivtcWqks1AB-fjU/exec';
+const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzxXuqE0VEmkxK_jgri79zeGwcR7HNp2MLqcUw95HtBrZwaHD4nivtcWqks1AB-fjU/exec';
 const CLOUD   = { cloud:'dsxcqq4yv', preset:'jo9fb1yf' };
+
+function isAppsScriptHost(){
+  try{
+    const url=new URL(window.location.href);
+    return /script\.google\.com$/i.test(url.hostname) && /\/exec$/.test(url.pathname);
+  }catch{return false;}
+}
+
+function resolveGasUrl(){
+  if(isAppsScriptHost()){
+    try{
+      const url=new URL(window.location.href);
+      url.search='';
+      url.hash='';
+      return url.toString();
+    }catch{}
+  }
+  return DEFAULT_GAS_URL;
+}
+
+const GAS_URL = resolveGasUrl();
+const GAS_EMBEDDED = isAppsScriptHost();
 
 /* ════════════════════════════════════════
    ESTADO
@@ -917,7 +939,9 @@ function serializeProcImagens(list){
 }
 
 function syncProcFotosField(){
-  const urls=procFotos.map(f=>f.url).filter(Boolean);
+  const urls=procFotos
+    .map(f=>f?.url)
+    .filter(url=>url && !String(url).startsWith('blob:'));
   document.getElementById('fpImg').value=serializeProcImagens(urls);
   return urls;
 }
@@ -971,6 +995,18 @@ function sincEmojiInput(inputId, containerId){
    GAS JSONP
 ════════════════════════════════════════ */
 function gasCall(p){
+  if(GAS_EMBEDDED){
+    return fetch(GAS_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(p)
+    }).then(async resp=>{
+      if(!resp.ok) throw new Error('http '+resp.status);
+      const data=await resp.json();
+      if(data?.error) throw new Error(data.error);
+      return data;
+    });
+  }
   return new Promise((res,rej)=>{
     const cb='gc_'+Date.now()+'_'+Math.random().toString(36).slice(2);
     const qs=Object.entries({...p,callback:cb}).map(([k,v])=>`${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
@@ -1268,8 +1304,9 @@ function updateStats(){
   document.getElementById('stAbas').textContent=ABAS.length;
   document.getElementById('stProcs').textContent=PROCS.length;
   document.getElementById('navCntAbas').textContent=ABAS.length;
-  const url=localStorage.getItem('studio_video_url')||'';
-  document.getElementById('stVideo').textContent=url?'✓':'–';
+  const videoUrl=localStorage.getItem('studio_video_url')||'';
+  const fotoUrl=localStorage.getItem('studio_foto_url')||'';
+  document.getElementById('stVideo').textContent=(videoUrl||fotoUrl)?'✓':'–';
 }
 function goSec(id){
   document.querySelectorAll('.adm-sec').forEach(s=>s.classList.remove('active'));
@@ -1561,7 +1598,7 @@ function renderGaleriaProc(){
       <span class="img-gallery-badge">${i===0?'Capa':`Foto ${i+1}`}</span>
     </div>
   `).join('');
-  document.getElementById('imgLabel').textContent=`${urls.length} foto${urls.length!==1?'s':''} adicionada${urls.length!==1?'s':''}.`;
+  document.getElementById('imgLabel').textContent=`${procFotos.length} foto${procFotos.length!==1?'s':''} adicionada${procFotos.length!==1?'s':''}.`;
 }
 
 function adicionarArquivosProc(files){
@@ -1736,14 +1773,6 @@ async function salvarProc(){
 /* ════════════════════════════════════════
    UPLOAD IMAGEM PROC — com ajuste
 ════════════════════════════════════════ */
-function mostrarAjusteImg(src){
-  const prev=document.getElementById('imgPreview');
-  prev.src=src; prev.style.display='block';
-  document.getElementById('imgPlaceholder').classList.add('hidden');
-  document.getElementById('imgAjusteBox').style.display='block';
-  atualizarImgPos(); atualizarImgAlt();
-}
-
 function atualizarImgPos(){
   const val=parseInt(document.getElementById('imgSliderPos').value);
   document.getElementById('fpImgPosY').value=val;
@@ -1759,23 +1788,9 @@ function atualizarImgAlt(){
   document.getElementById('imgAltLabel').textContent=val+'px';
 }
 
-function onImgPick(e){
-  const f=e.target.files[0];if(!f)return;
-  imgPend=f;
-  const r=new FileReader();
-  r.onload=ev=>mostrarAjusteImg(ev.target.result);
-  r.readAsDataURL(f);
-  document.getElementById('imgLabel').textContent=`✓ ${f.name}`;
-}
 const imgArea=document.getElementById('imgArea');
 ['dragover','dragenter'].forEach(ev=>imgArea.addEventListener(ev,e=>{e.preventDefault();imgArea.classList.add('drag-over');}));
 ['dragleave','drop'].forEach(ev=>imgArea.addEventListener(ev,()=>imgArea.classList.remove('drag-over')));
-imgArea.addEventListener('drop',e=>{
-  e.preventDefault();const f=e.dataTransfer?.files?.[0];if(!f)return;imgPend=f;
-  const r=new FileReader();
-  r.onload=ev=>mostrarAjusteImg(ev.target.result);
-  r.readAsDataURL(f);document.getElementById('imgLabel').textContent=`✓ ${f.name}`;
-});
 
 /* ════════════════════════════════════════
    TELA PRINCIPAL — TIPO DE MÍDIA
@@ -1793,6 +1808,50 @@ imgArea.addEventListener('drop',e=>{
 
 let tipoMidia = 'video'; // 'video' | 'foto'
 let fotoPend  = null;
+
+async function persistirMidiaPublica(tipo, url, posY=null, altura=null){
+  if(tipo==='foto'){
+    await gasCall({action:'setFoto',url});
+    await gasCall({action:'setMidiaConfig',tipoMidia:'foto'});
+    await gasCall({action:'setFotoConfig',posY,altura});
+
+    const [df, dc, dm] = await Promise.all([
+      gasCall({aba:'FOTO'}),
+      gasCall({aba:'FOTO_CONFIG'}),
+      gasCall({aba:'MIDIA_CONFIG'})
+    ]);
+    const savedUrl=df?.[0]?.col1||'';
+    const savedPos=parseInt(dc?.[0]?.col1 ?? posY ?? 50);
+    const savedAlt=parseInt(dc?.[0]?.col2 ?? altura ?? 420);
+    const savedTipo=dm?.[0]?.col1||'';
+    if(savedUrl!==url || savedTipo!=='foto') throw new Error('A foto nao foi confirmada no servidor.');
+
+    try{
+      localStorage.setItem('studio_foto_url',savedUrl);
+      localStorage.setItem('studio_midia_tipo','foto');
+      localStorage.setItem('studio_foto_posY',savedPos);
+      localStorage.setItem('studio_foto_altura',savedAlt);
+    }catch{}
+    return {url:savedUrl,posY:savedPos,altura:savedAlt};
+  }
+
+  await gasCall({action:'setVideo',url});
+  await gasCall({action:'setMidiaConfig',tipoMidia:'video'});
+
+  const [dv, dm] = await Promise.all([
+    gasCall({aba:'VIDEO'}),
+    gasCall({aba:'MIDIA_CONFIG'})
+  ]);
+  const savedUrl=dv?.[0]?.col1||'';
+  const savedTipo=dm?.[0]?.col1||'';
+  if(savedUrl!==url || savedTipo!=='video') throw new Error('O video nao foi confirmado no servidor.');
+
+  try{
+    localStorage.setItem('studio_video_url',savedUrl);
+    localStorage.setItem('studio_midia_tipo','video');
+  }catch{}
+  return {url:savedUrl};
+}
 
 function setTipoMidia(tipo){
   tipoMidia = tipo;
@@ -1853,12 +1912,10 @@ async function uploadVideo(){
   try{
     toast('Iniciando upload...','info');
     const url=await cloudUpload(vidPend,'video',pct=>{bar.style.width=pct+'%';lbl.textContent=`Enviando... ${pct}%`;});
-    try{localStorage.setItem('studio_video_url',url);localStorage.setItem('studio_midia_tipo','video');}catch{}
-    await gasCall({action:'setVideo',url});
-    await gasCall({action:'setMidiaConfig',tipoMidia:'video'});
-    atualizarVidPreview(url,'video');
+    const saved=await persistirMidiaPublica('video',url);
+    atualizarVidPreview(saved.url,'video');
     // Aplica no site público
-    aplicarMidiaNoSite('video', url);
+    aplicarMidiaNoSite('video', saved.url);
     bar.style.width='100%';lbl.textContent='Concluído!';
     updateStats();toast('Vídeo publicado!','ok');vidPend=null;document.getElementById('vidFile').value='';
   }catch(e){toast('Erro: '+e.message,'err');}
@@ -1961,17 +2018,9 @@ async function uploadFoto(){
   try{
     toast('Enviando foto...','info');
     const url=await cloudUpload(fotoPend,'image',pct=>{bar.style.width=pct+'%';lbl.textContent=`Enviando... ${pct}%`;});
-    try{
-      localStorage.setItem('studio_foto_url',url);
-      localStorage.setItem('studio_midia_tipo','foto');
-      localStorage.setItem('studio_foto_posY',fotoPosY);
-      localStorage.setItem('studio_foto_altura',fotoAltura);
-    }catch{}
-    await gasCall({action:'setFoto',url});
-    await gasCall({action:'setMidiaConfig',tipoMidia:'foto'});
-    await gasCall({action:'setFotoConfig',posY:fotoPosY,altura:fotoAltura});
-    atualizarVidPreview(url,'foto');
-    aplicarMidiaNoSite('foto',url,fotoPosY,fotoAltura);
+    const saved=await persistirMidiaPublica('foto',url,fotoPosY,fotoAltura);
+    atualizarVidPreview(saved.url,'foto');
+    aplicarMidiaNoSite('foto',saved.url,saved.posY,saved.altura);
     bar.style.width='100%';lbl.textContent='Concluído!';
     updateStats();toast('Foto publicada!','ok');fotoPend=null;document.getElementById('fotoFile').value='';
   }catch(e){toast('Erro: '+e.message,'err');}

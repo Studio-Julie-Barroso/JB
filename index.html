@@ -253,6 +253,23 @@ footer strong{color:#fff;font-weight:600;}
 .img-upload-sub{font-size:11px;color:var(--text-lt);}
 .img-upload-change{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.45);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-family:'Jost',sans-serif;cursor:pointer;backdrop-filter:blur(6px);display:none;}
 .img-upload-area:hover .img-upload-change{display:block;}
+.img-gallery-strip{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 2px;margin-top:12px;scrollbar-width:thin;}
+.img-gallery-item{position:relative;width:84px;height:84px;border-radius:12px;overflow:hidden;flex:0 0 auto;border:1px solid rgba(240,98,146,.22);background:var(--white);box-shadow:0 4px 14px rgba(240,98,146,.08);}
+.img-gallery-item img{width:100%;height:100%;object-fit:cover;display:block;}
+.img-gallery-item.is-active{outline:2px solid var(--b);outline-offset:2px;}
+.img-gallery-remove{position:absolute;top:6px;right:6px;width:22px;height:22px;border:none;border-radius:50%;background:rgba(58,16,32,.72);color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.img-gallery-badge{position:absolute;left:6px;bottom:6px;background:rgba(255,255,255,.92);color:var(--text-mid);font-size:9px;font-weight:700;letter-spacing:.5px;padding:3px 6px;border-radius:999px;text-transform:uppercase;}
+.detalhe-carousel{margin:-20px -20px 18px;position:relative;}
+.detalhe-carousel-track{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 20px 8px;scrollbar-width:none;cursor:grab;}
+.detalhe-carousel-track::-webkit-scrollbar{display:none;}
+.detalhe-carousel-track.is-dragging{cursor:grabbing;}
+.detalhe-carousel-slide{flex:0 0 100%;scroll-snap-align:start;border-radius:14px;overflow:hidden;position:relative;background:var(--b-pale);}
+.detalhe-carousel-slide img,.detalhe-carousel-slide .detalhe-carousel-ph{width:100%;display:block;}
+.detalhe-carousel-ph{display:flex;align-items:center;justify-content:center;font-size:44px;background:var(--b-pale);}
+.detalhe-carousel-count{position:absolute;right:30px;bottom:18px;background:rgba(58,16,32,.55);color:#fff;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:6px 10px;border-radius:999px;backdrop-filter:blur(6px);}
+.detalhe-carousel-dots{display:flex;justify-content:center;gap:7px;margin-top:10px;}
+.detalhe-carousel-dot{width:8px;height:8px;border-radius:50%;background:rgba(240,98,146,.25);transition:transform .2s,background .2s;}
+.detalhe-carousel-dot.active{background:var(--b);transform:scale(1.2);}
 
 .form-row{margin-bottom:16px;}
 .form-label{display:block;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-mid);margin-bottom:6px;}
@@ -397,7 +414,7 @@ footer strong{color:#fff;font-weight:600;}
           <source id="videoSrc" src="apresentacao.mp4" type="video/mp4">
         </video>
         <!-- FOTO (alternativa) -->
-        <img id="mainPhoto" src="" alt="Studio Julie Barroso">
+        <img id="mainPhoto" src="" alt="Studio Julie Barroso" decoding="async" fetchpriority="high">
         <button class="sound-btn is-muted" id="soundBtn" onclick="toggleSound()">
           <span class="sound-btn-icon" id="soundIcon">&#9835;</span>
           <span class="sound-btn-label">
@@ -529,16 +546,17 @@ footer strong{color:#fff;font-weight:600;}
               <div class="form-row">
                 <label class="form-label">📸 Foto do Procedimento</label>
                 <div class="img-upload-area" id="imgArea">
-                  <input type="file" id="imgFile" accept="image/*" onchange="onImgPick(event)">
+                  <input type="file" id="imgFile" accept="image/*" multiple onchange="onImgPick(event)">
                   <div class="img-upload-placeholder" id="imgPlaceholder">
                     <div class="img-upload-ico">🌸</div>
                     <div class="img-upload-txt">Clique ou arraste a foto aqui</div>
                     <div class="img-upload-sub">JPG · PNG · WEBP</div>
                   </div>
                   <img id="imgPreview" class="img-upload-preview" alt="">
-                  <button class="img-upload-change" type="button" onclick="document.getElementById('imgFile').click()">Trocar foto</button>
+                  <button class="img-upload-change" type="button" onclick="document.getElementById('imgFile').click()">Adicionar fotos</button>
                 </div>
                 <input type="hidden" id="fpImg" value="">
+                <div id="imgGallery" class="img-gallery-strip" style="display:none;"></div>
 
                 <!-- ajuste de enquadramento (aparece após foto selecionada ou existente) -->
                 <div id="imgAjusteBox" style="display:none;margin-top:12px;background:var(--b-blush);border:1px solid var(--border);border-radius:12px;padding:14px;">
@@ -826,9 +844,15 @@ const CLOUD   = { cloud:'dsxcqq4yv', preset:'jo9fb1yf' };
 let ABAS  = [];  // [{id,nome,emoji}]
 let PROCS = [];  // [{aba,nome,descricao,valor,duracao,fixacao,indicado,imagem,imgPosY,imgAltura}]
 let abaAtiva  = null;
-let imgPend   = null;
+let imgPend   = [];
+let procFotos = [];
+let imgAtivaIdx = 0;
 let vidPend   = null;
 let confirmCb = null;
+const CACHE_KEYS = {
+  abas:'studio_abas_cache',
+  procs:'studio_procs_cache'
+};
 
 /* ════════════════════════════════════════
    EMOJIS
@@ -838,6 +862,88 @@ const EMOJIS_ABA = [
   '⭐','✦','🦋','🌟','💎','🪞','🧖','🧴','🪄','🎀',
   '🌙','☀️','🌈','🍃','🌿','🪻','💐','🌻','🫧','🧸'
 ];
+
+function makeId(prefix='id'){
+  return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2,8)}`;
+}
+
+function cacheRead(key, fallback){
+  try{
+    const raw=localStorage.getItem(key);
+    return raw?JSON.parse(raw):fallback;
+  }catch{return fallback;}
+}
+
+function cacheWrite(key, value){
+  try{localStorage.setItem(key, JSON.stringify(value));}catch{}
+}
+
+function cloudinaryUrl(url, transform){
+  if(!url || !transform || !/res\.cloudinary\.com/i.test(url) || !/\/upload\//.test(url)) return url||'';
+  if(url.includes(`/${transform}/`)) return url;
+  return url.replace('/upload/', `/upload/${transform}/`);
+}
+
+function mediaImageUrl(url, variant='card'){
+  if(!url) return '';
+  const transforms={
+    card:'f_auto,q_auto,w_420,h_320,c_fill,g_auto',
+    detail:'f_auto,q_auto,w_1280,h_960,c_limit',
+    hero:'f_auto,q_auto,w_1600,h_1000,c_fill,g_auto'
+  };
+  return cloudinaryUrl(url, transforms[variant]||transforms.card);
+}
+
+function parseProcImagens(raw){
+  if(!raw) return [];
+  if(Array.isArray(raw)) return raw.filter(Boolean);
+  const txt=String(raw).trim();
+  if(!txt) return [];
+  if(txt.startsWith('[')){
+    try{
+      const arr=JSON.parse(txt);
+      return Array.isArray(arr)?arr.filter(Boolean):[];
+    }catch{return txt?[txt]:[];}
+  }
+  return [txt];
+}
+
+function serializeProcImagens(list){
+  const urls=list
+    .map(item=>typeof item==='string'?item:item?.url)
+    .filter(Boolean);
+  if(!urls.length) return '';
+  return urls.length===1 ? urls[0] : JSON.stringify(urls);
+}
+
+function syncProcFotosField(){
+  const urls=procFotos.map(f=>f.url).filter(Boolean);
+  document.getElementById('fpImg').value=serializeProcImagens(urls);
+  return urls;
+}
+
+function hydratePublicCache(){
+  const abas=cacheRead(CACHE_KEYS.abas,null);
+  const procs=cacheRead(CACHE_KEYS.procs,null);
+  if(Array.isArray(abas)&&abas.length) ABAS=abas;
+  if(Array.isArray(procs)&&procs.length) PROCS=procs;
+  if(ABAS.length) renderTabsPub();
+}
+
+function applyCachedMidia(){
+  try{
+    const tipo=localStorage.getItem('studio_midia_tipo')||'video';
+    if(tipo==='foto'){
+      const url=localStorage.getItem('studio_foto_url')||'';
+      const posY=parseInt(localStorage.getItem('studio_foto_posY')||'50');
+      const alt=parseInt(localStorage.getItem('studio_foto_altura')||'420');
+      if(url) aplicarMidiaNoSite('foto',url,posY,alt);
+      return;
+    }
+    const url=localStorage.getItem('studio_video_url')||'';
+    if(url) aplicarMidiaNoSite('video',url);
+  }catch{}
+}
 
 function renderEmojiPicker(containerId, inputId, current=''){
   const container=document.getElementById(containerId);
@@ -918,6 +1024,8 @@ updateSoundBtn();
    INIT
 ════════════════════════════════════════ */
 async function initSite(){
+  hydratePublicCache();
+  applyCachedMidia();
   await Promise.all([loadAbas(),loadProcs()]);
   renderTabsPub();
   carregarVideoSite();
@@ -927,26 +1035,33 @@ async function loadAbas(){
     const d=await gasCall({aba:'ABAS'});
     ABAS=(d||[]).map((r,i)=>({id:r.col1||String(i+1),nome:r.col2||r.col1||'',emoji:r.col3||'✦'})).filter(a=>a.nome);
   }catch{ABAS=[{id:'1',nome:'Extensão de Cílios',emoji:'👁'},{id:'2',nome:'Outros Procedimentos',emoji:'✨'}];}
+  cacheWrite(CACHE_KEYS.abas,ABAS);
 }
 async function loadProcs(){
   try{
     const d=await gasCall({aba:'PROCEDIMENTOS'});
-    PROCS=(d||[]).map(r=>({
-      aba:        r.col1||'',
-      nome:       r.col2||'',
-      descricao:  r.col3||'',
-      valor:      r.col4||'',
-      duracao:    r.col5||'',
-      fixacao:    r.col6||'',
-      indicado:   r.col7||'',
-      imagem:     r.col8||'',
-      imgPosY:    parseInt(r.col9||'50'),
-      imgAltura:  parseInt(r.col10||'145'),
-      temManut:   r.col11==='true'||r.col11===true,
-      manutPrazo: r.col12||'',
-      manutValor: r.col13||''
-    })).filter(p=>p.nome);
+    PROCS=(d||[]).map(r=>{
+      const fotos=parseProcImagens(r.col8||'');
+      return {
+        id:         r.col14||r.rowId||makeId('proc'),
+        aba:        r.col1||'',
+        nome:       r.col2||'',
+        descricao:  r.col3||'',
+        valor:      r.col4||'',
+        duracao:    r.col5||'',
+        fixacao:    r.col6||'',
+        indicado:   r.col7||'',
+        imagem:     fotos[0]||'',
+        fotos,
+        imgPosY:    parseInt(r.col9||'50'),
+        imgAltura:  parseInt(r.col10||'145'),
+        temManut:   r.col11==='true'||r.col11===true,
+        manutPrazo: r.col12||'',
+        manutValor: r.col13||''
+      };
+    }).filter(p=>p.nome);
   }catch{PROCS=[];}
+  cacheWrite(CACHE_KEYS.procs,PROCS);
 }
 async function carregarVideoSite(){
   try{
@@ -960,11 +1075,25 @@ async function carregarVideoSite(){
       const url  = df?.[0]?.col1 || localStorage.getItem('studio_foto_url') || '';
       const posY = parseInt(dc?.[0]?.col1 ?? localStorage.getItem('studio_foto_posY') ?? 50);
       const alt  = parseInt(dc?.[0]?.col2 ?? localStorage.getItem('studio_foto_altura') ?? 420);
-      if(url) aplicarMidiaNoSite('foto', url, posY, alt);
+      if(url){
+        try{
+          localStorage.setItem('studio_foto_url',url);
+          localStorage.setItem('studio_midia_tipo','foto');
+          localStorage.setItem('studio_foto_posY',posY);
+          localStorage.setItem('studio_foto_altura',alt);
+        }catch{}
+        aplicarMidiaNoSite('foto', url, posY, alt);
+      }
     } else {
       const dv=await gasCall({aba:'VIDEO'});
       const url=dv?.[0]?.col1||localStorage.getItem('studio_video_url')||'';
-      if(url) aplicarMidiaNoSite('video',url);
+      if(url){
+        try{
+          localStorage.setItem('studio_video_url',url);
+          localStorage.setItem('studio_midia_tipo','video');
+        }catch{}
+        aplicarMidiaNoSite('video',url);
+      }
     }
   }catch{
     const url=localStorage.getItem('studio_video_url')||'';
@@ -981,7 +1110,7 @@ function aplicarMidiaNoSite(tipo, url, posY, altura){
   const alt = altura ?? parseInt(localStorage.getItem('studio_foto_altura')  || '420');
 
   if(tipo==='foto'){
-    foto.src = url;
+    foto.src = mediaImageUrl(url,'hero');
     foto.style.objectPosition = `center ${py}%`;
     frame.style.setProperty('--frame-h', alt + 'px');
     foto.style.display = 'block';
@@ -1035,7 +1164,7 @@ function showAba(nome){
       const idx=PROCS.indexOf(p);
       const posY  = p.imgPosY??50;
       const thumb=p.imagem
-        ?`<div class="pub-card-thumb"><img src="${p.imagem}" alt="${p.nome}" style="object-position:center ${posY}%"></div>`
+        ?`<div class="pub-card-thumb"><img src="${mediaImageUrl(p.imagem,'card')}" alt="${p.nome}" style="object-position:center ${posY}%"></div>`
         :`<div class="pub-card-thumb">${emoji}</div>`;
       return `<div class="pub-card" onclick="verDetalhe(${idx})">${thumb}
         <div class="pub-card-info"><div class="pub-card-title">${p.nome}</div><div class="pub-card-desc">${p.valor?formatarValor(p.valor)+' · ':''}${p.duracao||''}</div></div>
@@ -1048,11 +1177,24 @@ function verDetalhe(idx){
   const posY  = p.imgPosY??50;
   const altura= p.imgAltura??145;
 
-  // imagem topo
-  const imgHtml = p.imagem
-    ? `<img src="${p.imagem}" alt="${p.nome}"
-         style="width:100%;height:${Math.max(altura,160)}px;object-fit:cover;object-position:center ${posY}%;display:block;">`
-    : `<div style="height:90px;display:flex;align-items:center;justify-content:center;font-size:44px;background:var(--b-pale);">${emoji}</div>`;
+  const fotos=(p.fotos&&p.fotos.length?p.fotos:parseProcImagens(p.imagem)).filter(Boolean);
+  const galeriaHtml = fotos.length
+    ? `<div class="detalhe-carousel">
+         <div class="detalhe-carousel-track" id="detalheCarouselTrack">
+           ${fotos.map((foto,i)=>`
+             <div class="detalhe-carousel-slide">
+               <img src="${mediaImageUrl(foto,'detail')}" alt="${p.nome} - foto ${i+1}" style="height:${Math.max(altura,160)}px;object-fit:cover;object-position:center ${posY}%;">
+               ${i===0?'<div style="position:absolute;bottom:10px;left:14px;font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.85);text-transform:uppercase;background:rgba(0,0,0,.2);padding:3px 9px;border-radius:4px;">Studio Julie Barroso</div>':''}
+             </div>
+           `).join('')}
+         </div>
+         ${fotos.length>1?`<div class="detalhe-carousel-count">${fotos.length} fotos</div><div class="detalhe-carousel-dots">${fotos.map((_,i)=>`<span class="detalhe-carousel-dot${i===0?' active':''}"></span>`).join('')}</div>`:''}
+       </div>`
+    : `<div class="detalhe-carousel">
+         <div class="detalhe-carousel-slide">
+           <div class="detalhe-carousel-ph" style="height:90px;">${emoji}</div>
+         </div>
+       </div>`;
 
   // bloco de preços
   const precoHtml = p.valor || p.temManut ? `
@@ -1089,10 +1231,7 @@ function verDetalhe(idx){
     : '';
 
   document.getElementById('contentPanel').innerHTML =
-    `<div style="margin:-20px -20px 18px;border-radius:14px 14px 0 0;overflow:hidden;position:relative;">
-       ${imgHtml}
-       <div style="position:absolute;bottom:10px;left:14px;font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.85);text-transform:uppercase;background:rgba(0,0,0,.2);padding:3px 9px;border-radius:4px;">Studio Julie Barroso</div>
-     </div>
+    `${galeriaHtml}
      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;letter-spacing:2px;color:var(--text);margin-bottom:6px;">${p.nome}</div>
      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
        <div style="width:28px;height:1.5px;background:var(--b);border-radius:2px;"></div>
@@ -1103,6 +1242,7 @@ function verDetalhe(idx){
      ${infosHtml}
      <button class="btn-voltar" onclick="showAba('${p.aba}')">← Voltar</button>`;
 
+  ativarCarouselDetalhe();
   if(window.innerWidth<=768) setTimeout(()=>document.getElementById('contentPanel').scrollIntoView({behavior:'smooth',block:'start'}),50);
 }
 
@@ -1140,15 +1280,6 @@ function goSec(id){
 /* ════════════════════════════════════════
    ADMIN — ABAS (grade)
 ════════════════════════════════════════ */
-async function salvarAbas(){
-  try{await gasCall({action:'setAbas',dados:JSON.stringify(ABAS.map(a=>[a.id,a.nome,a.emoji]))});}
-  catch{toast('Erro ao salvar abas','err');}
-}
-async function salvarProcs(){
-  try{await gasCall({action:'setProcs',dados:JSON.stringify(PROCS.map(p=>[p.aba,p.nome,p.descricao,p.valor,p.duracao,p.fixacao,p.indicado,p.imagem,p.imgPosY??50,p.imgAltura??145,p.temManut?'true':'false',p.manutPrazo||'',p.manutValor||'']))});}
-  catch{toast('Erro ao salvar procedimentos','err');}
-}
-
 function renderAbasGrid(){
   const grid=document.getElementById('abasGrid');
   let html='';
@@ -1221,7 +1352,7 @@ function renderProcsAbaGrid(){
     const posY  = p.imgPosY??50;
     const altura= p.imgAltura??145;
     const imgHtml=p.imagem
-      ?`<img class="proc-aba-img" src="${p.imagem}" alt="${p.nome}" style="height:${altura}px;object-position:center ${posY}%;">`
+      ?`<img class="proc-aba-img" src="${mediaImageUrl(p.imagem,'card')}" alt="${p.nome}" style="height:${altura}px;object-position:center ${posY}%;">`
       :`<div class="proc-aba-ph">${abaAtiva.emoji}</div>`;
     const valorFmt=p.valor?formatarValor(p.valor):'';
     html+=`<div class="proc-aba-card">
@@ -1245,23 +1376,57 @@ function renderProcsAbaGrid(){
   document.getElementById('procsAbaGrid').innerHTML=html;
 }
 
+function novoProc(){
+  if(!abaAtiva){toast('Abra uma aba primeiro','warn');return;}
+  abrirFormProc(-1);
+}
+
+async function salvarAbas(){
+  await gasCall({action:'setAbas',dados:JSON.stringify(ABAS.map(a=>[a.id,a.nome,a.emoji]))});
+  cacheWrite(CACHE_KEYS.abas,ABAS);
+}
+
+async function salvarProcs(){
+  await gasCall({action:'setProcs',dados:JSON.stringify(PROCS.map(p=>[p.aba,p.nome,p.descricao,p.valor,p.duracao,p.fixacao,p.indicado,serializeProcImagens(p.fotos||parseProcImagens(p.imagem)),p.imgPosY??50,p.imgAltura??145,p.temManut?'true':'false',p.manutPrazo||'',p.manutValor||'',p.id||makeId('proc')]))});
+  cacheWrite(CACHE_KEYS.procs,PROCS);
+}
+
+function salvarProcUnico(proc, editando=false){
+  const action=editando?'updateProc':'addProc';
+  const payload={...proc,imagem:serializeProcImagens(proc.fotos||parseProcImagens(proc.imagem))};
+  return gasCall({action,dado:JSON.stringify(payload)});
+}
+
+function removerProcServidor(id){
+  return gasCall({action:'deleteProc',id});
+}
+
+function renomearProcsDaAbaServidor(oldName,newName){
+  return gasCall({action:'renameProcAba',oldName,newName});
+}
+
+function removerProcsDaAbaServidor(abaNome){
+  return gasCall({action:'deleteAbaProcs',abaNome});
+}
+
 function removerAba(id){
   const a=ABAS.find(x=>x.id===id);if(!a)return;
   confirmar(`Excluir a aba "${a.nome}"? Os procedimentos desta aba também serão removidos.`,async()=>{
     PROCS=PROCS.filter(p=>p.aba!==a.nome);
     ABAS=ABAS.filter(x=>x.id!==id);
-    await salvarAbas();await salvarProcs();
+    await Promise.all([salvarAbas(),removerProcsDaAbaServidor(a.nome)]);
+    cacheWrite(CACHE_KEYS.procs,PROCS);
     renderAbasGrid();renderTabsPub();updateStats();
     toast('Aba removida!','ok');
   });
 }
 
-function confirmarNovaAba(){
+async function confirmarNovaAba(){
   const nome=document.getElementById('novaAbaNome').value.trim();
   const emoji=document.getElementById('novaAbaEmoji').value.trim()||'✦';
   if(!nome){toast('Informe o nome','warn');return;}
   ABAS.push({id:Date.now().toString(),nome,emoji});
-  salvarAbas();renderAbasGrid();renderTabsPub();updateStats();
+  await salvarAbas();renderAbasGrid();renderTabsPub();updateStats();
   document.getElementById('novaAbaNome').value='';document.getElementById('novaAbaEmoji').value='';
   fecharModal('modalNovaAba');
   toast('Aba criada!','ok');
@@ -1269,6 +1434,42 @@ function confirmarNovaAba(){
 
 // Inicializa picker ao abrir modal
 const _origAbrirModal = window.abrirModal;
+function ativarCarouselDetalhe(){
+  const track=document.getElementById('detalheCarouselTrack');
+  if(!track) return;
+  const dots=Array.from(document.querySelectorAll('.detalhe-carousel-dot'));
+  let isDown=false,startX=0,startScroll=0;
+
+  const syncDots=()=>{
+    if(!dots.length) return;
+    const step=Math.max(track.clientWidth,1);
+    const idx=Math.min(dots.length-1,Math.round(track.scrollLeft/step));
+    dots.forEach((dot,i)=>dot.classList.toggle('active',i===idx));
+  };
+
+  track.addEventListener('scroll',syncDots,{passive:true});
+  syncDots();
+  track.addEventListener('mousedown',e=>{
+    isDown=true;
+    startX=e.pageX;
+    startScroll=track.scrollLeft;
+    track.classList.add('is-dragging');
+  });
+  window.addEventListener('mouseup',()=>{
+    isDown=false;
+    track.classList.remove('is-dragging');
+  });
+  track.addEventListener('mouseleave',()=>{
+    isDown=false;
+    track.classList.remove('is-dragging');
+  });
+  track.addEventListener('mousemove',e=>{
+    if(!isDown) return;
+    e.preventDefault();
+    track.scrollLeft=startScroll-(e.pageX-startX);
+  });
+}
+
 function abrirModal(id){
   document.getElementById(id)?.classList.add('open');
   if(id==='modalNovaAba'){
@@ -1284,7 +1485,7 @@ function abrirEditarAba(id){
   setTimeout(()=>document.getElementById('editAbaNome').focus(),100);
 }
 
-function confirmarEditarAba(){
+async function confirmarEditarAba(){
   const id=document.getElementById('editAbaId').value;
   const novoNome=document.getElementById('editAbaNome').value.trim();
   if(!novoNome){toast('Informe o nome','warn');return;}
@@ -1293,7 +1494,8 @@ function confirmarEditarAba(){
   a.nome=novoNome;
   // Atualiza procedimentos que usavam o nome antigo
   PROCS.forEach(p=>{if(p.aba===nomeAntigo)p.aba=novoNome;});
-  salvarAbas();salvarProcs();
+  await Promise.all([salvarAbas(),renomearProcsDaAbaServidor(nomeAntigo,novoNome)]);
+  cacheWrite(CACHE_KEYS.procs,PROCS);
   renderAbasGrid();renderTabsPub();updateStats();
   fecharModal('modalEditarAba');
   toast('Aba atualizada!','ok');
@@ -1302,11 +1504,86 @@ function confirmarEditarAba(){
 /* ════════════════════════════════════════
    ADMIN — FORM PROCEDIMENTO
 ════════════════════════════════════════ */
+function limparFotosTemporariasProc(){
+  procFotos.forEach(f=>{ if(f?.temp && f.url?.startsWith('blob:')) URL.revokeObjectURL(f.url); });
+}
+
+function syncPendenciasProc(){
+  imgPend = procFotos.filter(f=>f?.pendingFile);
+}
+
+function selecionarFotoProc(idx){
+  imgAtivaIdx=Math.max(0,Math.min(idx,procFotos.length-1));
+  renderGaleriaProc();
+}
+
+function removerFotoProc(idx){
+  const foto=procFotos[idx];
+  if(!foto) return;
+  if(foto.temp && foto.url?.startsWith('blob:')) URL.revokeObjectURL(foto.url);
+  procFotos.splice(idx,1);
+  if(imgAtivaIdx>=procFotos.length) imgAtivaIdx=Math.max(0,procFotos.length-1);
+  syncPendenciasProc();
+  renderGaleriaProc();
+}
+
+function renderGaleriaProc(){
+  const prev=document.getElementById('imgPreview');
+  const holder=document.getElementById('imgPlaceholder');
+  const gallery=document.getElementById('imgGallery');
+  const ajuste=document.getElementById('imgAjusteBox');
+  const urls=syncProcFotosField();
+
+  if(!procFotos.length){
+    prev.src='';
+    prev.style.display='none';
+    holder.classList.remove('hidden');
+    gallery.style.display='none';
+    gallery.innerHTML='';
+    ajuste.style.display='none';
+    document.getElementById('imgLabel').textContent='';
+    return;
+  }
+
+  const ativa=procFotos[imgAtivaIdx]||procFotos[0];
+  prev.src=ativa.url;
+  prev.style.display='block';
+  holder.classList.add('hidden');
+  ajuste.style.display='block';
+  atualizarImgPos();
+  atualizarImgAlt();
+
+  gallery.style.display='flex';
+  gallery.innerHTML=procFotos.map((foto,i)=>`
+    <div class="img-gallery-item${i===imgAtivaIdx?' is-active':''}" onclick="selecionarFotoProc(${i})">
+      <img src="${foto.url}" alt="Foto ${i+1}">
+      <button type="button" class="img-gallery-remove" onclick="event.stopPropagation();removerFotoProc(${i})">×</button>
+      <span class="img-gallery-badge">${i===0?'Capa':`Foto ${i+1}`}</span>
+    </div>
+  `).join('');
+  document.getElementById('imgLabel').textContent=`${urls.length} foto${urls.length!==1?'s':''} adicionada${urls.length!==1?'s':''}.`;
+}
+
+function adicionarArquivosProc(files){
+  const validos=Array.from(files||[]).filter(f=>String(f.type||'').startsWith('image/'));
+  if(!validos.length) return;
+  validos.forEach(file=>{
+    procFotos.push({url:URL.createObjectURL(file),pendingFile:file,temp:true});
+  });
+  imgAtivaIdx=Math.max(0,procFotos.length-validos.length);
+  syncPendenciasProc();
+  renderGaleriaProc();
+}
+
 function abrirFormProc(idx){
   document.getElementById('telaAbaDetalhe').style.display='none';
   document.getElementById('telaProcForm').style.display='block';
   document.getElementById('bcEmoji').textContent=abaAtiva.emoji;
   document.getElementById('bcAba').textContent=abaAtiva.nome;
+  limparFotosTemporariasProc();
+  procFotos=[];
+  imgPend=[];
+  imgAtivaIdx=0;
 
   if(idx===-1){
     document.getElementById('formProcSubtitle').textContent='Novo';
@@ -1324,7 +1601,8 @@ function abrirFormProc(idx){
     document.getElementById('imgPosLabel').textContent='Centro';
     document.getElementById('imgAltLabel').textContent='145px';
     setToggleManut(false);
-    imgPend=null;
+    document.getElementById('imgGallery').style.display='none';
+    document.getElementById('imgGallery').innerHTML='';
   } else {
     const p=PROCS[idx];
     document.getElementById('formProcSubtitle').textContent=p.nome;
@@ -1335,7 +1613,7 @@ function abrirFormProc(idx){
     document.getElementById('fpDur').value=p.duracao;
     document.getElementById('fpFix').value=p.fixacao;
     document.getElementById('fpInd').value=p.indicado;
-    document.getElementById('fpImg').value=p.imagem;
+    document.getElementById('fpImg').value=serializeProcImagens(p.fotos||parseProcImagens(p.imagem));
     document.getElementById('fpManutPrazo').value=p.manutPrazo||'';
     document.getElementById('fpManutValor').value=p.manutValor||'';
     document.getElementById('bcProc').textContent=p.nome;
@@ -1346,23 +1624,11 @@ function abrirFormProc(idx){
     document.getElementById('imgSliderAlt').value=altura;
     document.getElementById('fpImgPosY').value=posY;
     document.getElementById('fpImgAltura').value=altura;
-    atualizarImgPos(); atualizarImgAlt();
-    const prev=document.getElementById('imgPreview');
-    if(p.imagem){
-      prev.src=p.imagem;
-      prev.style.objectPosition=`center ${posY}%`;
-      prev.style.height=altura+'px';
-      prev.style.display='block';
-      document.getElementById('imgPlaceholder').classList.add('hidden');
-      document.getElementById('imgAjusteBox').style.display='block';
-    } else {
-      prev.style.display='none';
-      document.getElementById('imgPlaceholder').classList.remove('hidden');
-      document.getElementById('imgAjusteBox').style.display='none';
-    }
+    procFotos=(p.fotos||parseProcImagens(p.imagem)).map(url=>({url}));
     document.getElementById('imgLabel').textContent=p.imagem?'✓ Foto salva (novo upload substituirá)':'';
-    imgPend=null;
   }
+  renderGaleriaProc();
+  document.getElementById('imgFile').value='';
 }
 
 function toggleManutencao(){
@@ -1398,8 +1664,9 @@ function removerProcPorNome(chave){
   const idx=PROCS.findIndex(p=>p.aba===abaAtiva.nome&&p.nome===nome);
   if(idx===-1)return;
   confirmar(`Excluir "${PROCS[idx].nome}"?`,async()=>{
-    PROCS.splice(idx,1);
-    await salvarProcs();
+    const [removido]=PROCS.splice(idx,1);
+    await removerProcServidor(removido.id||'');
+    cacheWrite(CACHE_KEYS.procs,PROCS);
     renderProcsAbaGrid();updateStats();renderTabsPub();
     toast('Procedimento removido!','ok');
   });
@@ -1407,8 +1674,9 @@ function removerProcPorNome(chave){
 
 function removerProc(idx){
   confirmar(`Excluir "${PROCS[idx].nome}"?`,async()=>{
-    PROCS.splice(idx,1);
-    await salvarProcs();
+    const [removido]=PROCS.splice(idx,1);
+    await removerProcServidor(removido.id||'');
+    cacheWrite(CACHE_KEYS.procs,PROCS);
     renderProcsAbaGrid();updateStats();renderTabsPub();
     toast('Procedimento removido!','ok');
   });
@@ -1431,7 +1699,6 @@ async function salvarProc(){
   const dur=document.getElementById('fpDur').value.trim();
   const fix=document.getElementById('fpFix').value.trim();
   const ind=document.getElementById('fpInd').value.trim();
-  let   img=document.getElementById('fpImg').value.trim();
   const posY  =parseInt(document.getElementById('fpImgPosY').value||'50');
   const altura=parseInt(document.getElementById('fpImgAltura').value||'145');
   const temManut   = document.getElementById('fpTemManutencao').checked;
@@ -1441,11 +1708,24 @@ async function salvarProc(){
   if(!desc){toast('Informe a descrição','warn');return;}
   btn.innerHTML='<span class="spinner"></span> Salvando...';btn.disabled=true;
   try{
-    if(imgPend){toast('Enviando foto...','info');img=await cloudUpload(imgPend,'image');document.getElementById('fpImg').value=img;}
-    const obj={aba:abaAtiva.nome,nome,descricao:desc,valor,duracao:dur,fixacao:fix,indicado:ind,imagem:img,imgPosY:posY,imgAltura:altura,temManut,manutPrazo,manutValor};
+    if(imgPend.length){
+      toast(`Enviando ${imgPend.length} foto${imgPend.length!==1?'s':''}...`,'info');
+      for(const foto of imgPend){
+        const url=await cloudUpload(foto.pendingFile,'image');
+        if(foto.temp && foto.url?.startsWith('blob:')) URL.revokeObjectURL(foto.url);
+        foto.url=url;
+        delete foto.pendingFile;
+        delete foto.temp;
+      }
+      syncPendenciasProc();
+    }
+    const fotos=syncProcFotosField();
     const ei=document.getElementById('editIdx').value;
+    const atual=ei!==''?PROCS[parseInt(ei)]:null;
+    const obj={id:atual?.id||makeId('proc'),aba:abaAtiva.nome,nome,descricao:desc,valor,duracao:dur,fixacao:fix,indicado:ind,imagem:fotos[0]||'',fotos,imgPosY:posY,imgAltura:altura,temManut,manutPrazo,manutValor};
     if(ei!=='')PROCS[parseInt(ei)]=obj;else PROCS.push(obj);
-    await salvarProcs();
+    await salvarProcUnico(obj,ei!=='');
+    cacheWrite(CACHE_KEYS.procs,PROCS);
     renderProcsAbaGrid();renderTabsPub();updateStats();
     toast(ei!==''?'Procedimento atualizado!':'Procedimento criado!','ok');
     voltarParaAbaDetalhe();
@@ -1500,6 +1780,17 @@ imgArea.addEventListener('drop',e=>{
 /* ════════════════════════════════════════
    TELA PRINCIPAL — TIPO DE MÍDIA
 ════════════════════════════════════════ */
+function onImgPick(e){
+  adicionarArquivosProc(e.target.files);
+  e.target.value='';
+}
+
+imgArea.addEventListener('drop',e=>{
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  adicionarArquivosProc(e.dataTransfer?.files||[]);
+},true);
+
 let tipoMidia = 'video'; // 'video' | 'foto'
 let fotoPend  = null;
 
@@ -1534,7 +1825,7 @@ function loadVideoAdmin(){
 function atualizarVidPreview(url, tipo){
   const w=document.getElementById('vidPreview');
   if(tipo==='foto'&&url){
-    w.innerHTML=`<img src="${url}" alt="Foto principal" style="width:100%;height:100%;object-fit:cover;">`;
+    w.innerHTML=`<img src="${mediaImageUrl(url,'hero')}" alt="Foto principal" style="width:100%;height:100%;object-fit:cover;">`;
     document.getElementById('vidLabel').textContent='✓ Foto configurada';
   } else if(tipo==='video'&&url){
     w.innerHTML=`<video src="${url}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;"></video>`;
@@ -1704,7 +1995,12 @@ function cloudUpload(file,type,onProg=null){
 /* ════════════════════════════════════════
    MODAIS + CONFIRM + TOAST
 ════════════════════════════════════════ */
-function abrirModal(id){document.getElementById(id)?.classList.add('open');}
+function abrirModal(id){
+  document.getElementById(id)?.classList.add('open');
+  if(id==='modalNovaAba'){
+    renderEmojiPicker('emojiPickerNovaAba','novaAbaEmoji',document.getElementById('novaAbaEmoji').value||'');
+  }
+}
 function fecharModal(id){document.getElementById(id)?.classList.remove('open');}
 document.querySelectorAll('.modal-bd').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
 function confirmar(msg,cb){document.getElementById('confirmMsg').textContent=msg;confirmCb=cb;abrirModal('modalConfirm');}

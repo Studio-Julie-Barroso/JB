@@ -612,26 +612,52 @@ footer strong{color:#fff;font-weight:600;}
 
               <div class="form-divider">Informações e Valores</div>
 
-              <div class="form-cols">
-                <div class="form-row">
-                  <label class="form-label">💰 Valor (R$)</label>
-                  <input class="form-input" id="fpValor" placeholder="Ex: R$ 150,00">
+              <!-- Valor + toggle "A partir de" -->
+              <div class="form-row">
+                <label class="form-label">💰 Valor da Sessão</label>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;background:var(--b-blush);border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
+                  <span style="font-size:12px;font-weight:500;color:var(--text-mid);flex:1;">Exibir como "A partir de"</span>
+                  <label style="position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0;">
+                    <input type="checkbox" id="fpAPartir" style="opacity:0;width:0;height:0;" onchange="toggleAPartir()">
+                    <span id="toggleAPartirSpan" style="position:absolute;cursor:pointer;inset:0;background:#ddd;border-radius:22px;transition:.2s;">
+                      <span style="position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;display:block;" id="toggleAPartirThumb"></span>
+                    </span>
+                  </label>
                 </div>
-                <div class="form-row">
-                  <label class="form-label">⏱ Duração da Sessão</label>
-                  <input class="form-input" id="fpDur" placeholder="Ex: 2h30">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div id="prefixoValor" style="display:none;background:var(--b-pale);border:1px solid rgba(240,98,146,.3);border-radius:10px 0 0 10px;padding:11px 12px;font-size:12px;font-weight:600;color:var(--b-deep);white-space:nowrap;border-right:none;">A partir de</div>
+                  <input class="form-input" id="fpValor" placeholder="Ex: 150,00" style="border-radius:10px;" oninput="atualizarPrefixoValor()">
                 </div>
+                <div id="previewValor" style="display:none;margin-top:6px;font-size:11px;color:var(--text-lt);">Será exibido: <strong id="previewValorTxt" style="color:var(--b);"></strong></div>
               </div>
 
               <div class="form-cols">
                 <div class="form-row">
+                  <label class="form-label">⏱ Duração da Sessão</label>
+                  <input class="form-input" id="fpDur" placeholder="Ex: 2h30">
+                </div>
+                <div class="form-row">
                   <label class="form-label">📅 Duração do Efeito</label>
                   <input class="form-input" id="fpFix" placeholder="Ex: 3–4 semanas">
                 </div>
-                <div class="form-row">
-                  <!-- ✅ ALTERAÇÃO 1: "Indicado Para" agora é claramente opcional -->
-                  <label class="form-label">💡 Indicado Para <span style="font-size:9px;font-weight:400;letter-spacing:1px;color:var(--text-lt);text-transform:none;">(opcional)</span></label>
-                  <input class="form-input" id="fpInd" placeholder="Ex: Uso diário">
+              </div>
+
+              <!-- Indicado Para — toggle on/off -->
+              <div style="background:var(--b-blush);border:1px solid var(--border);border-radius:11px;padding:14px 16px;margin-bottom:16px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0;" id="indToggleRow">
+                  <div>
+                    <div style="font-size:13px;font-weight:600;color:var(--text);">💡 Indicado Para</div>
+                    <div style="font-size:11px;color:var(--text-lt);margin-top:2px;">Ative para informar o público-alvo</div>
+                  </div>
+                  <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;">
+                    <input type="checkbox" id="fpIndAtivo" style="opacity:0;width:0;height:0;" onchange="toggleIndicado()">
+                    <span id="toggleIndSpan" style="position:absolute;cursor:pointer;inset:0;background:#ddd;border-radius:24px;transition:.2s;">
+                      <span style="position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;display:block;" id="toggleIndThumb"></span>
+                    </span>
+                  </label>
+                </div>
+                <div id="boxIndicado" style="display:none;margin-top:12px;">
+                  <input class="form-input" id="fpInd" placeholder="Ex: Uso diário, pele sensível, iniciantes...">
                 </div>
               </div>
 
@@ -1089,9 +1115,11 @@ async function loadProcs(){
         nome:       r.col2||'',
         descricao:  r.col3||'',
         valor:      r.col4||'',
+        aPartir:    r.col15==='true'||r.col15===true,
         duracao:    r.col5||'',
         fixacao:    r.col6||'',
         indicado:   r.col7||'',
+        indAtivo:   r.col16==='true'||r.col16===true||(r.col7||'')!=='',
         imagem:     fotos[0]||'',
         fotos,
         imgPosY:    parseInt(r.col9||'50'),
@@ -1242,12 +1270,13 @@ function verDetalhe(idx){
 
   // ── bloco de preços ──
   const manutEstado = p.manutEstado || (p.temManut ? 'tem' : 'nenhum');
-  const precoHtml = p.valor || manutEstado==='tem' ? `
-    <div style="display:grid;grid-template-columns:${p.valor&&manutEstado==='tem'?'1fr 1fr':'1fr'};gap:10px;margin-bottom:16px;">
-      ${p.valor ? `
+  const valorDisplay = p.valor ? (p.aPartir ? 'A partir de ' + formatarValor(p.valor) : formatarValor(p.valor)) : '';
+  const precoHtml = valorDisplay || manutEstado==='tem' ? `
+    <div style="display:grid;grid-template-columns:${valorDisplay&&manutEstado==='tem'?'1fr 1fr':'1fr'};gap:10px;margin-bottom:16px;">
+      ${valorDisplay ? `
         <div style="background:linear-gradient(135deg,var(--b),#EC407A);border-radius:14px;padding:16px 18px;color:#fff;">
           <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;opacity:.8;margin-bottom:5px;">Valor da sessão</div>
-          <div style="font-size:20px;font-weight:700;letter-spacing:.5px;">${formatarValor(p.valor)}</div>
+          <div style="font-size:${p.aPartir?'15px':'20px'};font-weight:700;letter-spacing:.5px;">${valorDisplay}</div>
         </div>` : ''}
       ${manutEstado==='tem' ? `
         <div style="background:var(--b-pale);border:1px solid rgba(240,98,146,.25);border-radius:14px;padding:16px 18px;">
@@ -1268,7 +1297,7 @@ function verDetalhe(idx){
   const infos = [
     p.duracao  ? {icon:'⏱', label:'Duração da sessão', val: p.duracao}  : null,
     p.fixacao  ? {icon:'📅', label:'Duração do efeito', val: p.fixacao}  : null,
-    p.indicado ? {icon:'💡', label:'Indicado para',     val: p.indicado} : null,
+    (p.indAtivo !== false && p.indicado) ? {icon:'💡', label:'Indicado para', val: p.indicado} : null,
   ].filter(Boolean);
 
   const infosHtml = infos.length
@@ -1439,7 +1468,7 @@ async function salvarAbas(){
 }
 
 async function salvarProcs(){
-  await gasCall({action:'setProcs',dados:JSON.stringify(PROCS.map(p=>[p.aba,p.nome,p.descricao,p.valor,p.duracao,p.fixacao,p.indicado,serializeProcImagens(p.fotos||parseProcImagens(p.imagem)),p.imgPosY??50,p.imgAltura??145,p.manutEstado||'nenhum',p.manutPrazo||'',p.manutValor||'',p.id||makeId('proc')]))});
+  await gasCall({action:'setProcs',dados:JSON.stringify(PROCS.map(p=>[p.aba,p.nome,p.descricao,p.valor,p.duracao,p.fixacao,p.indicado,serializeProcImagens(p.fotos||parseProcImagens(p.imagem)),p.imgPosY??50,p.imgAltura??145,p.manutEstado||'nenhum',p.manutPrazo||'',p.manutValor||'',p.id||makeId('proc'),p.aPartir?'true':'false',p.indAtivo?'true':'false']))});
   cacheWrite(CACHE_KEYS.procs,PROCS);
 }
 
@@ -1559,8 +1588,60 @@ function setManutEstado(estado){
 }
 
 /* ════════════════════════════════════════
-   ADMIN — FORM PROCEDIMENTO
+   TOGGLE "A PARTIR DE" (valor)
 ════════════════════════════════════════ */
+function toggleAPartir(){
+  const on=document.getElementById('fpAPartir').checked;
+  setToggleAPartir(on);
+}
+function setToggleAPartir(on){
+  document.getElementById('fpAPartir').checked=on;
+  const span=document.getElementById('toggleAPartirSpan');
+  const thumb=document.getElementById('toggleAPartirThumb');
+  span.style.background=on?'var(--b)':'#ddd';
+  thumb.style.transform=on?'translateX(18px)':'translateX(0)';
+  document.getElementById('prefixoValor').style.display=on?'flex':'none';
+  if(on){
+    document.getElementById('fpValor').style.borderRadius='0 10px 10px 0';
+    document.getElementById('fpValor').style.borderLeft='none';
+  } else {
+    document.getElementById('fpValor').style.borderRadius='10px';
+    document.getElementById('fpValor').style.borderLeft='';
+  }
+  atualizarPrefixoValor();
+}
+function atualizarPrefixoValor(){
+  const on=document.getElementById('fpAPartir').checked;
+  const val=document.getElementById('fpValor').value.trim();
+  const prev=document.getElementById('previewValor');
+  const prevTxt=document.getElementById('previewValorTxt');
+  if(!val){prev.style.display='none';return;}
+  if(on){
+    prev.style.display='block';
+    prevTxt.textContent='A partir de '+formatarValor(val);
+  } else {
+    prev.style.display='block';
+    prevTxt.textContent=formatarValor(val);
+  }
+}
+
+/* ════════════════════════════════════════
+   TOGGLE "INDICADO PARA"
+════════════════════════════════════════ */
+function toggleIndicado(){
+  const on=document.getElementById('fpIndAtivo').checked;
+  setToggleIndicado(on);
+}
+function setToggleIndicado(on){
+  document.getElementById('fpIndAtivo').checked=on;
+  const span=document.getElementById('toggleIndSpan');
+  const thumb=document.getElementById('toggleIndThumb');
+  span.style.background=on?'var(--b)':'#ddd';
+  thumb.style.transform=on?'translateX(20px)':'translateX(0)';
+  document.getElementById('boxIndicado').style.display=on?'block':'none';
+}
+
+
 function limparFotosTemporariasProc(){
   procFotos.forEach(f=>{ if(f?.temp && f.url?.startsWith('blob:')) URL.revokeObjectURL(f.url); });
 }
@@ -1646,6 +1727,8 @@ function abrirFormProc(idx){
     document.getElementById('formProcSubtitle').textContent='Novo';
     document.getElementById('editIdx').value='';
     ['fpNome','fpDesc','fpValor','fpDur','fpFix','fpInd','fpImg','fpManutPrazo','fpManutValor'].forEach(id=>document.getElementById(id).value='');
+    setToggleAPartir(false);
+    setToggleIndicado(false);
     document.getElementById('imgPreview').style.display='none';
     document.getElementById('imgPlaceholder').classList.remove('hidden');
     document.getElementById('imgLabel').textContent='';
@@ -1674,6 +1757,8 @@ function abrirFormProc(idx){
     document.getElementById('fpManutPrazo').value=p.manutPrazo||'';
     document.getElementById('fpManutValor').value=p.manutValor||'';
     document.getElementById('bcProc').textContent=p.nome;
+    setToggleAPartir(p.aPartir||false);
+    setToggleIndicado(p.indAtivo||false);
     // carrega estado de manutenção (com retrocompatibilidade)
     const estado = p.manutEstado || (p.temManut ? 'tem' : 'nenhum');
     setManutEstado(estado);
@@ -1746,6 +1831,8 @@ async function salvarProc(){
   const manutEstado = document.getElementById('fpManutEstado').value || 'nenhum';
   const manutPrazo = document.getElementById('fpManutPrazo').value.trim();
   const manutValor = document.getElementById('fpManutValor').value.trim();
+  const aPartir = document.getElementById('fpAPartir').checked;
+  const indAtivo = document.getElementById('fpIndAtivo').checked;
   if(!nome){toast('Informe o nome do procedimento','warn');return;}
   if(!desc){toast('Informe a descrição','warn');return;}
   btn.innerHTML='<span class="spinner"></span> Salvando...';btn.disabled=true;
@@ -1766,7 +1853,9 @@ async function salvarProc(){
     const atual=ei!==''?PROCS[parseInt(ei)]:null;
     const obj={
       id:atual?.id||makeId('proc'),
-      aba:abaAtiva.nome,nome,descricao:desc,valor,duracao:dur,fixacao:fix,indicado:ind,
+      aba:abaAtiva.nome,nome,descricao:desc,valor,aPartir,duracao:dur,fixacao:fix,
+      indicado: indAtivo ? ind : '',
+      indAtivo,
       imagem:fotos[0]||'',fotos,imgPosY:posY,imgAltura:altura,
       manutEstado,
       temManut: manutEstado==='tem', // retrocompat

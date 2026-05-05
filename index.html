@@ -291,6 +291,14 @@ footer strong{color:#fff;font-weight:600;}
 .btn-sm:hover{background:var(--b-pale);border-color:var(--b-mid);color:var(--b-deep);}
 .btn-sm.danger:hover{background:#ffeaea;border-color:#e57373;color:var(--err);}
 
+/* ── SELETOR DE MANUTENÇÃO (3 estados) ── */
+.manut-selector{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.manut-opt{padding:12px 8px;border-radius:11px;border:1.5px solid var(--border);background:var(--white);color:var(--text-mid);font-family:'Jost',sans-serif;font-size:12px;font-weight:500;cursor:pointer;text-align:center;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:5px;line-height:1.3;}
+.manut-opt:hover{border-color:rgba(240,98,146,.4);background:var(--b-blush);}
+.manut-opt.active{border-color:var(--b);background:var(--b-pale);color:var(--b-deep);font-weight:600;}
+.manut-opt.active.sem{border-color:#888;background:#f5f5f5;color:#555;}
+.manut-opt .manut-icon{font-size:18px;}
+
 /* vídeo admin */
 .form-card{background:var(--white);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);max-width:580px;margin-bottom:18px;}
 .vid-preview-wrap{width:100%;height:210px;background:var(--b-pale);border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-size:44px;border:1px solid var(--border);}
@@ -333,7 +341,6 @@ footer strong{color:#fff;font-weight:600;}
 @media(max-width:768px){
   .site-body{flex-direction:column;padding:20px 16px 32px;gap:20px;}
   .video-col,.sidebar-col{width:100%;flex:none;}
-  /* no mobile a altura do frame é proporcional: 56vw mínimo, respeitando o var salvo mas nunca maior que 72vw */
   .video-frame video{height:clamp(220px, 56vw, min(var(--frame-h,420px), 72vw)) !important;}
   #mainPhoto{height:clamp(220px, 56vw, min(var(--frame-h,420px), 72vw)) !important;}
   .intro-name{font-size:32px;letter-spacing:6px;}
@@ -345,6 +352,7 @@ footer strong{color:#fff;font-weight:600;}
   .form-cols,.form-cols-3{grid-template-columns:1fr;}
   .abas-grid,.procs-aba-grid{grid-template-columns:1fr 1fr;}
   .login-box{padding:36px 24px;}
+  .manut-selector{grid-template-columns:1fr;}
 }
 @media(max-width:480px){
   .abas-grid,.procs-aba-grid{grid-template-columns:1fr;}
@@ -409,11 +417,9 @@ footer strong{color:#fff;font-weight:600;}
   <main class="site-body">
     <div class="video-col">
       <div class="video-frame">
-        <!-- VÍDEO (padrão) -->
         <video id="videoPlayer" autoplay muted loop playsinline style="display:block;">
           <source id="videoSrc" src="apresentacao.mp4" type="video/mp4">
         </video>
-        <!-- FOTO (alternativa) -->
         <img id="mainPhoto" src="" alt="Studio Julie Barroso" decoding="async" fetchpriority="high">
         <button class="sound-btn is-muted" id="soundBtn" onclick="toggleSound()">
           <span class="sound-btn-icon" id="soundIcon">&#9835;</span>
@@ -558,10 +564,9 @@ footer strong{color:#fff;font-weight:600;}
                 <input type="hidden" id="fpImg" value="">
                 <div id="imgGallery" class="img-gallery-strip" style="display:none;"></div>
 
-                <!-- ajuste de enquadramento (aparece após foto selecionada ou existente) -->
+                <!-- ajuste de enquadramento -->
                 <div id="imgAjusteBox" style="display:none;margin-top:12px;background:var(--b-blush);border:1px solid var(--border);border-radius:12px;padding:14px;">
                   <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-mid);margin-bottom:12px;">Ajustar Enquadramento</div>
-                  <!-- slider posição -->
                   <div style="margin-bottom:12px;">
                     <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
                       <span style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-mid);">Posição vertical</span>
@@ -575,7 +580,6 @@ footer strong{color:#fff;font-weight:600;}
                       <span style="font-size:10px;color:var(--text-lt);">Base</span>
                     </div>
                   </div>
-                  <!-- slider altura -->
                   <div>
                     <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
                       <span style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-mid);">Altura da foto</span>
@@ -625,28 +629,34 @@ footer strong{color:#fff;font-weight:600;}
                   <input class="form-input" id="fpFix" placeholder="Ex: 3–4 semanas">
                 </div>
                 <div class="form-row">
-                  <label class="form-label">💡 Indicado Para</label>
+                  <!-- ✅ ALTERAÇÃO 1: "Indicado Para" agora é claramente opcional -->
+                  <label class="form-label">💡 Indicado Para <span style="font-size:9px;font-weight:400;letter-spacing:1px;color:var(--text-lt);text-transform:none;">(opcional)</span></label>
                   <input class="form-input" id="fpInd" placeholder="Ex: Uso diário">
                 </div>
               </div>
 
               <div class="form-divider">Manutenção</div>
 
-              <!-- toggle manutenção -->
-              <div style="display:flex;align-items:center;justify-content:space-between;background:var(--b-blush);border:1px solid var(--border);border-radius:11px;padding:14px 16px;margin-bottom:14px;">
-                <div>
-                  <div style="font-size:13px;font-weight:600;color:var(--text);">Tem manutenção?</div>
-                  <div style="font-size:11px;color:var(--text-lt);margin-top:2px;">Ative para informar prazo e valor</div>
+              <!-- ✅ ALTERAÇÃO 2: Seletor de 3 estados para manutenção -->
+              <div style="margin-bottom:6px;">
+                <label class="form-label">Status da Manutenção</label>
+                <div class="manut-selector" id="manutSelector">
+                  <button type="button" class="manut-opt active" id="manutOptNenhum" onclick="setManutEstado('nenhum')">
+                    <span class="manut-icon">—</span>
+                    Não informado
+                  </button>
+                  <button type="button" class="manut-opt sem" id="manutOptSem" onclick="setManutEstado('sem')">
+                    <span class="manut-icon">🚫</span>
+                    Sem manutenção
+                  </button>
+                  <button type="button" class="manut-opt" id="manutOptTem" onclick="setManutEstado('tem')">
+                    <span class="manut-icon">🔄</span>
+                    Tem manutenção
+                  </button>
                 </div>
-                <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;">
-                  <input type="checkbox" id="fpTemManutencao" style="opacity:0;width:0;height:0;" onchange="toggleManutencao()">
-                  <span id="toggleManutSpan" style="position:absolute;cursor:pointer;inset:0;background:#ddd;border-radius:24px;transition:.2s;">
-                    <span style="position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;display:block;" id="toggleManutThumb"></span>
-                  </span>
-                </label>
               </div>
 
-              <!-- campos de manutenção (ocultos por padrão) -->
+              <!-- campos de manutenção (visíveis apenas no estado "tem") -->
               <div id="boxManutencao" style="display:none;">
                 <div class="form-cols">
                   <div class="form-row">
@@ -659,6 +669,9 @@ footer strong{color:#fff;font-weight:600;}
                   </div>
                 </div>
               </div>
+
+              <!-- hidden que guarda o estado atual -->
+              <input type="hidden" id="fpManutEstado" value="nenhum">
 
               <div class="btn-row">
                 <button class="btn-primary" id="btnSalvar" onclick="salvarProc()">Salvar Procedimento</button>
@@ -675,7 +688,6 @@ footer strong{color:#fff;font-weight:600;}
         <div class="adm-sub">Escolha o que aparece na tela inicial do site: vídeo ou foto</div>
         <div class="adm-rule"></div>
 
-        <!-- Seletor de tipo -->
         <div style="display:flex;gap:10px;margin-bottom:22px;max-width:420px;">
           <button id="btnTipoVideo" onclick="setTipoMidia('video')"
             style="flex:1;padding:14px 10px;border-radius:12px;border:2px solid var(--b);background:linear-gradient(135deg,var(--b),#EC407A);color:#fff;font-family:'Jost',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px;">
@@ -687,7 +699,6 @@ footer strong{color:#fff;font-weight:600;}
           </button>
         </div>
 
-        <!-- Preview atual -->
         <div class="vid-preview-wrap" id="vidPreview"><span>🎬</span></div>
         <div style="font-size:12px;color:var(--text-lt);margin-bottom:18px;" id="vidLabel">Nenhuma mídia configurada.</div>
 
@@ -712,7 +723,6 @@ footer strong{color:#fff;font-weight:600;}
         <div class="form-card" id="uploadFotoBox" style="display:none;">
           <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-mid);margin-bottom:14px;">Enviar Foto</div>
 
-          <!-- Zona de upload -->
           <div class="form-row">
             <div class="upload-zone" id="fotoZone">
               <input type="file" id="fotoFile" accept="image/*" onchange="onFotoPick(event)">
@@ -721,20 +731,13 @@ footer strong{color:#fff;font-weight:600;}
             </div>
           </div>
 
-          <!-- Preview + ajustes (aparece após selecionar foto) -->
           <div id="fotoAjusteBox" style="display:none;margin-top:4px;">
-
             <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-mid);margin-bottom:10px;">Ajustar Enquadramento</div>
-
-            <!-- Preview interativo -->
             <div id="fotoPreviewFrame" style="width:100%;height:240px;border-radius:12px;overflow:hidden;background:var(--b-pale);margin-bottom:16px;border:1px solid var(--border);position:relative;cursor:ns-resize;" title="Arraste para ajustar">
               <img id="fotoPreviewImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 50%;pointer-events:none;transition:object-position .1s;">
-              <!-- linha guia de corte -->
               <div style="position:absolute;inset:0;border:2px dashed rgba(255,255,255,.4);border-radius:10px;pointer-events:none;"></div>
               <div style="position:absolute;bottom:8px;right:10px;background:rgba(0,0,0,.45);color:#fff;font-size:10px;padding:3px 8px;border-radius:6px;pointer-events:none;backdrop-filter:blur(4px);">↕ arraste para mover</div>
             </div>
-
-            <!-- Slider posição vertical -->
             <div style="margin-bottom:14px;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-mid);">Posição Vertical</span>
@@ -748,8 +751,6 @@ footer strong{color:#fff;font-weight:600;}
                 <span style="font-size:11px;color:var(--text-lt);">Base</span>
               </div>
             </div>
-
-            <!-- Slider altura -->
             <div style="margin-bottom:18px;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-mid);">Altura do Frame</span>
@@ -763,7 +764,6 @@ footer strong{color:#fff;font-weight:600;}
                 <span style="font-size:11px;color:var(--text-lt);">Maior</span>
               </div>
             </div>
-
           </div>
 
           <div id="fotoProgressWrap" style="display:none;margin-bottom:12px;">
@@ -863,8 +863,8 @@ const GAS_EMBEDDED = isAppsScriptHost();
 /* ════════════════════════════════════════
    ESTADO
 ════════════════════════════════════════ */
-let ABAS  = [];  // [{id,nome,emoji}]
-let PROCS = [];  // [{aba,nome,descricao,valor,duracao,fixacao,indicado,imagem,imgPosY,imgAltura}]
+let ABAS  = [];
+let PROCS = [];
 let abaAtiva  = null;
 let imgPend   = [];
 let procFotos = [];
@@ -1078,6 +1078,11 @@ async function loadProcs(){
     const d=await gasCall({aba:'PROCEDIMENTOS'});
     PROCS=(d||[]).map(r=>{
       const fotos=parseProcImagens(r.col8||'');
+      // ── Compatibilidade: col11 pode ser 'true'/'false'/'sem'/'' ──
+      let manutEstado='nenhum';
+      const col11=String(r.col11||'').trim().toLowerCase();
+      if(col11==='sem') manutEstado='sem';
+      else if(col11==='true'||col11==='tem') manutEstado='tem';
       return {
         id:         r.col14||r.rowId||makeId('proc'),
         aba:        r.col1||'',
@@ -1091,7 +1096,9 @@ async function loadProcs(){
         fotos,
         imgPosY:    parseInt(r.col9||'50'),
         imgAltura:  parseInt(r.col10||'145'),
-        temManut:   r.col11==='true'||r.col11===true,
+        manutEstado,
+        // retrocompatibilidade
+        temManut:   manutEstado==='tem',
         manutPrazo: r.col12||'',
         manutValor: r.col13||''
       };
@@ -1208,6 +1215,7 @@ function showAba(nome){
       </div>`;
     }).join('');
 }
+
 function verDetalhe(idx){
   const p=PROCS[idx], emoji=ABAS.find(a=>a.nome===p.aba)?.emoji||'✦';
   const posY  = p.imgPosY??50;
@@ -1232,15 +1240,16 @@ function verDetalhe(idx){
          </div>
        </div>`;
 
-  // bloco de preços
-  const precoHtml = p.valor || p.temManut ? `
-    <div style="display:grid;grid-template-columns:${p.valor&&p.temManut?'1fr 1fr':'1fr'};gap:10px;margin-bottom:16px;">
+  // ── bloco de preços ──
+  const manutEstado = p.manutEstado || (p.temManut ? 'tem' : 'nenhum');
+  const precoHtml = p.valor || manutEstado==='tem' ? `
+    <div style="display:grid;grid-template-columns:${p.valor&&manutEstado==='tem'?'1fr 1fr':'1fr'};gap:10px;margin-bottom:16px;">
       ${p.valor ? `
         <div style="background:linear-gradient(135deg,var(--b),#EC407A);border-radius:14px;padding:16px 18px;color:#fff;">
           <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;opacity:.8;margin-bottom:5px;">Valor da sessão</div>
           <div style="font-size:20px;font-weight:700;letter-spacing:.5px;">${formatarValor(p.valor)}</div>
         </div>` : ''}
-      ${p.temManut ? `
+      ${manutEstado==='tem' ? `
         <div style="background:var(--b-pale);border:1px solid rgba(240,98,146,.25);border-radius:14px;padding:16px 18px;">
           <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text-lt);margin-bottom:5px;">Manutenção</div>
           <div style="font-size:15px;font-weight:700;color:var(--b-deep);">${p.manutValor?formatarValor(p.manutValor):'Consultar'}</div>
@@ -1248,7 +1257,14 @@ function verDetalhe(idx){
         </div>` : ''}
     </div>` : '';
 
-  // linhas de informação estruturadas
+  // ── "Sem manutenção" exibe badge discreto ──
+  const semManutHtml = manutEstado==='sem'
+    ? `<div style="display:inline-flex;align-items:center;gap:6px;background:#f5f5f5;border:1px solid #ddd;border-radius:8px;padding:7px 12px;margin-bottom:16px;font-size:12px;color:#777;">
+         <span>🚫</span> Sem manutenção necessária
+       </div>`
+    : '';
+
+  // ── linhas de informação ──
   const infos = [
     p.duracao  ? {icon:'⏱', label:'Duração da sessão', val: p.duracao}  : null,
     p.fixacao  ? {icon:'📅', label:'Duração do efeito', val: p.fixacao}  : null,
@@ -1275,6 +1291,7 @@ function verDetalhe(idx){
      </div>
      <p style="font-size:13px;line-height:1.85;color:#777;margin-bottom:16px;">${p.descricao}</p>
      ${precoHtml}
+     ${semManutHtml}
      ${infosHtml}
      <button class="btn-voltar" onclick="showAba('${p.aba}')">← Voltar</button>`;
 
@@ -1339,7 +1356,6 @@ function renderAbasGrid(){
     </div>`;
   });
 
-  // Card "Nova Aba"
   html+=`<div class="aba-card" style="border:2px dashed rgba(240,98,146,.25);box-shadow:none;cursor:pointer;" onclick="abrirModal('modalNovaAba')">
     <div class="aba-card-top" style="background:var(--b-blush);flex:1;justify-content:center;padding:40px 20px;gap:12px;">
       <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--b),#EC407A);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;box-shadow:0 6px 18px rgba(240,98,146,.3);">+</div>
@@ -1384,7 +1400,6 @@ function renderProcsAbaGrid(){
   document.getElementById('detSub').textContent=`${cnt} procedimento${cnt!==1?'s':''}`;
   let html='';
   lista.forEach(p=>{
-    // usa nome+aba como chave para edição — seguro mesmo após re-render
     const chave=encodeURIComponent(p.nome);
     const posY  = p.imgPosY??50;
     const altura= p.imgAltura??145;
@@ -1424,7 +1439,7 @@ async function salvarAbas(){
 }
 
 async function salvarProcs(){
-  await gasCall({action:'setProcs',dados:JSON.stringify(PROCS.map(p=>[p.aba,p.nome,p.descricao,p.valor,p.duracao,p.fixacao,p.indicado,serializeProcImagens(p.fotos||parseProcImagens(p.imagem)),p.imgPosY??50,p.imgAltura??145,p.temManut?'true':'false',p.manutPrazo||'',p.manutValor||'',p.id||makeId('proc')]))});
+  await gasCall({action:'setProcs',dados:JSON.stringify(PROCS.map(p=>[p.aba,p.nome,p.descricao,p.valor,p.duracao,p.fixacao,p.indicado,serializeProcImagens(p.fotos||parseProcImagens(p.imagem)),p.imgPosY??50,p.imgAltura??145,p.manutEstado||'nenhum',p.manutPrazo||'',p.manutValor||'',p.id||makeId('proc')]))});
   cacheWrite(CACHE_KEYS.procs,PROCS);
 }
 
@@ -1469,48 +1484,10 @@ async function confirmarNovaAba(){
   toast('Aba criada!','ok');
 }
 
-// Inicializa picker ao abrir modal
-const _origAbrirModal = window.abrirModal;
-function ativarCarouselDetalhe(){
-  const track=document.getElementById('detalheCarouselTrack');
-  if(!track) return;
-  const dots=Array.from(document.querySelectorAll('.detalhe-carousel-dot'));
-  let isDown=false,startX=0,startScroll=0;
-
-  const syncDots=()=>{
-    if(!dots.length) return;
-    const step=Math.max(track.clientWidth,1);
-    const idx=Math.min(dots.length-1,Math.round(track.scrollLeft/step));
-    dots.forEach((dot,i)=>dot.classList.toggle('active',i===idx));
-  };
-
-  track.addEventListener('scroll',syncDots,{passive:true});
-  syncDots();
-  track.addEventListener('mousedown',e=>{
-    isDown=true;
-    startX=e.pageX;
-    startScroll=track.scrollLeft;
-    track.classList.add('is-dragging');
-  });
-  window.addEventListener('mouseup',()=>{
-    isDown=false;
-    track.classList.remove('is-dragging');
-  });
-  track.addEventListener('mouseleave',()=>{
-    isDown=false;
-    track.classList.remove('is-dragging');
-  });
-  track.addEventListener('mousemove',e=>{
-    if(!isDown) return;
-    e.preventDefault();
-    track.scrollLeft=startScroll-(e.pageX-startX);
-  });
-}
-
 function abrirModal(id){
   document.getElementById(id)?.classList.add('open');
   if(id==='modalNovaAba'){
-    renderEmojiPicker('emojiPickerNovaAba','novaAbaEmoji', document.getElementById('novaAbaEmoji').value||'');
+    renderEmojiPicker('emojiPickerNovaAba','novaAbaEmoji',document.getElementById('novaAbaEmoji').value||'');
   }
 }
 
@@ -1529,13 +1506,56 @@ async function confirmarEditarAba(){
   const a=ABAS.find(x=>x.id===id);if(!a)return;
   const nomeAntigo=a.nome;
   a.nome=novoNome;
-  // Atualiza procedimentos que usavam o nome antigo
   PROCS.forEach(p=>{if(p.aba===nomeAntigo)p.aba=novoNome;});
   await Promise.all([salvarAbas(),renomearProcsDaAbaServidor(nomeAntigo,novoNome)]);
   cacheWrite(CACHE_KEYS.procs,PROCS);
   renderAbasGrid();renderTabsPub();updateStats();
   fecharModal('modalEditarAba');
   toast('Aba atualizada!','ok');
+}
+
+function ativarCarouselDetalhe(){
+  const track=document.getElementById('detalheCarouselTrack');
+  if(!track) return;
+  const dots=Array.from(document.querySelectorAll('.detalhe-carousel-dot'));
+  let isDown=false,startX=0,startScroll=0;
+
+  const syncDots=()=>{
+    if(!dots.length) return;
+    const step=Math.max(track.clientWidth,1);
+    const idx=Math.min(dots.length-1,Math.round(track.scrollLeft/step));
+    dots.forEach((dot,i)=>dot.classList.toggle('active',i===idx));
+  };
+
+  track.addEventListener('scroll',syncDots,{passive:true});
+  syncDots();
+  track.addEventListener('mousedown',e=>{
+    isDown=true;startX=e.pageX;startScroll=track.scrollLeft;
+    track.classList.add('is-dragging');
+  });
+  window.addEventListener('mouseup',()=>{isDown=false;track.classList.remove('is-dragging');});
+  track.addEventListener('mouseleave',()=>{isDown=false;track.classList.remove('is-dragging');});
+  track.addEventListener('mousemove',e=>{
+    if(!isDown) return;e.preventDefault();
+    track.scrollLeft=startScroll-(e.pageX-startX);
+  });
+}
+
+/* ════════════════════════════════════════
+   ADMIN — SELETOR DE MANUTENÇÃO (3 estados)
+════════════════════════════════════════ */
+function setManutEstado(estado){
+  document.getElementById('fpManutEstado').value=estado;
+  // Reset todos
+  document.getElementById('manutOptNenhum').className='manut-opt';
+  document.getElementById('manutOptSem').className='manut-opt sem';
+  document.getElementById('manutOptTem').className='manut-opt';
+  // Ativa o selecionado
+  if(estado==='nenhum') document.getElementById('manutOptNenhum').classList.add('active');
+  else if(estado==='sem') document.getElementById('manutOptSem').classList.add('active');
+  else                    document.getElementById('manutOptTem').classList.add('active');
+  // Mostra/oculta campos
+  document.getElementById('boxManutencao').style.display = estado==='tem' ? 'block' : 'none';
 }
 
 /* ════════════════════════════════════════
@@ -1637,7 +1657,7 @@ function abrirFormProc(idx){
     document.getElementById('fpImgAltura').value=145;
     document.getElementById('imgPosLabel').textContent='Centro';
     document.getElementById('imgAltLabel').textContent='145px';
-    setToggleManut(false);
+    setManutEstado('nenhum');
     document.getElementById('imgGallery').style.display='none';
     document.getElementById('imgGallery').innerHTML='';
   } else {
@@ -1654,7 +1674,9 @@ function abrirFormProc(idx){
     document.getElementById('fpManutPrazo').value=p.manutPrazo||'';
     document.getElementById('fpManutValor').value=p.manutValor||'';
     document.getElementById('bcProc').textContent=p.nome;
-    setToggleManut(p.temManut||false);
+    // carrega estado de manutenção (com retrocompatibilidade)
+    const estado = p.manutEstado || (p.temManut ? 'tem' : 'nenhum');
+    setManutEstado(estado);
     const posY  = p.imgPosY??50;
     const altura= p.imgAltura??145;
     document.getElementById('imgSliderPos').value=posY;
@@ -1668,26 +1690,11 @@ function abrirFormProc(idx){
   document.getElementById('imgFile').value='';
 }
 
-function toggleManutencao(){
-  const on=document.getElementById('fpTemManutencao').checked;
-  document.getElementById('boxManutencao').style.display=on?'block':'none';
-  const span=document.getElementById('toggleManutSpan');
-  const thumb=document.getElementById('toggleManutThumb');
-  span.style.background=on?'var(--b)':'#ddd';
-  thumb.style.transform=on?'translateX(20px)':'translateX(0)';
-}
-
-function setToggleManut(val){
-  document.getElementById('fpTemManutencao').checked=val;
-  toggleManutencao();
-}
-
 function atualizarBcProc(){
   const nome=document.getElementById('fpNome').value.trim();
   document.getElementById('bcProc').textContent=nome||'Novo Procedimento';
 }
 
-// Busca pelo nome (URL-encoded) dentro da aba ativa — evita problema de índice desatualizado
 function editarProcPorNome(chave){
   if(!abaAtiva)return;
   const nome=decodeURIComponent(chave);
@@ -1719,12 +1726,10 @@ function removerProc(idx){
   });
 }
 
-// Garante "R$ " na frente do valor
 function formatarValor(v){
   if(!v)return '';
   const s=String(v).trim();
   if(/^R\s?\$|^\$|^€/.test(s))return s;
-  // só dígitos/vírgula/ponto → adiciona R$
   return 'R$ '+s;
 }
 
@@ -1738,7 +1743,7 @@ async function salvarProc(){
   const ind=document.getElementById('fpInd').value.trim();
   const posY  =parseInt(document.getElementById('fpImgPosY').value||'50');
   const altura=parseInt(document.getElementById('fpImgAltura').value||'145');
-  const temManut   = document.getElementById('fpTemManutencao').checked;
+  const manutEstado = document.getElementById('fpManutEstado').value || 'nenhum';
   const manutPrazo = document.getElementById('fpManutPrazo').value.trim();
   const manutValor = document.getElementById('fpManutValor').value.trim();
   if(!nome){toast('Informe o nome do procedimento','warn');return;}
@@ -1759,7 +1764,15 @@ async function salvarProc(){
     const fotos=syncProcFotosField();
     const ei=document.getElementById('editIdx').value;
     const atual=ei!==''?PROCS[parseInt(ei)]:null;
-    const obj={id:atual?.id||makeId('proc'),aba:abaAtiva.nome,nome,descricao:desc,valor,duracao:dur,fixacao:fix,indicado:ind,imagem:fotos[0]||'',fotos,imgPosY:posY,imgAltura:altura,temManut,manutPrazo,manutValor};
+    const obj={
+      id:atual?.id||makeId('proc'),
+      aba:abaAtiva.nome,nome,descricao:desc,valor,duracao:dur,fixacao:fix,indicado:ind,
+      imagem:fotos[0]||'',fotos,imgPosY:posY,imgAltura:altura,
+      manutEstado,
+      temManut: manutEstado==='tem', // retrocompat
+      manutPrazo: manutEstado==='tem' ? manutPrazo : '',
+      manutValor: manutEstado==='tem' ? manutValor : ''
+    };
     if(ei!=='')PROCS[parseInt(ei)]=obj;else PROCS.push(obj);
     await salvarProcUnico(obj,ei!=='');
     cacheWrite(CACHE_KEYS.procs,PROCS);
@@ -1792,9 +1805,6 @@ const imgArea=document.getElementById('imgArea');
 ['dragover','dragenter'].forEach(ev=>imgArea.addEventListener(ev,e=>{e.preventDefault();imgArea.classList.add('drag-over');}));
 ['dragleave','drop'].forEach(ev=>imgArea.addEventListener(ev,()=>imgArea.classList.remove('drag-over')));
 
-/* ════════════════════════════════════════
-   TELA PRINCIPAL — TIPO DE MÍDIA
-════════════════════════════════════════ */
 function onImgPick(e){
   adicionarArquivosProc(e.target.files);
   e.target.value='';
@@ -1806,7 +1816,10 @@ imgArea.addEventListener('drop',e=>{
   adicionarArquivosProc(e.dataTransfer?.files||[]);
 },true);
 
-let tipoMidia = 'video'; // 'video' | 'foto'
+/* ════════════════════════════════════════
+   TELA PRINCIPAL — TIPO DE MÍDIA
+════════════════════════════════════════ */
+let tipoMidia = 'video';
 let fotoPend  = null;
 
 async function persistirMidiaPublica(tipo, url, posY=null, altura=null){
@@ -1914,7 +1927,6 @@ async function uploadVideo(){
     const url=await cloudUpload(vidPend,'video',pct=>{bar.style.width=pct+'%';lbl.textContent=`Enviando... ${pct}%`;});
     const saved=await persistirMidiaPublica('video',url);
     atualizarVidPreview(saved.url,'video');
-    // Aplica no site público
     aplicarMidiaNoSite('video', saved.url);
     bar.style.width='100%';lbl.textContent='Concluído!';
     updateStats();toast('Vídeo publicado!','ok');vidPend=null;document.getElementById('vidFile').value='';
@@ -1923,15 +1935,14 @@ async function uploadVideo(){
 }
 
 // ── FOTO ──
-let fotoPosY  = 50;   // 0=topo 100=base
-let fotoAltura= 420;  // altura em px
+let fotoPosY  = 50;
+let fotoAltura= 420;
 
 function onFotoPick(e){
   const f=e.target.files[0];if(!f)return;
   fotoPend=f;
   document.getElementById('btnFoto').disabled=false;
   document.getElementById('vidLabel').textContent=`✓ ${f.name}`;
-  // Mostra preview + ajustes
   const r=new FileReader();
   r.onload=ev=>{
     document.getElementById('fotoPreviewImg').src=ev.target.result;
@@ -1948,22 +1959,18 @@ function atualizarFotoPos(){
   const labels=['Topo','Quase topo','Centro','Quase base','Base'];
   const idx=Math.round(fotoPosY/25);
   document.getElementById('fotoPosLabel').textContent=labels[Math.min(idx,4)];
-  // Aplica em tempo real no site público se já publicada
   const mainPhoto=document.getElementById('mainPhoto');
   if(mainPhoto.style.display!=='none') mainPhoto.style.objectPosition=`center ${fotoPosY}%`;
 }
 
 function atualizarFotoAlt(){
   fotoAltura=parseInt(document.getElementById('fotoSliderAlt').value);
-  // redimensiona o preview (proporcional ao frame real)
   document.getElementById('fotoAjusteBox').querySelector('#fotoPreviewFrame').style.height=Math.round(fotoAltura*0.50)+'px';
   document.getElementById('fotoAltLabel').textContent=fotoAltura+'px';
-  // aplica em tempo real no site público se já publicada
   const frame=document.querySelector('.video-frame');
   if(frame) frame.style.setProperty('--frame-h', fotoAltura+'px');
 }
 
-// Arrastar preview verticalmente com mouse/touch
 (function(){
   let dragging=false,startY=0,startPos=0;
   function getFrame(){return document.getElementById('fotoPreviewFrame');}
@@ -2044,12 +2051,6 @@ function cloudUpload(file,type,onProg=null){
 /* ════════════════════════════════════════
    MODAIS + CONFIRM + TOAST
 ════════════════════════════════════════ */
-function abrirModal(id){
-  document.getElementById(id)?.classList.add('open');
-  if(id==='modalNovaAba'){
-    renderEmojiPicker('emojiPickerNovaAba','novaAbaEmoji',document.getElementById('novaAbaEmoji').value||'');
-  }
-}
 function fecharModal(id){document.getElementById(id)?.classList.remove('open');}
 document.querySelectorAll('.modal-bd').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
 function confirmar(msg,cb){document.getElementById('confirmMsg').textContent=msg;confirmCb=cb;abrirModal('modalConfirm');}

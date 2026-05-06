@@ -132,6 +132,31 @@ body{font-family:'Jost',sans-serif;background:var(--b-blush);min-height:100vh;co
 .btn-voltar{display:flex;align-items:center;gap:8px;background:none;border:1px solid rgba(240,98,146,.3);color:var(--b);padding:11px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-family:'Jost',sans-serif;width:100%;justify-content:center;margin-top:4px;transition:background .2s;}
 .btn-voltar:hover{background:var(--b-pale);}
 .map-container iframe{width:100%;height:220px;border-radius:12px;border:none;display:block;margin-top:12px;}
+.location-panel-wrap{display:flex;flex-direction:column;gap:14px;}
+.location-carousel{position:relative;}
+.location-carousel-track{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none;padding-bottom:4px;cursor:grab;}
+.location-carousel-track::-webkit-scrollbar{display:none;}
+.location-carousel-track.is-dragging{cursor:grabbing;}
+.location-slide{flex:0 0 100%;scroll-snap-align:start;}
+.location-card{background:var(--b-blush);border:1px solid rgba(240,98,146,.12);border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(240,98,146,.1);}
+.location-card-copy{padding:16px 16px 14px;}
+.location-card-kicker{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lt);margin-bottom:6px;}
+.location-card-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:400;letter-spacing:1.4px;color:var(--text);margin-bottom:6px;}
+.location-card-text{font-size:12px;line-height:1.7;color:#7a6070;}
+.location-photo-media{position:relative;height:240px;background:var(--b-pale);cursor:zoom-in;}
+.location-photo-media img{width:100%;height:100%;object-fit:cover;display:block;}
+.location-photo-badge{position:absolute;left:14px;bottom:12px;background:rgba(58,16,32,.58);color:#fff;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:6px 10px;border-radius:999px;backdrop-filter:blur(6px);}
+.location-card-action{padding:0 16px 16px;}
+.location-card-btn{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border-radius:12px;border:1px solid rgba(240,98,146,.18);background:#fff;color:var(--text-mid);font-family:'Jost',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s,border-color .2s,transform .2s;}
+.location-card-btn:hover{background:var(--b-pale);border-color:rgba(240,98,146,.32);transform:translateY(-1px);}
+.location-carousel-nav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px;}
+.location-nav-btn{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;border:1px solid rgba(240,98,146,.18);background:#fff;color:var(--b);cursor:pointer;transition:transform .2s,background .2s,border-color .2s;}
+.location-nav-btn:hover{transform:translateY(-1px);background:var(--b-pale);border-color:rgba(240,98,146,.3);}
+.location-nav-btn:disabled{opacity:.35;cursor:default;transform:none;}
+.location-carousel-dots{display:flex;align-items:center;justify-content:center;gap:7px;flex:1;}
+.location-carousel-dot{width:8px;height:8px;border-radius:50%;background:rgba(240,98,146,.22);transition:transform .2s,background .2s;}
+.location-carousel-dot.active{background:var(--b);transform:scale(1.18);}
+.location-empty-note{font-size:12px;color:var(--text-lt);background:var(--b-blush);border:1px dashed rgba(240,98,146,.22);padding:14px 16px;border-radius:14px;}
 .loading-dots{display:flex;gap:6px;justify-content:center;padding:28px;}
 .loading-dot{width:8px;height:8px;border-radius:50%;background:var(--b);animation:dotB .8s ease-in-out infinite;}
 .loading-dot:nth-child(2){animation-delay:.15s;}.loading-dot:nth-child(3){animation-delay:.3s;}
@@ -338,6 +363,7 @@ footer strong{color:#fff;font-weight:600;}
 .form-card{background:var(--white);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);max-width:580px;margin-bottom:18px;}
 .vid-preview-wrap{width:100%;height:210px;background:var(--b-pale);border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-size:44px;border:1px solid var(--border);}
 .vid-preview-wrap video{width:100%;height:100%;object-fit:cover;}
+.vid-preview-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
 .upload-zone{border:2px dashed rgba(240,98,146,.3);border-radius:13px;padding:26px;text-align:center;cursor:pointer;background:var(--b-blush);transition:border-color .2s,background .2s;position:relative;}
 .upload-zone:hover,.upload-zone.drag-over{border-color:var(--b);background:var(--b-pale);}
 .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
@@ -345,6 +371,11 @@ footer strong{color:#fff;font-weight:600;}
 .upload-text{font-size:12px;color:var(--text-mid);line-height:1.5;}
 .prog-wrap{background:var(--b-pale);border-radius:8px;height:8px;overflow:hidden;margin-bottom:7px;}
 .prog-bar{height:100%;background:linear-gradient(90deg,var(--b),#EC407A);width:0%;transition:width .3s;border-radius:8px;}
+.location-preview-box{background:var(--b-blush);border:1px solid var(--border);border-radius:14px;padding:14px;}
+.location-preview-media{height:220px;border-radius:12px;overflow:hidden;background:var(--white);border:1px solid rgba(240,98,146,.12);margin-bottom:12px;display:flex;align-items:center;justify-content:center;font-size:42px;color:var(--text-lt);}
+.location-preview-media img{width:100%;height:100%;object-fit:cover;display:block;}
+.location-preview-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;letter-spacing:1.2px;color:var(--text);margin-bottom:4px;}
+.location-preview-sub{font-size:11px;letter-spacing:1px;color:var(--text-lt);text-transform:uppercase;}
 
 /* ── CONTROLE DE DIMENSÃO DA FOTO (tela principal) ── */
 .foto-dimensao-box{background:var(--b-blush);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px;}
@@ -398,6 +429,8 @@ footer strong{color:#fff;font-weight:600;}
   .intro-deco-line{width:30px;}
   .logo-main{font-size:30px;letter-spacing:6px;}
   .tabs-main{grid-template-columns:1fr 1fr;}
+  .location-photo-media{height:210px;}
+  .location-card-copy{padding:14px;}
 
   /* ADMIN MOBILE */
   .adm-nav{display:none;}
@@ -559,6 +592,7 @@ footer strong{color:#fff;font-weight:600;}
       <button class="adm-nav-btn" onclick="goSec('abas')"><span class="ni">🗂</span>Minhas Abas<span class="adm-cnt" id="navCntAbas">0</span></button>
       <div class="adm-nav-sect">Mídia</div>
       <button class="adm-nav-btn" onclick="goSec('video')"><span class="ni">🖼</span>Tela Principal</button>
+      <button class="adm-nav-btn" onclick="goSec('localizacao')"><span class="ni">📍</span>Localização</button>
     </nav>
 
     <!-- nav inferior mobile -->
@@ -575,6 +609,10 @@ footer strong{color:#fff;font-weight:600;}
         <button class="adm-mobile-tab" id="mnt-video" onclick="goSec('video')">
           <div class="mn-icon mn-icon-pill">🖼</div>
           <span>Mídia</span>
+        </button>
+        <button class="adm-mobile-tab" id="mnt-localizacao" onclick="goSec('localizacao')">
+          <div class="mn-icon mn-icon-pill">📍</div>
+          <span>Local</span>
         </button>
       </div>
     </div>
@@ -596,6 +634,7 @@ footer strong{color:#fff;font-weight:600;}
           <div style="display:flex;flex-direction:column;gap:8px;">
             <button class="btn-primary" style="justify-content:center;" onclick="goSec('abas')">🗂 Gerenciar Abas e Procedimentos</button>
             <button class="btn-secondary" style="justify-content:center;" onclick="goSec('video')">🖼 Tela Principal (Vídeo / Foto)</button>
+            <button class="btn-secondary" style="justify-content:center;" onclick="goSec('localizacao')">📍 Foto da Localização</button>
           </div>
         </div>
       </div>
@@ -948,6 +987,44 @@ footer strong{color:#fff;font-weight:600;}
         </div>
       </div>
 
+      <!-- LOCALIZAÇÃO -->
+      <div id="sec-localizacao" class="adm-sec">
+        <div class="adm-title">Localização</div>
+        <div class="adm-sub">Adicione uma foto da frente da loja com um título curto para ajudar o cliente a reconhecer o local.</div>
+        <div class="adm-rule"></div>
+
+        <div class="form-card">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-mid);margin-bottom:14px;">Imagem da Fachada</div>
+
+          <div class="form-row">
+            <label class="form-label">Título breve</label>
+            <input class="form-input" id="locTitulo" maxlength="80" placeholder="Ex: Frente da loja" oninput="atualizarPreviewLocalizacao()">
+          </div>
+
+          <div class="form-row">
+            <div class="upload-zone" id="locZone">
+              <input type="file" id="locFile" accept="image/*" onchange="onLocPick(event)">
+              <div class="upload-icon">📸</div>
+              <div class="upload-text">Clique ou arraste a foto da frente da loja<br><small style="opacity:.7">JPG · PNG · WEBP</small></div>
+            </div>
+          </div>
+
+          <div class="location-preview-box">
+            <div class="location-preview-media" id="locPreviewMedia"><span>📍</span></div>
+            <div class="location-preview-title" id="locPreviewTitle">Frente da loja</div>
+            <div class="location-preview-sub">Pré-visualização pública</div>
+          </div>
+
+          <div id="locProgressWrap" style="display:none;margin:14px 0 12px;">
+            <div style="font-size:12px;color:var(--text-mid);margin-bottom:6px;" id="locProgLabel">Enviando...</div>
+            <div class="prog-wrap"><div class="prog-bar" id="locProgBar"></div></div>
+          </div>
+
+          <div style="font-size:12px;color:var(--text-lt);margin:12px 0 16px;" id="locLabel">Nenhuma imagem de localização configurada.</div>
+          <button class="btn-primary" id="btnLoc" onclick="salvarLocalizacaoAdmin()" disabled>Salvar Localização</button>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -1037,8 +1114,11 @@ let imgPend   = [];
 let procFotos = [];
 let imgAtivaIdx = 0;
 let vidPend   = null;
+let locPend   = null;
+let locPreviewSrc = '';
 let confirmCb = null;
 const CACHE_KEYS = { abas:'studio_abas_cache', procs:'studio_procs_cache' };
+let LOCALIZACAO = { url:'', titulo:'' };
 
 /* ════════════════════════════════════════
    EMOJIS
@@ -1110,6 +1190,25 @@ function applyCachedMidia(){
     const url=localStorage.getItem('studio_video_url')||'';
     if(url)aplicarMidiaNoSite('video',url);
   }catch{}
+}
+function readLocalizacaoCache(){
+  try{
+    return {
+      url:localStorage.getItem('studio_loc_url')||'',
+      titulo:localStorage.getItem('studio_loc_titulo')||''
+    };
+  }catch{
+    return {url:'',titulo:''};
+  }
+}
+function writeLocalizacaoCache(url,titulo){
+  try{
+    localStorage.setItem('studio_loc_url',url||'');
+    localStorage.setItem('studio_loc_titulo',titulo||'');
+  }catch{}
+}
+function getLocalizacaoTitulo(){
+  return (LOCALIZACAO.titulo||'').trim()||'Frente da loja';
 }
 
 /* ════════════════════════════════════════
@@ -1246,7 +1345,8 @@ updateSoundBtn();
 async function initSite(){
   hydratePublicCache();
   applyCachedMidia();
-  await Promise.all([loadAbas(),loadProcs()]);
+  LOCALIZACAO=readLocalizacaoCache();
+  await Promise.all([loadAbas(),loadProcs(),loadLocalizacao()]);
   renderTabsPub();
   carregarVideoSite();
 }
@@ -1280,6 +1380,20 @@ async function loadProcs(){
     }).filter(p=>p.nome);
   }catch{PROCS=[];}
   cacheWrite(CACHE_KEYS.procs,PROCS);
+}
+async function loadLocalizacao(){
+  try{
+    const d=await gasCall({aba:'LOCALIZACAO'});
+    const row=d?.[0]||{};
+    LOCALIZACAO={
+      url:row.col1||readLocalizacaoCache().url||'',
+      titulo:row.col2||readLocalizacaoCache().titulo||''
+    };
+    writeLocalizacaoCache(LOCALIZACAO.url,LOCALIZACAO.titulo);
+  }catch{
+    LOCALIZACAO=readLocalizacaoCache();
+  }
+  if(document.getElementById('locTitulo'))loadLocalizacaoAdmin();
 }
 
 async function carregarVideoSite(){
@@ -1353,7 +1467,51 @@ function showAba(nome){
   document.querySelectorAll('.tab-main-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-aba')===nome));
   const panel=document.getElementById('contentPanel');
   if(nome==='__loc__'){
-    panel.innerHTML=`<div class="panel-heading">Localização</div><div class="panel-rule"></div><div class="map-container"><iframe src="https://maps.google.com/maps?q=Studio%20Julie%20Barroso%20Manaus&output=embed" loading="lazy" allowfullscreen></iframe></div>`;
+    const hasPhoto=!!LOCALIZACAO.url;
+    const titulo=getLocalizacaoTitulo();
+    const slides=[
+      `<div class="location-slide">
+        <div class="location-card">
+          <div class="location-card-copy">
+            <div class="location-card-kicker">Como chegar</div>
+            <div class="location-card-title">Studio Julie Barroso</div>
+            <div class="location-card-text">Veja o mapa, confirme o ponto de referência${hasPhoto?' e deslize para o lado para visualizar a frente da loja.':'.'}</div>
+          </div>
+          <div class="map-container"><iframe src="https://maps.google.com/maps?q=Studio%20Julie%20Barroso%20Manaus&output=embed" loading="lazy" allowfullscreen></iframe></div>
+        </div>
+      </div>`
+    ];
+    if(hasPhoto){
+      slides.push(`<div class="location-slide">
+        <div class="location-card">
+          <div class="location-photo-media" onclick="abrirLightbox('${LOCALIZACAO.url}')">
+            <img src="${mediaImageUrl(LOCALIZACAO.url,'detail')}" alt="${titulo}">
+            <div class="location-photo-badge">Frente da loja</div>
+          </div>
+          <div class="location-card-copy">
+            <div class="location-card-kicker">Referência visual</div>
+            <div class="location-card-title">${titulo}</div>
+            <div class="location-card-text">Use esta imagem para identificar a fachada com mais facilidade ao chegar.</div>
+          </div>
+          <div class="location-card-action">
+            <button class="location-card-btn" type="button" onclick="abrirLightbox('${LOCALIZACAO.url}')">Ampliar imagem</button>
+          </div>
+        </div>
+      </div>`);
+    }
+    const dots=slides.map((_,i)=>`<span class="location-carousel-dot${i===0?' active':''}" data-loc-dot="${i}"></span>`).join('');
+    panel.innerHTML=`<div class="panel-heading">Localização</div><div class="panel-rule"></div><div class="location-panel-wrap">
+      <div class="location-carousel">
+        <div class="location-carousel-track" id="locationCarouselTrack">${slides.join('')}</div>
+        <div class="location-carousel-nav">
+          <button class="location-nav-btn" id="locPrevBtn" type="button" aria-label="Voltar" ${slides.length===1?'disabled':''}>‹</button>
+          <div class="location-carousel-dots">${dots}</div>
+          <button class="location-nav-btn" id="locNextBtn" type="button" aria-label="Avançar" ${slides.length===1?'disabled':''}>›</button>
+        </div>
+      </div>
+      ${hasPhoto?'':'<div class="location-empty-note">A foto da fachada ainda não foi adicionada no painel admin.</div>'}
+    </div>`;
+    activateLocationCarousel();
     return;
   }
   const lista=PROCS.filter(p=>p.aba===nome);
@@ -1376,6 +1534,50 @@ function showAba(nome){
         <span class="pub-card-arrow">›</span>
       </div>`;
     }).join('');
+}
+function activateLocationCarousel(){
+  const track=document.getElementById('locationCarouselTrack');
+  if(!track)return;
+  const prev=document.getElementById('locPrevBtn');
+  const next=document.getElementById('locNextBtn');
+  const dots=Array.from(document.querySelectorAll('[data-loc-dot]'));
+  const total=dots.length||1;
+  let isDown=false,startX=0,startScroll=0,pointerId=null;
+
+  const update=()=>{
+    const idx=Math.max(0,Math.min(total-1,Math.round(track.scrollLeft/Math.max(track.clientWidth,1))));
+    dots.forEach((dot,i)=>dot.classList.toggle('active',i===idx));
+    if(prev)prev.disabled=idx===0;
+    if(next)next.disabled=idx>=total-1;
+  };
+  const goTo=idx=>{
+    track.scrollTo({left:track.clientWidth*Math.max(0,Math.min(total-1,idx)),behavior:'smooth'});
+  };
+
+  prev?.addEventListener('click',()=>goTo(Math.round(track.scrollLeft/Math.max(track.clientWidth,1))-1));
+  next?.addEventListener('click',()=>goTo(Math.round(track.scrollLeft/Math.max(track.clientWidth,1))+1));
+  track.addEventListener('scroll',()=>requestAnimationFrame(update),{passive:true});
+  track.addEventListener('pointerdown',e=>{
+    isDown=true;
+    pointerId=e.pointerId;
+    startX=e.clientX;
+    startScroll=track.scrollLeft;
+    track.classList.add('is-dragging');
+    track.setPointerCapture?.(pointerId);
+  });
+  track.addEventListener('pointermove',e=>{
+    if(!isDown||e.pointerId!==pointerId)return;
+    track.scrollLeft=startScroll-(e.clientX-startX);
+  });
+  const releasePointer=()=>{
+    isDown=false;
+    pointerId=null;
+    track.classList.remove('is-dragging');
+  };
+  track.addEventListener('pointerup',releasePointer);
+  track.addEventListener('pointercancel',releasePointer);
+  track.addEventListener('lostpointercapture',releasePointer);
+  update();
 }
 
 function verDetalhe(idx){
@@ -1465,7 +1667,7 @@ function verSite(){document.getElementById('adminPanel').classList.remove('open'
 /* ════════════════════════════════════════
    ADMIN — INIT + NAV
 ════════════════════════════════════════ */
-function initAdmin(){updateStats();renderAbasGrid();loadVideoAdmin();}
+function initAdmin(){updateStats();renderAbasGrid();loadVideoAdmin();loadLocalizacaoAdmin();}
 function updateStats(){
   document.getElementById('stAbas').textContent=ABAS.length;
   document.getElementById('stProcs').textContent=PROCS.length;
@@ -2086,6 +2288,102 @@ async function uploadFoto(){
   }catch(e){toast('Erro: '+e.message,'err');}
   finally{btn.innerHTML='Publicar Foto';btn.disabled=false;setTimeout(()=>{pw.style.display='none';bar.style.width='0%';},3000);}
 }
+
+/* ════════════════════════════════════════
+   LOCALIZAÇÃO — ADMIN
+════════════════════════════════════════ */
+function atualizarPreviewLocalizacao(previewUrl=''){
+  const media=document.getElementById('locPreviewMedia');
+  const title=document.getElementById('locPreviewTitle');
+  if(!media||!title)return;
+  const titulo=(document.getElementById('locTitulo')?.value||'').trim()||'Frente da loja';
+  const url=previewUrl||locPreviewSrc||LOCALIZACAO.url||'';
+  title.textContent=titulo;
+  if(url){
+    media.innerHTML=`<img src="${previewUrl||locPreviewSrc||mediaImageUrl(url,'detail')}" alt="${titulo}">`;
+  }else{
+    media.innerHTML='<span>📍</span>';
+  }
+}
+function loadLocalizacaoAdmin(){
+  const data=LOCALIZACAO.url||LOCALIZACAO.titulo?LOCALIZACAO:readLocalizacaoCache();
+  LOCALIZACAO={url:data.url||'',titulo:data.titulo||''};
+  locPreviewSrc='';
+  locPend=null;
+  const inputTitulo=document.getElementById('locTitulo');
+  const label=document.getElementById('locLabel');
+  const btn=document.getElementById('btnLoc');
+  if(inputTitulo)inputTitulo.value=LOCALIZACAO.titulo||'';
+  atualizarPreviewLocalizacao();
+  if(label)label.textContent=LOCALIZACAO.url?'✓ Imagem da localização configurada.':'Nenhuma imagem de localização configurada.';
+  if(btn)btn.disabled=!LOCALIZACAO.url;
+}
+function onLocPick(e){
+  const f=e.target.files?.[0];
+  if(!f)return;
+  locPend=f;
+  document.getElementById('btnLoc').disabled=false;
+  document.getElementById('locLabel').textContent=`✓ ${f.name}`;
+  const r=new FileReader();
+  r.onload=ev=>{locPreviewSrc=ev.target.result;atualizarPreviewLocalizacao();};
+  r.readAsDataURL(f);
+}
+async function salvarLocalizacaoAdmin(){
+  const titulo=(document.getElementById('locTitulo').value||'').trim();
+  if(!locPend&&!LOCALIZACAO.url){
+    toast('Selecione a foto da localização','warn');
+    return;
+  }
+  const btn=document.getElementById('btnLoc');
+  const pw=document.getElementById('locProgressWrap');
+  const bar=document.getElementById('locProgBar');
+  const lbl=document.getElementById('locProgLabel');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span> Salvando...';
+  pw.style.display='block';
+  try{
+    let url=LOCALIZACAO.url||'';
+    if(locPend){
+      toast('Enviando imagem da localização...','info');
+      url=await cloudUpload(locPend,'image',pct=>{bar.style.width=pct+'%';lbl.textContent=`Enviando... ${pct}%`;});
+    }else{
+      bar.style.width='100%';
+      lbl.textContent='Atualizando título...';
+    }
+    await gasCall({action:'setLocalizacao',url,titulo});
+    LOCALIZACAO={url,titulo};
+    locPreviewSrc='';
+    writeLocalizacaoCache(url,titulo);
+    atualizarPreviewLocalizacao();
+    document.getElementById('locLabel').textContent='✓ Imagem da localização configurada.';
+    document.getElementById('locFile').value='';
+    locPend=null;
+    bar.style.width='100%';
+    lbl.textContent='Concluído!';
+    toast('Localização atualizada!','ok');
+    if(document.querySelector('.tab-main-btn.active')?.getAttribute('data-aba')==='__loc__')showAba('__loc__');
+  }catch(e){
+    toast('Erro: '+e.message,'err');
+  }finally{
+    btn.innerHTML='Salvar Localização';
+    btn.disabled=!(locPend||LOCALIZACAO.url);
+    setTimeout(()=>{pw.style.display='none';bar.style.width='0%';},3000);
+  }
+}
+const locZ=document.getElementById('locZone');
+['dragover','dragenter'].forEach(ev=>locZ.addEventListener(ev,e=>{e.preventDefault();locZ.classList.add('drag-over');}));
+['dragleave','drop'].forEach(ev=>locZ.addEventListener(ev,()=>locZ.classList.remove('drag-over')));
+locZ.addEventListener('drop',e=>{
+  e.preventDefault();
+  const f=e.dataTransfer?.files?.[0];
+  if(!f)return;
+  locPend=f;
+  document.getElementById('btnLoc').disabled=false;
+  document.getElementById('locLabel').textContent=`✓ ${f.name}`;
+  const r=new FileReader();
+  r.onload=ev=>{locPreviewSrc=ev.target.result;atualizarPreviewLocalizacao();};
+  r.readAsDataURL(f);
+});
 
 /* ════════════════════════════════════════
    CLOUDINARY

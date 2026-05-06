@@ -73,8 +73,18 @@ body{font-family:'Jost',sans-serif;background:var(--b-blush);min-height:100vh;co
 .video-col{flex:3;}
 .video-frame{position:relative;border-radius:20px;overflow:hidden;background:var(--b-pale);box-shadow:0 20px 60px rgba(240,98,146,.18),0 4px 16px rgba(0,0,0,.06);border:1.5px solid rgba(255,255,255,.9);}
 .video-frame video{width:100%;height:var(--frame-h,420px);object-fit:cover;display:block;}
-#mainPhoto{width:100%;height:var(--frame-h,420px);object-fit:cover;object-position:center top;display:none;}
+#mainPhoto{width:100%;height:var(--frame-h,420px);object-fit:cover;object-position:center top;display:none;cursor:zoom-in;}
 .video-frame::after{content:"";position:absolute;bottom:0;left:0;right:0;height:90px;background:linear-gradient(to top,rgba(50,0,25,.32),transparent);pointer-events:none;}
+
+/* ══ LIGHTBOX ══ */
+.lightbox{position:fixed;inset:0;z-index:9998;background:rgba(10,0,5,.92);display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px);cursor:zoom-out;}
+.lightbox.open{display:flex;}
+.lightbox-img{max-width:95vw;max-height:92vh;object-fit:contain;border-radius:4px;box-shadow:0 32px 80px rgba(0,0,0,.5);animation:lbIn .28s cubic-bezier(.4,0,.2,1);}
+@keyframes lbIn{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:scale(1);}}
+.lightbox-close{position:absolute;top:18px;right:18px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;}
+.lightbox-close:hover{background:rgba(255,255,255,.28);}
+.lightbox-hint{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);}
+
 .sound-btn{position:absolute;bottom:18px;left:18px;z-index:3;display:inline-flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.45);border-radius:999px;padding:9px 16px 9px 9px;cursor:pointer;color:#fff;background:rgba(60,0,30,.45);backdrop-filter:blur(14px);transition:background .25s,transform .22s;font-family:'Jost',sans-serif;}
 .sound-btn:hover{background:rgba(240,98,146,.7);transform:translateY(-2px);}
 .sound-btn.is-on{background:rgba(240,98,146,.82);}
@@ -149,16 +159,16 @@ footer strong{color:#fff;font-weight:600;}
 /* ══ PAINEL ADMIN ══ */
 #adminPanel{position:fixed;inset:0;z-index:7777;background:var(--b-blush);display:none;flex-direction:column;overflow:hidden;}
 #adminPanel.open{display:flex;}
-.adm-header{background:linear-gradient(135deg,var(--b-mid) 0%,var(--b) 50%,#EC407A 100%);padding:14px 26px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(240,98,146,.25);flex-shrink:0;}
+.adm-header{background:linear-gradient(135deg,var(--b-mid) 0%,var(--b) 50%,#EC407A 100%);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(240,98,146,.25);flex-shrink:0;}
 .adm-header-left{display:flex;align-items:center;gap:13px;}
-.adm-logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;letter-spacing:5px;color:#fff;}
+.adm-logo{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;letter-spacing:4px;color:#fff;}
 .adm-badge{font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;background:rgba(255,255,255,.2);color:#fff;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.3);}
 .adm-header-right{display:flex;gap:8px;}
-.adm-btn-hdr{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:8px 15px;border-radius:10px;cursor:pointer;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;transition:background .2s;}
+.adm-btn-hdr{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:8px 13px;border-radius:10px;cursor:pointer;font-family:'Jost',sans-serif;font-size:12px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;transition:background .2s;white-space:nowrap;}
 .adm-btn-hdr:hover{background:rgba(255,255,255,.26);}
 .adm-body{display:flex;flex:1;overflow:hidden;}
 
-/* nav lateral */
+/* ── nav lateral DESKTOP ── */
 .adm-nav{width:210px;background:var(--white);border-right:1px solid var(--border);padding:16px 12px;display:flex;flex-direction:column;gap:3px;flex-shrink:0;overflow-y:auto;}
 .adm-nav-sect{font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--text-lt);padding:10px 10px 4px;margin-top:6px;}
 .adm-nav-sect:first-child{margin-top:0;}
@@ -167,6 +177,14 @@ footer strong{color:#fff;font-weight:600;}
 .adm-nav-btn.active{background:var(--b-pale);color:var(--b-deep);font-weight:600;}
 .adm-nav-btn .ni{font-size:15px;flex-shrink:0;}
 .adm-cnt{margin-left:auto;background:var(--b);color:#fff;border-radius:10px;font-size:10px;font-weight:700;padding:2px 7px;}
+
+/* ── NAV INFERIOR MOBILE ── */
+.adm-mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:7778;background:var(--white);border-top:1px solid var(--border);padding:8px 0 env(safe-area-inset-bottom, 8px);box-shadow:0 -4px 20px rgba(240,98,146,.12);}
+.adm-mobile-nav-inner{display:flex;justify-content:space-around;align-items:center;}
+.adm-mobile-tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;border:none;background:none;cursor:pointer;color:var(--text-lt);font-family:'Jost',sans-serif;font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;transition:color .2s;flex:1;min-width:0;}
+.adm-mobile-tab .mn-icon{font-size:22px;line-height:1;margin-bottom:1px;}
+.adm-mobile-tab.active{color:var(--b);}
+.adm-mobile-tab.active .mn-icon-pill{background:var(--b-pale);border-radius:20px;padding:4px 18px;}
 
 /* main */
 .adm-main{flex:1;overflow-y:auto;padding:24px 28px;}
@@ -203,7 +221,7 @@ footer strong{color:#fff;font-weight:600;}
 .nova-aba-form{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:var(--shadow);display:none;}
 .nova-aba-form.open{display:block;}
 
-/* ── DENTRO DE UMA ABA (lista de procedimentos) ── */
+/* ── DENTRO DE UMA ABA ── */
 .aba-detail-header{display:flex;align-items:center;gap:14px;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--border);}
 .aba-detail-back{background:none;border:1px solid var(--border);color:var(--text-mid);width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
 .aba-detail-back:hover{background:var(--b-pale);border-color:var(--b-mid);color:var(--b-deep);}
@@ -211,7 +229,7 @@ footer strong{color:#fff;font-weight:600;}
 .aba-detail-nome{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;letter-spacing:2px;color:var(--text);}
 .aba-detail-sub{font-size:11px;color:var(--text-lt);letter-spacing:.5px;margin-top:2px;}
 
-/* grid de procedimentos dentro da aba */
+/* grid de procedimentos */
 .procs-aba-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:20px;}
 .proc-aba-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(240,98,146,.09);transition:transform .2s,box-shadow .2s;}
 .proc-aba-card:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(240,98,146,.16);}
@@ -223,7 +241,7 @@ footer strong{color:#fff;font-weight:600;}
 .proc-aba-dur{font-size:11px;color:var(--text-lt);}
 .proc-aba-actions{display:flex;gap:6px;margin-top:11px;}
 
-/* card "adicionar novo proc" */
+/* card adicionar */
 .proc-aba-add{background:var(--b-blush);border:2px dashed rgba(240,98,146,.28);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:32px 16px;cursor:pointer;transition:border-color .2s,background .2s;min-height:230px;}
 .proc-aba-add:hover{border-color:var(--b);background:var(--b-pale);}
 .proc-aba-add-icon{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--b),#EC407A);display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;box-shadow:0 6px 18px rgba(240,98,146,.3);}
@@ -232,8 +250,6 @@ footer strong{color:#fff;font-weight:600;}
 
 /* ── FORMULÁRIO DE PROCEDIMENTO ── */
 .proc-form-wrap{background:var(--white);border:1px solid var(--border);border-radius:18px;padding:0;box-shadow:var(--shadow);overflow:hidden;max-width:700px;}
-
-/* breadcrumb no topo do form */
 .proc-form-breadcrumb{background:linear-gradient(135deg,var(--b-pale),var(--b-blush));padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
 .proc-form-bc-emoji{font-size:20px;}
 .proc-form-bc-aba{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--b);}
@@ -241,7 +257,7 @@ footer strong{color:#fff;font-weight:600;}
 .proc-form-bc-proc{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-mid);}
 .proc-form-body{padding:26px;}
 
-/* upload de imagem — destaque */
+/* upload de imagem */
 .img-upload-area{position:relative;border-radius:14px;overflow:hidden;margin-bottom:20px;background:var(--b-pale);border:2px dashed rgba(240,98,146,.28);cursor:pointer;transition:border-color .2s;}
 .img-upload-area:hover,.img-upload-area.drag-over{border-color:var(--b);}
 .img-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
@@ -291,13 +307,32 @@ footer strong{color:#fff;font-weight:600;}
 .btn-sm:hover{background:var(--b-pale);border-color:var(--b-mid);color:var(--b-deep);}
 .btn-sm.danger:hover{background:#ffeaea;border-color:#e57373;color:var(--err);}
 
-/* ── SELETOR DE MANUTENÇÃO (3 estados) ── */
+/* ── SELETOR DE MANUTENÇÃO ── */
 .manut-selector{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
 .manut-opt{padding:12px 8px;border-radius:11px;border:1.5px solid var(--border);background:var(--white);color:var(--text-mid);font-family:'Jost',sans-serif;font-size:12px;font-weight:500;cursor:pointer;text-align:center;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:5px;line-height:1.3;}
 .manut-opt:hover{border-color:rgba(240,98,146,.4);background:var(--b-blush);}
 .manut-opt.active{border-color:var(--b);background:var(--b-pale);color:var(--b-deep);font-weight:600;}
 .manut-opt.active.sem{border-color:#888;background:#f5f5f5;color:#555;}
 .manut-opt .manut-icon{font-size:18px;}
+
+/* ── EMOJI PICKER (procedimento) ── */
+.proc-emoji-row{display:flex;align-items:center;gap:10px;background:var(--b-blush);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:16px;cursor:pointer;transition:border-color .2s;}
+.proc-emoji-row:hover{border-color:rgba(240,98,146,.4);}
+.proc-emoji-preview{font-size:28px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--white);border-radius:10px;border:1px solid var(--border);flex-shrink:0;}
+.proc-emoji-info{flex:1;}
+.proc-emoji-lbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-mid);}
+.proc-emoji-hint{font-size:11px;color:var(--text-lt);margin-top:2px;}
+.proc-emoji-panel{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:16px;box-shadow:0 8px 24px rgba(240,98,146,.1);display:none;}
+.proc-emoji-panel.open{display:block;}
+.proc-emoji-panel-title{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text-lt);margin-bottom:10px;}
+.proc-emoji-grid{display:flex;flex-wrap:wrap;gap:6px;}
+.proc-emoji-opt{font-size:22px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;border:2px solid transparent;transition:all .15s;user-select:none;background:var(--b-blush);}
+.proc-emoji-opt:hover{background:var(--b-pale);transform:scale(1.15);}
+.proc-emoji-opt.selected{border-color:var(--b);background:var(--b-pale);box-shadow:0 0 0 2px rgba(240,98,146,.2);}
+.proc-emoji-custom{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.proc-emoji-custom-lbl{font-size:11px;color:var(--text-lt);white-space:nowrap;}
+.proc-emoji-custom-input{width:60px;padding:8px;text-align:center;font-size:18px;background:var(--b-blush);border:1px solid var(--border);border-radius:8px;outline:none;}
+.proc-emoji-custom-input:focus{border-color:var(--b);}
 
 /* vídeo admin */
 .form-card{background:var(--white);border:1px solid var(--border);border-radius:18px;padding:26px;box-shadow:var(--shadow);max-width:580px;margin-bottom:18px;}
@@ -310,6 +345,21 @@ footer strong{color:#fff;font-weight:600;}
 .upload-text{font-size:12px;color:var(--text-mid);line-height:1.5;}
 .prog-wrap{background:var(--b-pale);border-radius:8px;height:8px;overflow:hidden;margin-bottom:7px;}
 .prog-bar{height:100%;background:linear-gradient(90deg,var(--b),#EC407A);width:0%;transition:width .3s;border-radius:8px;}
+
+/* ── CONTROLE DE DIMENSÃO DA FOTO (tela principal) ── */
+.foto-dimensao-box{background:var(--b-blush);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px;}
+.foto-dimensao-titulo{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-mid);margin-bottom:14px;}
+.foto-dim-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.foto-dim-row:last-child{margin-bottom:0;}
+.foto-dim-label-group{flex:0 0 120px;}
+.foto-dim-key{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-mid);}
+.foto-dim-val{font-size:13px;font-weight:700;color:var(--b);margin-top:2px;}
+.foto-dim-slider{flex:1;accent-color:var(--b);height:4px;cursor:pointer;}
+.foto-objectfit-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;}
+.foto-fit-opt{padding:10px 6px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);color:var(--text-mid);font-family:'Jost',sans-serif;font-size:11px;font-weight:500;cursor:pointer;text-align:center;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.foto-fit-opt:hover{border-color:rgba(240,98,146,.4);background:var(--b-blush);}
+.foto-fit-opt.active{border-color:var(--b);background:var(--b-pale);color:var(--b-deep);font-weight:700;}
+.foto-fit-icon{font-size:16px;}
 
 /* modal */
 .modal-bd{position:fixed;inset:0;background:rgba(30,0,15,.5);backdrop-filter:blur(10px);z-index:9990;display:none;align-items:center;justify-content:center;}
@@ -332,12 +382,13 @@ footer strong{color:#fff;font-weight:600;}
 .empty-state-icon{font-size:40px;margin-bottom:10px;}
 .empty-state p{font-size:13px;}
 
-/* ── EMOJI PICKER ── */
+/* ── EMOJI PICKER (abas) ── */
 .emoji-picker{display:flex;flex-wrap:wrap;gap:6px;background:var(--b-blush);border:1px solid var(--border);border-radius:10px;padding:10px;}
-.emoji-opt{font-size:22px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all .15s;user-select:none;}
+.emoji-opt{font-size:22px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all .15px;user-select:none;}
 .emoji-opt:hover{background:var(--b-pale);transform:scale(1.15);}
 .emoji-opt.selected{border-color:var(--b);background:var(--b-pale);box-shadow:0 0 0 2px rgba(240,98,146,.2);}
 
+/* ── RESPONSIVO MOBILE ── */
 @media(max-width:768px){
   .site-body{flex-direction:column;padding:20px 16px 32px;gap:20px;}
   .video-col,.sidebar-col{width:100%;flex:none;}
@@ -347,21 +398,48 @@ footer strong{color:#fff;font-weight:600;}
   .intro-deco-line{width:30px;}
   .logo-main{font-size:30px;letter-spacing:6px;}
   .tabs-main{grid-template-columns:1fr 1fr;}
+
+  /* ADMIN MOBILE */
   .adm-nav{display:none;}
-  .adm-main{padding:18px 14px;}
+  .adm-mobile-nav{display:block;}
+  .adm-main{padding:16px 14px 90px;} /* espaço para nav inferior */
+  .adm-header{padding:12px 16px;}
+  .adm-logo{font-size:16px;letter-spacing:3px;}
+  .adm-badge{display:none;}
+  .adm-btn-hdr{padding:7px 10px;font-size:11px;}
+
   .form-cols,.form-cols-3{grid-template-columns:1fr;}
   .abas-grid,.procs-aba-grid{grid-template-columns:1fr 1fr;}
   .login-box{padding:36px 24px;}
   .manut-selector{grid-template-columns:1fr;}
+  .btn-row{flex-direction:column;}
+  .btn-row .btn-primary,.btn-row .btn-secondary{justify-content:center;width:100%;}
+
+  /* stats compacto */
+  .stats-row{grid-template-columns:1fr 1fr 1fr;}
+  .stat-num{font-size:28px;}
+
+  /* toast não sobrepõe nav */
+  .toast-wrap{bottom:80px;}
 }
 @media(max-width:480px){
   .abas-grid,.procs-aba-grid{grid-template-columns:1fr;}
   .video-frame video{height:clamp(200px, 60vw, 320px) !important;}
   #mainPhoto{height:clamp(200px, 60vw, 320px) !important;}
+  .adm-title{font-size:22px;}
+  .proc-form-body{padding:16px;}
+  .proc-form-wrap{border-radius:14px;}
 }
 </style>
 </head>
 <body>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="fecharLightbox()">
+  <img class="lightbox-img" id="lightboxImg" src="" alt="">
+  <button class="lightbox-close" onclick="fecharLightbox()">✕</button>
+  <div class="lightbox-hint">Toque para fechar</div>
+</div>
 
 <!-- INTRO -->
 <div class="intro" id="intro" onclick="fecharIntro()">
@@ -420,7 +498,7 @@ footer strong{color:#fff;font-weight:600;}
         <video id="videoPlayer" autoplay muted loop playsinline style="display:block;">
           <source id="videoSrc" src="apresentacao.mp4" type="video/mp4">
         </video>
-        <img id="mainPhoto" src="" alt="Studio Julie Barroso" decoding="async" fetchpriority="high">
+        <img id="mainPhoto" src="" alt="Studio Julie Barroso" decoding="async" fetchpriority="high" onclick="abrirLightbox(this.src)">
         <button class="sound-btn is-muted" id="soundBtn" onclick="toggleSound()">
           <span class="sound-btn-icon" id="soundIcon">&#9835;</span>
           <span class="sound-btn-label">
@@ -468,11 +546,12 @@ footer strong{color:#fff;font-weight:600;}
       <span class="adm-badge">Admin</span>
     </div>
     <div class="adm-header-right">
-      <button class="adm-btn-hdr" onclick="verSite()">← Ver Site</button>
+      <button class="adm-btn-hdr" onclick="verSite()">← Site</button>
       <button class="adm-btn-hdr" onclick="doLogout()">Sair</button>
     </div>
   </header>
   <div class="adm-body">
+    <!-- nav lateral desktop -->
     <nav class="adm-nav">
       <div class="adm-nav-sect">Painel</div>
       <button class="adm-nav-btn active" onclick="goSec('dashboard')"><span class="ni">📊</span>Dashboard</button>
@@ -481,6 +560,25 @@ footer strong{color:#fff;font-weight:600;}
       <div class="adm-nav-sect">Mídia</div>
       <button class="adm-nav-btn" onclick="goSec('video')"><span class="ni">🖼</span>Tela Principal</button>
     </nav>
+
+    <!-- nav inferior mobile -->
+    <div class="adm-mobile-nav">
+      <div class="adm-mobile-nav-inner">
+        <button class="adm-mobile-tab active" id="mnt-dashboard" onclick="goSec('dashboard')">
+          <div class="mn-icon mn-icon-pill">📊</div>
+          <span>Dashboard</span>
+        </button>
+        <button class="adm-mobile-tab" id="mnt-abas" onclick="goSec('abas')">
+          <div class="mn-icon mn-icon-pill">🗂</div>
+          <span>Abas</span>
+        </button>
+        <button class="adm-mobile-tab" id="mnt-video" onclick="goSec('video')">
+          <div class="mn-icon mn-icon-pill">🖼</div>
+          <span>Mídia</span>
+        </button>
+      </div>
+    </div>
+
     <main class="adm-main">
 
       <!-- DASHBOARD -->
@@ -491,7 +589,7 @@ footer strong{color:#fff;font-weight:600;}
         <div class="stats-row">
           <div class="stat-card"><div class="stat-num" id="stAbas">—</div><div class="stat-label">Abas</div></div>
           <div class="stat-card"><div class="stat-num" id="stProcs">—</div><div class="stat-label">Procedimentos</div></div>
-          <div class="stat-card"><div class="stat-num" id="stVideo">—</div><div class="stat-label">Vídeo</div></div>
+          <div class="stat-card"><div class="stat-num" id="stVideo">—</div><div class="stat-label">Mídia</div></div>
         </div>
         <div style="background:var(--white);border:1px solid var(--border);border-radius:16px;padding:22px;max-width:380px;box-shadow:var(--shadow);">
           <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-mid);margin-bottom:13px;">Acesso Rápido</div>
@@ -547,6 +645,28 @@ footer strong{color:#fff;font-weight:600;}
               <input type="hidden" id="editIdx" value="">
               <input type="hidden" id="fpImgPosY" value="50">
               <input type="hidden" id="fpImgAltura" value="145">
+
+              <!-- ── EMOJI DO PROCEDIMENTO (NOVO) ── -->
+              <div class="form-row">
+                <label class="form-label">😊 Ícone do Procedimento</label>
+                <div class="proc-emoji-row" onclick="toggleEmojiPanel()">
+                  <div class="proc-emoji-preview" id="procEmojiPreview">✦</div>
+                  <div class="proc-emoji-info">
+                    <div class="proc-emoji-lbl">Emoji / Ícone</div>
+                    <div class="proc-emoji-hint">Clique para escolher ou digitar</div>
+                  </div>
+                  <span style="font-size:18px;color:rgba(240,98,146,.4);">›</span>
+                </div>
+                <div class="proc-emoji-panel" id="procEmojiPanel">
+                  <div class="proc-emoji-panel-title">Escolha um ícone</div>
+                  <div class="proc-emoji-grid" id="procEmojiGrid"></div>
+                  <div class="proc-emoji-custom">
+                    <span class="proc-emoji-custom-lbl">Ou cole aqui:</span>
+                    <input class="proc-emoji-custom-input" id="procEmojiCustom" maxlength="4" placeholder="✦" oninput="onProcEmojiCustom()">
+                  </div>
+                </div>
+                <input type="hidden" id="fpEmoji" value="✦">
+              </div>
 
               <!-- upload de imagem em destaque -->
               <div class="form-row">
@@ -642,7 +762,7 @@ footer strong{color:#fff;font-weight:600;}
                 </div>
               </div>
 
-              <!-- Indicado Para — toggle on/off -->
+              <!-- Indicado Para -->
               <div style="background:var(--b-blush);border:1px solid var(--border);border-radius:11px;padding:14px 16px;margin-bottom:16px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0;" id="indToggleRow">
                   <div>
@@ -663,7 +783,6 @@ footer strong{color:#fff;font-weight:600;}
 
               <div class="form-divider">Manutenção</div>
 
-              <!-- ✅ ALTERAÇÃO 2: Seletor de 3 estados para manutenção -->
               <div style="margin-bottom:6px;">
                 <label class="form-label">Status da Manutenção</label>
                 <div class="manut-selector" id="manutSelector">
@@ -682,7 +801,6 @@ footer strong{color:#fff;font-weight:600;}
                 </div>
               </div>
 
-              <!-- campos de manutenção (visíveis apenas no estado "tem") -->
               <div id="boxManutencao" style="display:none;">
                 <div class="form-cols">
                   <div class="form-row">
@@ -696,7 +814,6 @@ footer strong{color:#fff;font-weight:600;}
                 </div>
               </div>
 
-              <!-- hidden que guarda o estado atual -->
               <input type="hidden" id="fpManutEstado" value="nenhum">
 
               <div class="btn-row">
@@ -711,7 +828,7 @@ footer strong{color:#fff;font-weight:600;}
       <!-- TELA PRINCIPAL -->
       <div id="sec-video" class="adm-sec">
         <div class="adm-title">Tela Principal</div>
-        <div class="adm-sub">Escolha o que aparece na tela inicial do site: vídeo ou foto</div>
+        <div class="adm-sub">Escolha o que aparece na tela inicial: vídeo ou foto</div>
         <div class="adm-rule"></div>
 
         <div style="display:flex;gap:10px;margin-bottom:22px;max-width:420px;">
@@ -757,37 +874,68 @@ footer strong{color:#fff;font-weight:600;}
             </div>
           </div>
 
-          <div id="fotoAjusteBox" style="display:none;margin-top:4px;">
-            <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-mid);margin-bottom:10px;">Ajustar Enquadramento</div>
-            <div id="fotoPreviewFrame" style="width:100%;height:240px;border-radius:12px;overflow:hidden;background:var(--b-pale);margin-bottom:16px;border:1px solid var(--border);position:relative;cursor:ns-resize;" title="Arraste para ajustar">
-              <img id="fotoPreviewImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 50%;pointer-events:none;transition:object-position .1s;">
+          <!-- ── CONTROLE COMPLETO DE DIMENSÃO ── -->
+          <div id="fotoAjusteBox" style="display:none;">
+            <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-mid);margin-top:16px;margin-bottom:10px;">Pré-visualização</div>
+            <div id="fotoPreviewFrame" style="width:100%;border-radius:12px;overflow:hidden;background:var(--b-pale);margin-bottom:16px;border:1px solid var(--border);position:relative;cursor:ns-resize;" title="Arraste para ajustar posição">
+              <img id="fotoPreviewImg" src="" alt="" style="width:100%;display:block;object-fit:cover;object-position:center 50%;pointer-events:none;transition:object-position .1s;">
               <div style="position:absolute;inset:0;border:2px dashed rgba(255,255,255,.4);border-radius:10px;pointer-events:none;"></div>
               <div style="position:absolute;bottom:8px;right:10px;background:rgba(0,0,0,.45);color:#fff;font-size:10px;padding:3px 8px;border-radius:6px;pointer-events:none;backdrop-filter:blur(4px);">↕ arraste para mover</div>
             </div>
-            <div style="margin-bottom:14px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-mid);">Posição Vertical</span>
-                <span style="font-size:11px;color:var(--b);font-weight:600;" id="fotoPosLabel">Centro</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:10px;">
-                <span style="font-size:11px;color:var(--text-lt);">Topo</span>
-                <input type="range" id="fotoSliderPos" min="0" max="100" value="50"
-                  style="flex:1;accent-color:var(--b);height:4px;cursor:pointer;"
-                  oninput="atualizarFotoPos()">
-                <span style="font-size:11px;color:var(--text-lt);">Base</span>
-              </div>
-            </div>
-            <div style="margin-bottom:18px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <span style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-mid);">Altura do Frame</span>
-                <span style="font-size:11px;color:var(--b);font-weight:600;" id="fotoAltLabel">420px</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:10px;">
-                <span style="font-size:11px;color:var(--text-lt);">Menor</span>
-                <input type="range" id="fotoSliderAlt" min="280" max="700" value="420"
-                  style="flex:1;accent-color:var(--b);height:4px;cursor:pointer;"
+
+            <div class="foto-dimensao-box">
+              <div class="foto-dimensao-titulo">Controles de Dimensão e Posição</div>
+
+              <!-- altura do frame -->
+              <div class="foto-dim-row">
+                <div class="foto-dim-label-group">
+                  <div class="foto-dim-key">Altura do frame</div>
+                  <div class="foto-dim-val" id="fotoAltLabel">420px</div>
+                </div>
+                <input type="range" class="foto-dim-slider" id="fotoSliderAlt" min="280" max="800" value="420"
                   oninput="atualizarFotoAlt()">
-                <span style="font-size:11px;color:var(--text-lt);">Maior</span>
+              </div>
+
+              <!-- largura (em %) -->
+              <div class="foto-dim-row">
+                <div class="foto-dim-label-group">
+                  <div class="foto-dim-key">Largura</div>
+                  <div class="foto-dim-val" id="fotoLargLabel">100%</div>
+                </div>
+                <input type="range" class="foto-dim-slider" id="fotoSliderLarg" min="40" max="100" value="100"
+                  oninput="atualizarFotoLarg()">
+              </div>
+
+              <!-- posição vertical -->
+              <div class="foto-dim-row">
+                <div class="foto-dim-label-group">
+                  <div class="foto-dim-key">Posição vertical</div>
+                  <div class="foto-dim-val" id="fotoPosLabel">Centro</div>
+                </div>
+                <input type="range" class="foto-dim-slider" id="fotoSliderPos" min="0" max="100" value="50"
+                  oninput="atualizarFotoPos()">
+              </div>
+
+              <!-- modo de ajuste (object-fit) -->
+              <div style="margin-top:14px;">
+                <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-mid);margin-bottom:8px;">Modo de exibição</div>
+                <div class="foto-objectfit-row">
+                  <button type="button" class="foto-fit-opt active" id="fitCover" onclick="setFotoFit('cover')">
+                    <span class="foto-fit-icon">🔲</span>
+                    <span>Preencher</span>
+                    <span style="font-size:9px;opacity:.6">recorta</span>
+                  </button>
+                  <button type="button" class="foto-fit-opt" id="fitContain" onclick="setFotoFit('contain')">
+                    <span class="foto-fit-icon">🖼</span>
+                    <span>Caber</span>
+                    <span style="font-size:9px;opacity:.6">completa</span>
+                  </button>
+                  <button type="button" class="foto-fit-opt" id="fitFill" onclick="setFotoFit('fill')">
+                    <span class="foto-fit-icon">📐</span>
+                    <span>Esticar</span>
+                    <span style="font-size:9px;opacity:.6">deforma</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -865,24 +1013,12 @@ const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzxXuqE0VEmkxK_
 const CLOUD   = { cloud:'dsxcqq4yv', preset:'jo9fb1yf' };
 
 function isAppsScriptHost(){
-  try{
-    const url=new URL(window.location.href);
-    return /script\.google\.com$/i.test(url.hostname) && /\/exec$/.test(url.pathname);
-  }catch{return false;}
+  try{const url=new URL(window.location.href);return /script\.google\.com$/i.test(url.hostname)&&/\/exec$/.test(url.pathname);}catch{return false;}
 }
-
 function resolveGasUrl(){
-  if(isAppsScriptHost()){
-    try{
-      const url=new URL(window.location.href);
-      url.search='';
-      url.hash='';
-      return url.toString();
-    }catch{}
-  }
+  if(isAppsScriptHost()){try{const url=new URL(window.location.href);url.search='';url.hash='';return url.toString();}catch{}}
   return DEFAULT_GAS_URL;
 }
-
 const GAS_URL = resolveGasUrl();
 const GAS_EMBEDDED = isAppsScriptHost();
 
@@ -897,10 +1033,7 @@ let procFotos = [];
 let imgAtivaIdx = 0;
 let vidPend   = null;
 let confirmCb = null;
-const CACHE_KEYS = {
-  abas:'studio_abas_cache',
-  procs:'studio_procs_cache'
-};
+const CACHE_KEYS = { abas:'studio_abas_cache', procs:'studio_procs_cache' };
 
 /* ════════════════════════════════════════
    EMOJIS
@@ -911,75 +1044,53 @@ const EMOJIS_ABA = [
   '🌙','☀️','🌈','🍃','🌿','🪻','💐','🌻','🫧','🧸'
 ];
 
-function makeId(prefix='id'){
-  return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2,8)}`;
-}
+const EMOJIS_PROC = [
+  '👁','✨','💅','🌸','🌺','💄','💋','🪷','🌷','⭐',
+  '✦','🦋','🌟','💎','🪞','🧖','🧴','🪄','🎀','🌙',
+  '☀️','🌈','🍃','🌿','🪻','💐','🌻','🫧','🧸','🩷',
+  '🩵','💆','🧘','🏆','🌼','🔮','🌺','🌹','🫶','💫'
+];
 
-function cacheRead(key, fallback){
-  try{
-    const raw=localStorage.getItem(key);
-    return raw?JSON.parse(raw):fallback;
-  }catch{return fallback;}
-}
+function makeId(prefix='id'){return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2,8)}`;}
+function cacheRead(key,fallback){try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback;}catch{return fallback;}}
+function cacheWrite(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{}}
 
-function cacheWrite(key, value){
-  try{localStorage.setItem(key, JSON.stringify(value));}catch{}
+function cloudinaryUrl(url,transform){
+  if(!url||!transform||!/res\.cloudinary\.com/i.test(url)||!/\/upload\//.test(url))return url||'';
+  if(url.includes(`/${transform}/`))return url;
+  return url.replace('/upload/',`/upload/${transform}/`);
 }
-
-function cloudinaryUrl(url, transform){
-  if(!url || !transform || !/res\.cloudinary\.com/i.test(url) || !/\/upload\//.test(url)) return url||'';
-  if(url.includes(`/${transform}/`)) return url;
-  return url.replace('/upload/', `/upload/${transform}/`);
-}
-
-function mediaImageUrl(url, variant='card'){
-  if(!url) return '';
-  const transforms={
-    card:'f_auto,q_auto,w_420,h_320,c_fill,g_auto',
-    detail:'f_auto,q_auto,w_1280,h_960,c_limit',
-    hero:'f_auto,q_auto,w_1600,h_1000,c_fill,g_auto'
-  };
-  return cloudinaryUrl(url, transforms[variant]||transforms.card);
+function mediaImageUrl(url,variant='card'){
+  if(!url)return '';
+  const transforms={card:'f_auto,q_auto,w_420,h_320,c_fill,g_auto',detail:'f_auto,q_auto,w_1280,h_960,c_limit',hero:'f_auto,q_auto,w_1600,h_1000,c_limit'};
+  return cloudinaryUrl(url,transforms[variant]||transforms.card);
 }
 
 function parseProcImagens(raw){
-  if(!raw) return [];
-  if(Array.isArray(raw)) return raw.filter(Boolean);
+  if(!raw)return [];
+  if(Array.isArray(raw))return raw.filter(Boolean);
   const txt=String(raw).trim();
-  if(!txt) return [];
-  if(txt.startsWith('[')){
-    try{
-      const arr=JSON.parse(txt);
-      return Array.isArray(arr)?arr.filter(Boolean):[];
-    }catch{return txt?[txt]:[];}
-  }
+  if(!txt)return [];
+  if(txt.startsWith('[')){try{const arr=JSON.parse(txt);return Array.isArray(arr)?arr.filter(Boolean):[];}catch{return txt?[txt]:[]; }}
   return [txt];
 }
-
 function serializeProcImagens(list){
-  const urls=list
-    .map(item=>typeof item==='string'?item:item?.url)
-    .filter(Boolean);
-  if(!urls.length) return '';
-  return urls.length===1 ? urls[0] : JSON.stringify(urls);
+  const urls=list.map(item=>typeof item==='string'?item:item?.url).filter(Boolean);
+  if(!urls.length)return '';
+  return urls.length===1?urls[0]:JSON.stringify(urls);
 }
-
 function syncProcFotosField(){
-  const urls=procFotos
-    .map(f=>f?.url)
-    .filter(url=>url && !String(url).startsWith('blob:'));
+  const urls=procFotos.map(f=>f?.url).filter(url=>url&&!String(url).startsWith('blob:'));
   document.getElementById('fpImg').value=serializeProcImagens(urls);
   return urls;
 }
-
 function hydratePublicCache(){
   const abas=cacheRead(CACHE_KEYS.abas,null);
   const procs=cacheRead(CACHE_KEYS.procs,null);
-  if(Array.isArray(abas)&&abas.length) ABAS=abas;
-  if(Array.isArray(procs)&&procs.length) PROCS=procs;
-  if(ABAS.length) renderTabsPub();
+  if(Array.isArray(abas)&&abas.length)ABAS=abas;
+  if(Array.isArray(procs)&&procs.length)PROCS=procs;
+  if(ABAS.length)renderTabsPub();
 }
-
 function applyCachedMidia(){
   try{
     const tipo=localStorage.getItem('studio_midia_tipo')||'video';
@@ -987,34 +1098,80 @@ function applyCachedMidia(){
       const url=localStorage.getItem('studio_foto_url')||'';
       const posY=parseInt(localStorage.getItem('studio_foto_posY')||'50');
       const alt=parseInt(localStorage.getItem('studio_foto_altura')||'420');
-      if(url) aplicarMidiaNoSite('foto',url,posY,alt);
+      const fit=localStorage.getItem('studio_foto_fit')||'cover';
+      if(url)aplicarMidiaNoSite('foto',url,posY,alt,fit);
       return;
     }
     const url=localStorage.getItem('studio_video_url')||'';
-    if(url) aplicarMidiaNoSite('video',url);
+    if(url)aplicarMidiaNoSite('video',url);
   }catch{}
 }
 
-function renderEmojiPicker(containerId, inputId, current=''){
+/* ════════════════════════════════════════
+   LIGHTBOX
+════════════════════════════════════════ */
+function abrirLightbox(src){
+  if(!src)return;
+  const lb=document.getElementById('lightbox');
+  const img=document.getElementById('lightboxImg');
+  // usa URL original (sem crop do Cloudinary) para máxima qualidade
+  img.src=src.replace(/\/upload\/[^/]+\//,'/upload/f_auto,q_auto/');
+  lb.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function fecharLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')fecharLightbox();});
+
+/* ════════════════════════════════════════
+   EMOJI PICKER — ABAS
+════════════════════════════════════════ */
+function renderEmojiPicker(containerId,inputId,current=''){
   const container=document.getElementById(containerId);
   if(!container)return;
   container.innerHTML=EMOJIS_ABA.map(e=>`
     <div class="emoji-opt${e===current?' selected':''}" onclick="selecionarEmoji('${containerId}','${inputId}','${e}')">${e}</div>
   `).join('');
 }
-
-function selecionarEmoji(containerId, inputId, emoji){
+function selecionarEmoji(containerId,inputId,emoji){
   document.getElementById(inputId).value=emoji;
-  document.querySelectorAll(`#${containerId} .emoji-opt`).forEach(el=>{
-    el.classList.toggle('selected', el.textContent===emoji);
-  });
+  document.querySelectorAll(`#${containerId} .emoji-opt`).forEach(el=>{el.classList.toggle('selected',el.textContent===emoji);});
+}
+function sincEmojiInput(inputId,containerId){
+  const val=document.getElementById(inputId).value.trim();
+  document.querySelectorAll(`#${containerId} .emoji-opt`).forEach(el=>{el.classList.toggle('selected',el.textContent===val);});
 }
 
-function sincEmojiInput(inputId, containerId){
-  const val=document.getElementById(inputId).value.trim();
-  document.querySelectorAll(`#${containerId} .emoji-opt`).forEach(el=>{
-    el.classList.toggle('selected', el.textContent===val);
-  });
+/* ════════════════════════════════════════
+   EMOJI PICKER — PROCEDIMENTO (NOVO)
+════════════════════════════════════════ */
+function renderProcEmojiGrid(current='✦'){
+  const grid=document.getElementById('procEmojiGrid');
+  if(!grid)return;
+  grid.innerHTML=EMOJIS_PROC.map(e=>`
+    <div class="proc-emoji-opt${e===current?' selected':''}" onclick="selecionarProcEmoji('${e}')">${e}</div>
+  `).join('');
+}
+function selecionarProcEmoji(emoji){
+  document.getElementById('fpEmoji').value=emoji;
+  document.getElementById('procEmojiPreview').textContent=emoji;
+  document.getElementById('procEmojiCustom').value=emoji;
+  document.querySelectorAll('.proc-emoji-opt').forEach(el=>{el.classList.toggle('selected',el.textContent===emoji);});
+}
+function onProcEmojiCustom(){
+  const val=document.getElementById('procEmojiCustom').value.trim();
+  if(!val)return;
+  document.getElementById('fpEmoji').value=val;
+  document.getElementById('procEmojiPreview').textContent=val;
+  document.querySelectorAll('.proc-emoji-opt').forEach(el=>{el.classList.toggle('selected',el.textContent===val);});
+}
+function toggleEmojiPanel(){
+  const panel=document.getElementById('procEmojiPanel');
+  const isOpen=panel.classList.contains('open');
+  if(!isOpen){renderProcEmojiGrid(document.getElementById('fpEmoji').value||'✦');}
+  panel.classList.toggle('open',!isOpen);
 }
 
 /* ════════════════════════════════════════
@@ -1022,14 +1179,10 @@ function sincEmojiInput(inputId, containerId){
 ════════════════════════════════════════ */
 function gasCall(p){
   if(GAS_EMBEDDED){
-    return fetch(GAS_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(p)
-    }).then(async resp=>{
-      if(!resp.ok) throw new Error('http '+resp.status);
+    return fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)}).then(async resp=>{
+      if(!resp.ok)throw new Error('http '+resp.status);
       const data=await resp.json();
-      if(data?.error) throw new Error(data.error);
+      if(data?.error)throw new Error(data.error);
       return data;
     });
   }
@@ -1104,98 +1257,71 @@ async function loadProcs(){
     const d=await gasCall({aba:'PROCEDIMENTOS'});
     PROCS=(d||[]).map(r=>{
       const fotos=parseProcImagens(r.col8||'');
-      // ── Compatibilidade: col11 pode ser 'true'/'false'/'sem'/'' ──
       let manutEstado='nenhum';
       const col11=String(r.col11||'').trim().toLowerCase();
-      if(col11==='sem') manutEstado='sem';
-      else if(col11==='true'||col11==='tem') manutEstado='tem';
+      if(col11==='sem')manutEstado='sem';
+      else if(col11==='true'||col11==='tem')manutEstado='tem';
       return {
-        id:         r.col14||r.rowId||makeId('proc'),
-        aba:        r.col1||'',
-        nome:       r.col2||'',
-        descricao:  r.col3||'',
-        valor:      r.col4||'',
-        aPartir:    r.col15==='true'||r.col15===true,
-        duracao:    r.col5||'',
-        fixacao:    r.col6||'',
-        indicado:   r.col7||'',
-        indAtivo:   r.col16==='true'||r.col16===true||(r.col7||'')!=='',
-        imagem:     fotos[0]||'',
-        fotos,
-        imgPosY:    parseInt(r.col9||'50'),
-        imgAltura:  parseInt(r.col10||'145'),
-        manutEstado,
-        // retrocompatibilidade
-        temManut:   manutEstado==='tem',
-        manutPrazo: r.col12||'',
-        manutValor: r.col13||''
+        id:r.col14||r.rowId||makeId('proc'),
+        aba:r.col1||'',nome:r.col2||'',descricao:r.col3||'',valor:r.col4||'',
+        aPartir:r.col15==='true'||r.col15===true,
+        duracao:r.col5||'',fixacao:r.col6||'',indicado:r.col7||'',
+        indAtivo:r.col16==='true'||r.col16===true||(r.col7||'')!=='',
+        imagem:fotos[0]||'',fotos,
+        imgPosY:parseInt(r.col9||'50'),imgAltura:parseInt(r.col10||'145'),
+        emoji:r.col17||'✦',
+        manutEstado,temManut:manutEstado==='tem',manutPrazo:r.col12||'',manutValor:r.col13||''
       };
     }).filter(p=>p.nome);
   }catch{PROCS=[];}
   cacheWrite(CACHE_KEYS.procs,PROCS);
 }
+
 async function carregarVideoSite(){
   try{
     const dm=await gasCall({aba:'MIDIA_CONFIG'});
     const tipo=(dm?.[0]?.col1||localStorage.getItem('studio_midia_tipo')||'video');
     if(tipo==='foto'){
-      const [df, dc] = await Promise.all([
-        gasCall({aba:'FOTO'}),
-        gasCall({aba:'FOTO_CONFIG'})
-      ]);
-      const url  = df?.[0]?.col1 || localStorage.getItem('studio_foto_url') || '';
-      const posY = parseInt(dc?.[0]?.col1 ?? localStorage.getItem('studio_foto_posY') ?? 50);
-      const alt  = parseInt(dc?.[0]?.col2 ?? localStorage.getItem('studio_foto_altura') ?? 420);
+      const [df,dc]=await Promise.all([gasCall({aba:'FOTO'}),gasCall({aba:'FOTO_CONFIG'})]);
+      const url=df?.[0]?.col1||localStorage.getItem('studio_foto_url')||'';
+      const posY=parseInt(dc?.[0]?.col1??localStorage.getItem('studio_foto_posY')??50);
+      const alt=parseInt(dc?.[0]?.col2??localStorage.getItem('studio_foto_altura')??420);
+      const fit=dc?.[0]?.col3||localStorage.getItem('studio_foto_fit')||'cover';
       if(url){
-        try{
-          localStorage.setItem('studio_foto_url',url);
-          localStorage.setItem('studio_midia_tipo','foto');
-          localStorage.setItem('studio_foto_posY',posY);
-          localStorage.setItem('studio_foto_altura',alt);
-        }catch{}
-        aplicarMidiaNoSite('foto', url, posY, alt);
+        try{localStorage.setItem('studio_foto_url',url);localStorage.setItem('studio_midia_tipo','foto');localStorage.setItem('studio_foto_posY',posY);localStorage.setItem('studio_foto_altura',alt);localStorage.setItem('studio_foto_fit',fit);}catch{}
+        aplicarMidiaNoSite('foto',url,posY,alt,fit);
       }
-    } else {
+    }else{
       const dv=await gasCall({aba:'VIDEO'});
       const url=dv?.[0]?.col1||localStorage.getItem('studio_video_url')||'';
-      if(url){
-        try{
-          localStorage.setItem('studio_video_url',url);
-          localStorage.setItem('studio_midia_tipo','video');
-        }catch{}
-        aplicarMidiaNoSite('video',url);
-      }
+      if(url){try{localStorage.setItem('studio_video_url',url);localStorage.setItem('studio_midia_tipo','video');}catch{}
+        aplicarMidiaNoSite('video',url);}
     }
-  }catch{
-    const url=localStorage.getItem('studio_video_url')||'';
-    if(url) aplicarMidiaNoSite('video',url);
-  }
+  }catch{const url=localStorage.getItem('studio_video_url')||'';if(url)aplicarMidiaNoSite('video',url);}
 }
 
-function aplicarMidiaNoSite(tipo, url, posY, altura){
-  const video    = document.getElementById('videoPlayer');
-  const foto     = document.getElementById('mainPhoto');
-  const soundBtn = document.getElementById('soundBtn');
-  const frame    = document.querySelector('.video-frame');
-  const py  = posY   ?? parseInt(localStorage.getItem('studio_foto_posY')   || '50');
-  const alt = altura ?? parseInt(localStorage.getItem('studio_foto_altura')  || '420');
-
+function aplicarMidiaNoSite(tipo,url,posY,altura,fit){
+  const video=document.getElementById('videoPlayer');
+  const foto=document.getElementById('mainPhoto');
+  const soundBtn=document.getElementById('soundBtn');
+  const frame=document.querySelector('.video-frame');
+  const py=posY??parseInt(localStorage.getItem('studio_foto_posY')||'50');
+  const alt=altura??parseInt(localStorage.getItem('studio_foto_altura')||'420');
+  const ft=fit||localStorage.getItem('studio_foto_fit')||'cover';
   if(tipo==='foto'){
-    foto.src = mediaImageUrl(url,'hero');
-    foto.style.objectPosition = `center ${py}%`;
-    frame.style.setProperty('--frame-h', alt + 'px');
-    foto.style.display = 'block';
-    video.pause();
-    video.style.display = 'none';
-    soundBtn.style.display = 'none';
-  } else {
-    document.getElementById('videoSrc').src = url;
-    video.load();
-    video.play().catch(()=>{});
-    frame.style.setProperty('--frame-h', alt + 'px');
-    video.style.display = 'block';
-    foto.style.display  = 'none';
-    soundBtn.style.display = '';
+    // usa URL original sem transformação de crop para respeitar dimensões reais
+    foto.src=url.replace(/\/upload\/[^/]+\//,'/upload/f_auto,q_auto/');
+    foto.style.objectPosition=`center ${py}%`;
+    foto.style.objectFit=ft;
+    frame.style.setProperty('--frame-h',alt+'px');
+    foto.style.display='block';
+    video.pause();video.style.display='none';
+    soundBtn.style.display='none';
+  }else{
+    document.getElementById('videoSrc').src=url;
+    video.load();video.play().catch(()=>{});
+    frame.style.setProperty('--frame-h',alt+'px');
+    video.style.display='block';foto.style.display='none';soundBtn.style.display='';
   }
 }
 
@@ -1217,6 +1343,7 @@ function renderTabsPub(){
   </button>`;
   wrap.innerHTML=html;
 }
+
 function showAba(nome){
   document.querySelectorAll('.tab-main-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-aba')===nome));
   const panel=document.getElementById('contentPanel');
@@ -1225,7 +1352,8 @@ function showAba(nome){
     return;
   }
   const lista=PROCS.filter(p=>p.aba===nome);
-  const emoji=ABAS.find(a=>a.nome===nome)?.emoji||'✦';
+  const aba=ABAS.find(a=>a.nome===nome);
+  const emoji=aba?.emoji||'✦';
   if(!lista.length){
     panel.innerHTML=`<div class="panel-heading">${nome}</div><div class="panel-rule"></div><div class="panel-placeholder"><div class="panel-placeholder-icon">${emoji}</div><p>Nenhum serviço nesta categoria ainda.</p></div>`;
     return;
@@ -1233,10 +1361,11 @@ function showAba(nome){
   panel.innerHTML=`<div class="panel-heading">${nome}</div><div class="panel-rule"></div>`+
     lista.map(p=>{
       const idx=PROCS.indexOf(p);
-      const posY  = p.imgPosY??50;
+      const posY=p.imgPosY??50;
+      const cardEmoji=p.emoji||emoji;
       const thumb=p.imagem
         ?`<div class="pub-card-thumb"><img src="${mediaImageUrl(p.imagem,'card')}" alt="${p.nome}" style="object-position:center ${posY}%"></div>`
-        :`<div class="pub-card-thumb">${emoji}</div>`;
+        :`<div class="pub-card-thumb">${cardEmoji}</div>`;
       return `<div class="pub-card" onclick="verDetalhe(${idx})">${thumb}
         <div class="pub-card-info"><div class="pub-card-title">${p.nome}</div><div class="pub-card-desc">${p.valor?formatarValor(p.valor)+' · ':''}${p.duracao||''}</div></div>
         <span class="pub-card-arrow">›</span>
@@ -1245,73 +1374,61 @@ function showAba(nome){
 }
 
 function verDetalhe(idx){
-  const p=PROCS[idx], emoji=ABAS.find(a=>a.nome===p.aba)?.emoji||'✦';
-  const posY  = p.imgPosY??50;
-  const altura= p.imgAltura??145;
-
+  const p=PROCS[idx];
+  const aba=ABAS.find(a=>a.nome===p.aba);
+  const abaEmoji=aba?.emoji||'✦';
+  const procEmoji=p.emoji||abaEmoji;
+  const posY=p.imgPosY??50;
+  const altura=p.imgAltura??145;
   const fotos=(p.fotos&&p.fotos.length?p.fotos:parseProcImagens(p.imagem)).filter(Boolean);
-  const galeriaHtml = fotos.length
-    ? `<div class="detalhe-carousel">
+
+  const galeriaHtml=fotos.length
+    ?`<div class="detalhe-carousel">
          <div class="detalhe-carousel-track" id="detalheCarouselTrack">
            ${fotos.map((foto,i)=>`
-             <div class="detalhe-carousel-slide">
-               <img src="${mediaImageUrl(foto,'detail')}" alt="${p.nome} - foto ${i+1}" style="height:${Math.max(altura,160)}px;object-fit:cover;object-position:center ${posY}%;">
+             <div class="detalhe-carousel-slide" onclick="abrirLightbox('${foto}')">
+               <img src="${mediaImageUrl(foto,'detail')}" alt="${p.nome} - foto ${i+1}" style="height:${Math.max(altura,160)}px;object-fit:cover;object-position:center ${posY}%;cursor:zoom-in;">
                ${i===0?'<div style="position:absolute;bottom:10px;left:14px;font-size:9px;letter-spacing:3px;color:rgba(255,255,255,.85);text-transform:uppercase;background:rgba(0,0,0,.2);padding:3px 9px;border-radius:4px;">Studio Julie Barroso</div>':''}
              </div>
            `).join('')}
          </div>
          ${fotos.length>1?`<div class="detalhe-carousel-count">${fotos.length} fotos</div><div class="detalhe-carousel-dots">${fotos.map((_,i)=>`<span class="detalhe-carousel-dot${i===0?' active':''}"></span>`).join('')}</div>`:''}
+         ${fotos.length?'<div style="text-align:center;padding:4px 0 2px;font-size:10px;color:var(--text-lt);letter-spacing:1px;">🔍 Toque na foto para ampliar</div>':''}
        </div>`
-    : `<div class="detalhe-carousel">
-         <div class="detalhe-carousel-slide">
-           <div class="detalhe-carousel-ph" style="height:90px;">${emoji}</div>
-         </div>
-       </div>`;
+    :`<div class="detalhe-carousel"><div class="detalhe-carousel-slide"><div class="detalhe-carousel-ph" style="height:90px;">${procEmoji}</div></div></div>`;
 
-  // ── bloco de preços ──
-  const manutEstado = p.manutEstado || (p.temManut ? 'tem' : 'nenhum');
-  const valorDisplay = p.valor ? (p.aPartir ? 'A partir de ' + formatarValor(p.valor) : formatarValor(p.valor)) : '';
-  const precoHtml = valorDisplay || manutEstado==='tem' ? `
+  const manutEstado=p.manutEstado||(p.temManut?'tem':'nenhum');
+  const valorDisplay=p.valor?(p.aPartir?'A partir de '+formatarValor(p.valor):formatarValor(p.valor)):'';
+  const precoHtml=valorDisplay||manutEstado==='tem'?`
     <div style="display:grid;grid-template-columns:${valorDisplay&&manutEstado==='tem'?'1fr 1fr':'1fr'};gap:10px;margin-bottom:16px;">
-      ${valorDisplay ? `
-        <div style="background:linear-gradient(135deg,var(--b),#EC407A);border-radius:14px;padding:16px 18px;color:#fff;">
-          <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;opacity:.8;margin-bottom:5px;">Valor da sessão</div>
-          <div style="font-size:${p.aPartir?'15px':'20px'};font-weight:700;letter-spacing:.5px;">${valorDisplay}</div>
-        </div>` : ''}
-      ${manutEstado==='tem' ? `
-        <div style="background:var(--b-pale);border:1px solid rgba(240,98,146,.25);border-radius:14px;padding:16px 18px;">
-          <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text-lt);margin-bottom:5px;">Manutenção</div>
-          <div style="font-size:15px;font-weight:700;color:var(--b-deep);">${p.manutValor?formatarValor(p.manutValor):'Consultar'}</div>
-          ${p.manutPrazo?`<div style="font-size:11px;color:var(--text-lt);margin-top:3px;">🔄 ${p.manutPrazo}</div>`:''}
-        </div>` : ''}
-    </div>` : '';
+      ${valorDisplay?`<div style="background:linear-gradient(135deg,var(--b),#EC407A);border-radius:14px;padding:16px 18px;color:#fff;">
+        <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;opacity:.8;margin-bottom:5px;">Valor da sessão</div>
+        <div style="font-size:${p.aPartir?'15px':'20px'};font-weight:700;letter-spacing:.5px;">${valorDisplay}</div></div>`:''}
+      ${manutEstado==='tem'?`<div style="background:var(--b-pale);border:1px solid rgba(240,98,146,.25);border-radius:14px;padding:16px 18px;">
+        <div style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text-lt);margin-bottom:5px;">Manutenção</div>
+        <div style="font-size:15px;font-weight:700;color:var(--b-deep);">${p.manutValor?formatarValor(p.manutValor):'Consultar'}</div>
+        ${p.manutPrazo?`<div style="font-size:11px;color:var(--text-lt);margin-top:3px;">🔄 ${p.manutPrazo}</div>`:''}</div>`:''}
+    </div>`:'';
 
-  // ── "Sem manutenção" exibe badge discreto ──
-  const semManutHtml = manutEstado==='sem'
-    ? `<div style="display:inline-flex;align-items:center;gap:6px;background:#f5f5f5;border:1px solid #ddd;border-radius:8px;padding:7px 12px;margin-bottom:16px;font-size:12px;color:#777;">
-         <span>🚫</span> Sem manutenção
-       </div>`
-    : '';
+  const semManutHtml=manutEstado==='sem'
+    ?`<div style="display:inline-flex;align-items:center;gap:6px;background:#f5f5f5;border:1px solid #ddd;border-radius:8px;padding:7px 12px;margin-bottom:16px;font-size:12px;color:#777;"><span>🚫</span> Sem manutenção</div>`:''
 
-  // ── linhas de informação ──
-  const infos = [
-    p.duracao  ? {icon:'⏱', label:'Duração da sessão', val: p.duracao}  : null,
-    p.fixacao  ? {icon:'📅', label:'Duração do efeito', val: p.fixacao}  : null,
-    (p.indAtivo !== false && p.indicado) ? {icon:'💡', label:'Indicado para', val: p.indicado} : null,
+  const infos=[
+    p.duracao?{icon:'⏱',label:'Duração da sessão',val:p.duracao}:null,
+    p.fixacao?{icon:'📅',label:'Duração do efeito',val:p.fixacao}:null,
+    (p.indAtivo!==false&&p.indicado)?{icon:'💡',label:'Indicado para',val:p.indicado}:null,
   ].filter(Boolean);
 
-  const infosHtml = infos.length
-    ? `<div style="display:flex;flex-direction:column;gap:1px;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;">
+  const infosHtml=infos.length
+    ?`<div style="display:flex;flex-direction:column;gap:1px;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;">
         ${infos.map((info,i)=>`
           <div style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:${i%2===0?'var(--b-blush)':'var(--white)'};">
             <span style="font-size:16px;flex-shrink:0;">${info.icon}</span>
             <span style="font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text-lt);flex:1;">${info.label}</span>
             <span style="font-size:13px;font-weight:600;color:var(--text);">${info.val}</span>
-          </div>`).join('')}
-       </div>`
-    : '';
+          </div>`).join('')}</div>`:''
 
-  document.getElementById('contentPanel').innerHTML =
+  document.getElementById('contentPanel').innerHTML=
     `${galeriaHtml}
      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;letter-spacing:2px;color:var(--text);margin-bottom:6px;">${p.nome}</div>
      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
@@ -1319,13 +1436,11 @@ function verDetalhe(idx){
        <span style="font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text-lt);">${p.aba}</span>
      </div>
      <p style="font-size:13px;line-height:1.85;color:#777;margin-bottom:16px;">${p.descricao}</p>
-     ${precoHtml}
-     ${semManutHtml}
-     ${infosHtml}
+     ${precoHtml}${semManutHtml}${infosHtml}
      <button class="btn-voltar" onclick="showAba('${p.aba}')">← Voltar</button>`;
 
   ativarCarouselDetalhe();
-  if(window.innerWidth<=768) setTimeout(()=>document.getElementById('contentPanel').scrollIntoView({behavior:'smooth',block:'start'}),50);
+  if(window.innerWidth<=768)setTimeout(()=>document.getElementById('contentPanel').scrollIntoView({behavior:'smooth',block:'start'}),50);
 }
 
 /* ════════════════════════════════════════
@@ -1345,7 +1460,7 @@ function verSite(){document.getElementById('adminPanel').classList.remove('open'
 /* ════════════════════════════════════════
    ADMIN — INIT + NAV
 ════════════════════════════════════════ */
-function initAdmin(){updateStats();renderAbasGrid();}
+function initAdmin(){updateStats();renderAbasGrid();loadVideoAdmin();}
 function updateStats(){
   document.getElementById('stAbas').textContent=ABAS.length;
   document.getElementById('stProcs').textContent=PROCS.length;
@@ -1357,16 +1472,18 @@ function updateStats(){
 function goSec(id){
   document.querySelectorAll('.adm-sec').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+id)?.classList.add('active');
+  // desktop nav
   document.querySelectorAll('.adm-nav-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('onclick')?.includes("'"+id+"'")));
+  // mobile nav
+  document.querySelectorAll('.adm-mobile-tab').forEach(b=>b.classList.toggle('active',b.id==='mnt-'+id));
 }
 
 /* ════════════════════════════════════════
-   ADMIN — ABAS (grade)
+   ADMIN — ABAS
 ════════════════════════════════════════ */
 function renderAbasGrid(){
   const grid=document.getElementById('abasGrid');
   let html='';
-
   ABAS.forEach(a=>{
     const cnt=PROCS.filter(p=>p.aba===a.nome).length;
     html+=`<div class="aba-card">
@@ -1384,7 +1501,6 @@ function renderAbasGrid(){
       </div>
     </div>`;
   });
-
   html+=`<div class="aba-card" style="border:2px dashed rgba(240,98,146,.25);box-shadow:none;cursor:pointer;" onclick="abrirModal('modalNovaAba')">
     <div class="aba-card-top" style="background:var(--b-blush);flex:1;justify-content:center;padding:40px 20px;gap:12px;">
       <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--b),#EC407A);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;box-shadow:0 6px 18px rgba(240,98,146,.3);">+</div>
@@ -1392,7 +1508,6 @@ function renderAbasGrid(){
       <div style="font-size:11px;color:var(--text-lt);">Criar nova categoria</div>
     </div>
   </div>`;
-
   grid.innerHTML=html;
 }
 
@@ -1408,20 +1523,8 @@ function entrarAba(abaId){
   document.getElementById('telaAbaDetalhe').style.display='block';
   document.getElementById('telaProcForm').style.display='none';
 }
-
-function voltarParaAbas(){
-  abaAtiva=null;
-  document.getElementById('telaAbas').style.display='block';
-  document.getElementById('telaAbaDetalhe').style.display='none';
-  document.getElementById('telaProcForm').style.display='none';
-  renderAbasGrid();
-}
-
-function voltarParaAbaDetalhe(){
-  document.getElementById('telaAbaDetalhe').style.display='block';
-  document.getElementById('telaProcForm').style.display='none';
-  if(abaAtiva) renderProcsAbaGrid();
-}
+function voltarParaAbas(){abaAtiva=null;document.getElementById('telaAbas').style.display='block';document.getElementById('telaAbaDetalhe').style.display='none';document.getElementById('telaProcForm').style.display='none';renderAbasGrid();}
+function voltarParaAbaDetalhe(){document.getElementById('telaAbaDetalhe').style.display='block';document.getElementById('telaProcForm').style.display='none';if(abaAtiva)renderProcsAbaGrid();}
 
 function renderProcsAbaGrid(){
   const lista=PROCS.filter(p=>p.aba===abaAtiva.nome);
@@ -1430,16 +1533,17 @@ function renderProcsAbaGrid(){
   let html='';
   lista.forEach(p=>{
     const chave=encodeURIComponent(p.nome);
-    const posY  = p.imgPosY??50;
-    const altura= p.imgAltura??145;
+    const posY=p.imgPosY??50;
+    const altura=p.imgAltura??145;
+    const cardEmoji=p.emoji||abaAtiva.emoji;
     const imgHtml=p.imagem
       ?`<img class="proc-aba-img" src="${mediaImageUrl(p.imagem,'card')}" alt="${p.nome}" style="height:${altura}px;object-position:center ${posY}%;">`
-      :`<div class="proc-aba-ph">${abaAtiva.emoji}</div>`;
+      :`<div class="proc-aba-ph">${cardEmoji}</div>`;
     const valorFmt=p.valor?formatarValor(p.valor):'';
     html+=`<div class="proc-aba-card">
       ${imgHtml}
       <div class="proc-aba-body">
-        <div class="proc-aba-name">${p.nome}</div>
+        <div class="proc-aba-name">${cardEmoji} ${p.nome}</div>
         ${valorFmt?`<div class="proc-aba-valor">${valorFmt}</div>`:''}
         ${p.duracao?`<div class="proc-aba-dur">⏱ ${p.duracao}</div>`:''}
         <div class="proc-aba-actions">
@@ -1457,51 +1561,30 @@ function renderProcsAbaGrid(){
   document.getElementById('procsAbaGrid').innerHTML=html;
 }
 
-function novoProc(){
-  if(!abaAtiva){toast('Abra uma aba primeiro','warn');return;}
-  abrirFormProc(-1);
-}
+function novoProc(){if(!abaAtiva){toast('Abra uma aba primeiro','warn');return;}abrirFormProc(-1);}
 
-async function salvarAbas(){
-  await gasCall({action:'setAbas',dados:JSON.stringify(ABAS.map(a=>[a.id,a.nome,a.emoji]))});
-  cacheWrite(CACHE_KEYS.abas,ABAS);
-}
-
+async function salvarAbas(){await gasCall({action:'setAbas',dados:JSON.stringify(ABAS.map(a=>[a.id,a.nome,a.emoji]))});cacheWrite(CACHE_KEYS.abas,ABAS);}
 async function salvarProcs(){
   await gasCall({action:'setProcs',dados:JSON.stringify(PROCS.map(p=>[p.aba,p.nome,p.descricao,p.valor,p.duracao,p.fixacao,p.indicado,serializeProcImagens(p.fotos||parseProcImagens(p.imagem)),p.imgPosY??50,p.imgAltura??145,p.manutEstado||'nenhum',p.manutPrazo||'',p.manutValor||'',p.id||makeId('proc'),p.aPartir?'true':'false',p.indAtivo?'true':'false']))});
   cacheWrite(CACHE_KEYS.procs,PROCS);
 }
-
-function salvarProcUnico(proc, editando=false){
+function salvarProcUnico(proc,editando=false){
   const action=editando?'updateProc':'addProc';
   const payload={...proc,imagem:serializeProcImagens(proc.fotos||parseProcImagens(proc.imagem))};
   return gasCall({action,dado:JSON.stringify(payload)});
 }
-
-function removerProcServidor(id){
-  return gasCall({action:'deleteProc',id});
-}
-
-function renomearProcsDaAbaServidor(oldName,newName){
-  return gasCall({action:'renameProcAba',oldName,newName});
-}
-
-function removerProcsDaAbaServidor(abaNome){
-  return gasCall({action:'deleteAbaProcs',abaNome});
-}
+function removerProcServidor(id){return gasCall({action:'deleteProc',id});}
+function renomearProcsDaAbaServidor(oldName,newName){return gasCall({action:'renameProcAba',oldName,newName});}
+function removerProcsDaAbaServidor(abaNome){return gasCall({action:'deleteAbaProcs',abaNome});}
 
 function removerAba(id){
   const a=ABAS.find(x=>x.id===id);if(!a)return;
   confirmar(`Excluir a aba "${a.nome}"? Os procedimentos desta aba também serão removidos.`,async()=>{
-    PROCS=PROCS.filter(p=>p.aba!==a.nome);
-    ABAS=ABAS.filter(x=>x.id!==id);
+    PROCS=PROCS.filter(p=>p.aba!==a.nome);ABAS=ABAS.filter(x=>x.id!==id);
     await Promise.all([salvarAbas(),removerProcsDaAbaServidor(a.nome)]);
-    cacheWrite(CACHE_KEYS.procs,PROCS);
-    renderAbasGrid();renderTabsPub();updateStats();
-    toast('Aba removida!','ok');
+    cacheWrite(CACHE_KEYS.procs,PROCS);renderAbasGrid();renderTabsPub();updateStats();toast('Aba removida!','ok');
   });
 }
-
 async function confirmarNovaAba(){
   const nome=document.getElementById('novaAbaNome').value.trim();
   const emoji=document.getElementById('novaAbaEmoji').value.trim()||'✦';
@@ -1509,17 +1592,12 @@ async function confirmarNovaAba(){
   ABAS.push({id:Date.now().toString(),nome,emoji});
   await salvarAbas();renderAbasGrid();renderTabsPub();updateStats();
   document.getElementById('novaAbaNome').value='';document.getElementById('novaAbaEmoji').value='';
-  fecharModal('modalNovaAba');
-  toast('Aba criada!','ok');
+  fecharModal('modalNovaAba');toast('Aba criada!','ok');
 }
-
 function abrirModal(id){
   document.getElementById(id)?.classList.add('open');
-  if(id==='modalNovaAba'){
-    renderEmojiPicker('emojiPickerNovaAba','novaAbaEmoji',document.getElementById('novaAbaEmoji').value||'');
-  }
+  if(id==='modalNovaAba')renderEmojiPicker('emojiPickerNovaAba','novaAbaEmoji',document.getElementById('novaAbaEmoji').value||'');
 }
-
 function abrirEditarAba(id){
   const a=ABAS.find(x=>x.id===id);if(!a)return;
   document.getElementById('editAbaId').value=id;
@@ -1527,170 +1605,106 @@ function abrirEditarAba(id){
   abrirModal('modalEditarAba');
   setTimeout(()=>document.getElementById('editAbaNome').focus(),100);
 }
-
 async function confirmarEditarAba(){
   const id=document.getElementById('editAbaId').value;
   const novoNome=document.getElementById('editAbaNome').value.trim();
   if(!novoNome){toast('Informe o nome','warn');return;}
   const a=ABAS.find(x=>x.id===id);if(!a)return;
-  const nomeAntigo=a.nome;
-  a.nome=novoNome;
+  const nomeAntigo=a.nome;a.nome=novoNome;
   PROCS.forEach(p=>{if(p.aba===nomeAntigo)p.aba=novoNome;});
   await Promise.all([salvarAbas(),renomearProcsDaAbaServidor(nomeAntigo,novoNome)]);
-  cacheWrite(CACHE_KEYS.procs,PROCS);
-  renderAbasGrid();renderTabsPub();updateStats();
-  fecharModal('modalEditarAba');
-  toast('Aba atualizada!','ok');
+  cacheWrite(CACHE_KEYS.procs,PROCS);renderAbasGrid();renderTabsPub();updateStats();
+  fecharModal('modalEditarAba');toast('Aba atualizada!','ok');
 }
 
 function ativarCarouselDetalhe(){
   const track=document.getElementById('detalheCarouselTrack');
-  if(!track) return;
+  if(!track)return;
   const dots=Array.from(document.querySelectorAll('.detalhe-carousel-dot'));
   let isDown=false,startX=0,startScroll=0;
-
   const syncDots=()=>{
-    if(!dots.length) return;
+    if(!dots.length)return;
     const step=Math.max(track.clientWidth,1);
     const idx=Math.min(dots.length-1,Math.round(track.scrollLeft/step));
     dots.forEach((dot,i)=>dot.classList.toggle('active',i===idx));
   };
-
-  track.addEventListener('scroll',syncDots,{passive:true});
-  syncDots();
-  track.addEventListener('mousedown',e=>{
-    isDown=true;startX=e.pageX;startScroll=track.scrollLeft;
-    track.classList.add('is-dragging');
-  });
+  track.addEventListener('scroll',syncDots,{passive:true});syncDots();
+  track.addEventListener('mousedown',e=>{isDown=true;startX=e.pageX;startScroll=track.scrollLeft;track.classList.add('is-dragging');});
   window.addEventListener('mouseup',()=>{isDown=false;track.classList.remove('is-dragging');});
   track.addEventListener('mouseleave',()=>{isDown=false;track.classList.remove('is-dragging');});
-  track.addEventListener('mousemove',e=>{
-    if(!isDown) return;e.preventDefault();
-    track.scrollLeft=startScroll-(e.pageX-startX);
-  });
+  track.addEventListener('mousemove',e=>{if(!isDown)return;e.preventDefault();track.scrollLeft=startScroll-(e.pageX-startX);});
 }
 
 /* ════════════════════════════════════════
-   ADMIN — SELETOR DE MANUTENÇÃO (3 estados)
+   ADMIN — SELETOR DE MANUTENÇÃO
 ════════════════════════════════════════ */
 function setManutEstado(estado){
   document.getElementById('fpManutEstado').value=estado;
-  // Reset todos
   document.getElementById('manutOptNenhum').className='manut-opt';
   document.getElementById('manutOptSem').className='manut-opt sem';
   document.getElementById('manutOptTem').className='manut-opt';
-  // Ativa o selecionado
-  if(estado==='nenhum') document.getElementById('manutOptNenhum').classList.add('active');
-  else if(estado==='sem') document.getElementById('manutOptSem').classList.add('active');
-  else                    document.getElementById('manutOptTem').classList.add('active');
-  // Mostra/oculta campos
-  document.getElementById('boxManutencao').style.display = estado==='tem' ? 'block' : 'none';
+  if(estado==='nenhum')document.getElementById('manutOptNenhum').classList.add('active');
+  else if(estado==='sem')document.getElementById('manutOptSem').classList.add('active');
+  else document.getElementById('manutOptTem').classList.add('active');
+  document.getElementById('boxManutencao').style.display=estado==='tem'?'block':'none';
 }
 
 /* ════════════════════════════════════════
-   TOGGLE "A PARTIR DE" (valor)
+   TOGGLE "A PARTIR DE"
 ════════════════════════════════════════ */
-function toggleAPartir(){
-  const on=document.getElementById('fpAPartir').checked;
-  setToggleAPartir(on);
-}
+function toggleAPartir(){const on=document.getElementById('fpAPartir').checked;setToggleAPartir(on);}
 function setToggleAPartir(on){
   document.getElementById('fpAPartir').checked=on;
-  const span=document.getElementById('toggleAPartirSpan');
-  const thumb=document.getElementById('toggleAPartirThumb');
-  span.style.background=on?'var(--b)':'#ddd';
-  thumb.style.transform=on?'translateX(18px)':'translateX(0)';
+  const span=document.getElementById('toggleAPartirSpan');const thumb=document.getElementById('toggleAPartirThumb');
+  span.style.background=on?'var(--b)':'#ddd';thumb.style.transform=on?'translateX(18px)':'translateX(0)';
   document.getElementById('prefixoValor').style.display=on?'flex':'none';
-  if(on){
-    document.getElementById('fpValor').style.borderRadius='0 10px 10px 0';
-    document.getElementById('fpValor').style.borderLeft='none';
-  } else {
-    document.getElementById('fpValor').style.borderRadius='10px';
-    document.getElementById('fpValor').style.borderLeft='';
-  }
+  if(on){document.getElementById('fpValor').style.borderRadius='0 10px 10px 0';document.getElementById('fpValor').style.borderLeft='none';}
+  else{document.getElementById('fpValor').style.borderRadius='10px';document.getElementById('fpValor').style.borderLeft='';}
   atualizarPrefixoValor();
 }
 function atualizarPrefixoValor(){
-  const on=document.getElementById('fpAPartir').checked;
-  const val=document.getElementById('fpValor').value.trim();
-  const prev=document.getElementById('previewValor');
-  const prevTxt=document.getElementById('previewValorTxt');
+  const on=document.getElementById('fpAPartir').checked;const val=document.getElementById('fpValor').value.trim();
+  const prev=document.getElementById('previewValor');const prevTxt=document.getElementById('previewValorTxt');
   if(!val){prev.style.display='none';return;}
-  if(on){
-    prev.style.display='block';
-    prevTxt.textContent='A partir de '+formatarValor(val);
-  } else {
-    prev.style.display='block';
-    prevTxt.textContent=formatarValor(val);
-  }
+  prev.style.display='block';prevTxt.textContent=on?'A partir de '+formatarValor(val):formatarValor(val);
 }
 
 /* ════════════════════════════════════════
    TOGGLE "INDICADO PARA"
 ════════════════════════════════════════ */
-function toggleIndicado(){
-  const on=document.getElementById('fpIndAtivo').checked;
-  setToggleIndicado(on);
-}
+function toggleIndicado(){const on=document.getElementById('fpIndAtivo').checked;setToggleIndicado(on);}
 function setToggleIndicado(on){
   document.getElementById('fpIndAtivo').checked=on;
-  const span=document.getElementById('toggleIndSpan');
-  const thumb=document.getElementById('toggleIndThumb');
-  span.style.background=on?'var(--b)':'#ddd';
-  thumb.style.transform=on?'translateX(20px)':'translateX(0)';
+  const span=document.getElementById('toggleIndSpan');const thumb=document.getElementById('toggleIndThumb');
+  span.style.background=on?'var(--b)':'#ddd';thumb.style.transform=on?'translateX(20px)':'translateX(0)';
   document.getElementById('boxIndicado').style.display=on?'block':'none';
 }
 
-
-function limparFotosTemporariasProc(){
-  procFotos.forEach(f=>{ if(f?.temp && f.url?.startsWith('blob:')) URL.revokeObjectURL(f.url); });
-}
-
-function syncPendenciasProc(){
-  imgPend = procFotos.filter(f=>f?.pendingFile);
-}
-
-function selecionarFotoProc(idx){
-  imgAtivaIdx=Math.max(0,Math.min(idx,procFotos.length-1));
-  renderGaleriaProc();
-}
-
+/* ════════════════════════════════════════
+   FOTOS DO PROCEDIMENTO
+════════════════════════════════════════ */
+function limparFotosTemporariasProc(){procFotos.forEach(f=>{if(f?.temp&&f.url?.startsWith('blob:'))URL.revokeObjectURL(f.url);});}
+function syncPendenciasProc(){imgPend=procFotos.filter(f=>f?.pendingFile);}
+function selecionarFotoProc(idx){imgAtivaIdx=Math.max(0,Math.min(idx,procFotos.length-1));renderGaleriaProc();}
 function removerFotoProc(idx){
-  const foto=procFotos[idx];
-  if(!foto) return;
-  if(foto.temp && foto.url?.startsWith('blob:')) URL.revokeObjectURL(foto.url);
+  const foto=procFotos[idx];if(!foto)return;
+  if(foto.temp&&foto.url?.startsWith('blob:'))URL.revokeObjectURL(foto.url);
   procFotos.splice(idx,1);
-  if(imgAtivaIdx>=procFotos.length) imgAtivaIdx=Math.max(0,procFotos.length-1);
-  syncPendenciasProc();
-  renderGaleriaProc();
+  if(imgAtivaIdx>=procFotos.length)imgAtivaIdx=Math.max(0,procFotos.length-1);
+  syncPendenciasProc();renderGaleriaProc();
 }
-
 function renderGaleriaProc(){
-  const prev=document.getElementById('imgPreview');
-  const holder=document.getElementById('imgPlaceholder');
-  const gallery=document.getElementById('imgGallery');
-  const ajuste=document.getElementById('imgAjusteBox');
+  const prev=document.getElementById('imgPreview');const holder=document.getElementById('imgPlaceholder');
+  const gallery=document.getElementById('imgGallery');const ajuste=document.getElementById('imgAjusteBox');
   const urls=syncProcFotosField();
-
   if(!procFotos.length){
-    prev.src='';
-    prev.style.display='none';
-    holder.classList.remove('hidden');
-    gallery.style.display='none';
-    gallery.innerHTML='';
-    ajuste.style.display='none';
-    document.getElementById('imgLabel').textContent='';
-    return;
+    prev.src='';prev.style.display='none';holder.classList.remove('hidden');
+    gallery.style.display='none';gallery.innerHTML='';ajuste.style.display='none';
+    document.getElementById('imgLabel').textContent='';return;
   }
-
   const ativa=procFotos[imgAtivaIdx]||procFotos[0];
-  prev.src=ativa.url;
-  prev.style.display='block';
-  holder.classList.add('hidden');
-  ajuste.style.display='block';
-  atualizarImgPos();
-  atualizarImgAlt();
-
+  prev.src=ativa.url;prev.style.display='block';holder.classList.add('hidden');ajuste.style.display='block';
+  atualizarImgPos();atualizarImgAlt();
   gallery.style.display='flex';
   gallery.innerHTML=procFotos.map((foto,i)=>`
     <div class="img-gallery-item${i===imgAtivaIdx?' is-active':''}" onclick="selecionarFotoProc(${i})">
@@ -1701,16 +1715,12 @@ function renderGaleriaProc(){
   `).join('');
   document.getElementById('imgLabel').textContent=`${procFotos.length} foto${procFotos.length!==1?'s':''} adicionada${procFotos.length!==1?'s':''}.`;
 }
-
 function adicionarArquivosProc(files){
   const validos=Array.from(files||[]).filter(f=>String(f.type||'').startsWith('image/'));
-  if(!validos.length) return;
-  validos.forEach(file=>{
-    procFotos.push({url:URL.createObjectURL(file),pendingFile:file,temp:true});
-  });
+  if(!validos.length)return;
+  validos.forEach(file=>{procFotos.push({url:URL.createObjectURL(file),pendingFile:file,temp:true});});
   imgAtivaIdx=Math.max(0,procFotos.length-validos.length);
-  syncPendenciasProc();
-  renderGaleriaProc();
+  syncPendenciasProc();renderGaleriaProc();
 }
 
 function abrirFormProc(idx){
@@ -1718,58 +1728,50 @@ function abrirFormProc(idx){
   document.getElementById('telaProcForm').style.display='block';
   document.getElementById('bcEmoji').textContent=abaAtiva.emoji;
   document.getElementById('bcAba').textContent=abaAtiva.nome;
-  limparFotosTemporariasProc();
-  procFotos=[];
-  imgPend=[];
-  imgAtivaIdx=0;
+  limparFotosTemporariasProc();procFotos=[];imgPend=[];imgAtivaIdx=0;
+
+  // fecha painel emoji se estiver aberto
+  document.getElementById('procEmojiPanel').classList.remove('open');
 
   if(idx===-1){
     document.getElementById('formProcSubtitle').textContent='Novo';
     document.getElementById('editIdx').value='';
     ['fpNome','fpDesc','fpValor','fpDur','fpFix','fpInd','fpImg','fpManutPrazo','fpManutValor'].forEach(id=>document.getElementById(id).value='');
-    setToggleAPartir(false);
-    setToggleIndicado(false);
+    setToggleAPartir(false);setToggleIndicado(false);
     document.getElementById('imgPreview').style.display='none';
     document.getElementById('imgPlaceholder').classList.remove('hidden');
     document.getElementById('imgLabel').textContent='';
     document.getElementById('bcProc').textContent='Novo Procedimento';
     document.getElementById('imgAjusteBox').style.display='none';
-    document.getElementById('imgSliderPos').value=50;
-    document.getElementById('imgSliderAlt').value=145;
-    document.getElementById('fpImgPosY').value=50;
-    document.getElementById('fpImgAltura').value=145;
-    document.getElementById('imgPosLabel').textContent='Centro';
-    document.getElementById('imgAltLabel').textContent='145px';
+    document.getElementById('imgSliderPos').value=50;document.getElementById('imgSliderAlt').value=145;
+    document.getElementById('fpImgPosY').value=50;document.getElementById('fpImgAltura').value=145;
+    document.getElementById('imgPosLabel').textContent='Centro';document.getElementById('imgAltLabel').textContent='145px';
     setManutEstado('nenhum');
-    document.getElementById('imgGallery').style.display='none';
-    document.getElementById('imgGallery').innerHTML='';
-  } else {
+    document.getElementById('imgGallery').style.display='none';document.getElementById('imgGallery').innerHTML='';
+    // emoji padrão
+    document.getElementById('fpEmoji').value='✦';
+    document.getElementById('procEmojiPreview').textContent='✦';
+  }else{
     const p=PROCS[idx];
     document.getElementById('formProcSubtitle').textContent=p.nome;
     document.getElementById('editIdx').value=String(idx);
-    document.getElementById('fpNome').value=p.nome;
-    document.getElementById('fpDesc').value=p.descricao;
-    document.getElementById('fpValor').value=p.valor;
-    document.getElementById('fpDur').value=p.duracao;
-    document.getElementById('fpFix').value=p.fixacao;
-    document.getElementById('fpInd').value=p.indicado;
+    document.getElementById('fpNome').value=p.nome;document.getElementById('fpDesc').value=p.descricao;
+    document.getElementById('fpValor').value=p.valor;document.getElementById('fpDur').value=p.duracao;
+    document.getElementById('fpFix').value=p.fixacao;document.getElementById('fpInd').value=p.indicado;
     document.getElementById('fpImg').value=serializeProcImagens(p.fotos||parseProcImagens(p.imagem));
-    document.getElementById('fpManutPrazo').value=p.manutPrazo||'';
-    document.getElementById('fpManutValor').value=p.manutValor||'';
+    document.getElementById('fpManutPrazo').value=p.manutPrazo||'';document.getElementById('fpManutValor').value=p.manutValor||'';
     document.getElementById('bcProc').textContent=p.nome;
-    setToggleAPartir(p.aPartir||false);
-    setToggleIndicado(p.indAtivo||false);
-    // carrega estado de manutenção (com retrocompatibilidade)
-    const estado = p.manutEstado || (p.temManut ? 'tem' : 'nenhum');
-    setManutEstado(estado);
-    const posY  = p.imgPosY??50;
-    const altura= p.imgAltura??145;
-    document.getElementById('imgSliderPos').value=posY;
-    document.getElementById('imgSliderAlt').value=altura;
-    document.getElementById('fpImgPosY').value=posY;
-    document.getElementById('fpImgAltura').value=altura;
+    setToggleAPartir(p.aPartir||false);setToggleIndicado(p.indAtivo||false);
+    const estado=p.manutEstado||(p.temManut?'tem':'nenhum');setManutEstado(estado);
+    const posY=p.imgPosY??50;const altura=p.imgAltura??145;
+    document.getElementById('imgSliderPos').value=posY;document.getElementById('imgSliderAlt').value=altura;
+    document.getElementById('fpImgPosY').value=posY;document.getElementById('fpImgAltura').value=altura;
     procFotos=(p.fotos||parseProcImagens(p.imagem)).map(url=>({url}));
     document.getElementById('imgLabel').textContent=p.imagem?'✓ Foto salva (novo upload substituirá)':'';
+    // emoji existente
+    const emojiAtual=p.emoji||'✦';
+    document.getElementById('fpEmoji').value=emojiAtual;
+    document.getElementById('procEmojiPreview').textContent=emojiAtual;
   }
   renderGaleriaProc();
   document.getElementById('imgFile').value='';
@@ -1779,7 +1781,6 @@ function atualizarBcProc(){
   const nome=document.getElementById('fpNome').value.trim();
   document.getElementById('bcProc').textContent=nome||'Novo Procedimento';
 }
-
 function editarProcPorNome(chave){
   if(!abaAtiva)return;
   const nome=decodeURIComponent(chave);
@@ -1787,7 +1788,6 @@ function editarProcPorNome(chave){
   if(idx===-1){toast('Procedimento não encontrado','err');return;}
   abrirFormProc(idx);
 }
-
 function removerProcPorNome(chave){
   const nome=decodeURIComponent(chave);
   const idx=PROCS.findIndex(p=>p.aba===abaAtiva.nome&&p.nome===nome);
@@ -1795,44 +1795,26 @@ function removerProcPorNome(chave){
   confirmar(`Excluir "${PROCS[idx].nome}"?`,async()=>{
     const [removido]=PROCS.splice(idx,1);
     await removerProcServidor(removido.id||'');
-    cacheWrite(CACHE_KEYS.procs,PROCS);
-    renderProcsAbaGrid();updateStats();renderTabsPub();
-    toast('Procedimento removido!','ok');
+    cacheWrite(CACHE_KEYS.procs,PROCS);renderProcsAbaGrid();updateStats();renderTabsPub();toast('Procedimento removido!','ok');
   });
 }
-
-function removerProc(idx){
-  confirmar(`Excluir "${PROCS[idx].nome}"?`,async()=>{
-    const [removido]=PROCS.splice(idx,1);
-    await removerProcServidor(removido.id||'');
-    cacheWrite(CACHE_KEYS.procs,PROCS);
-    renderProcsAbaGrid();updateStats();renderTabsPub();
-    toast('Procedimento removido!','ok');
-  });
-}
-
-function formatarValor(v){
-  if(!v)return '';
-  const s=String(v).trim();
-  if(/^R\s?\$|^\$|^€/.test(s))return s;
-  return 'R$ '+s;
-}
+function formatarValor(v){if(!v)return '';const s=String(v).trim();if(/^R\s?\$|^\$|^€/.test(s))return s;return 'R$ '+s;}
 
 async function salvarProc(){
   const btn=document.getElementById('btnSalvar');
   const nome=document.getElementById('fpNome').value.trim();
   const desc=document.getElementById('fpDesc').value.trim();
   const valor=document.getElementById('fpValor').value.trim();
-  const dur=document.getElementById('fpDur').value.trim();
-  const fix=document.getElementById('fpFix').value.trim();
+  const dur=document.getElementById('fpDur').value.trim();const fix=document.getElementById('fpFix').value.trim();
   const ind=document.getElementById('fpInd').value.trim();
-  const posY  =parseInt(document.getElementById('fpImgPosY').value||'50');
+  const posY=parseInt(document.getElementById('fpImgPosY').value||'50');
   const altura=parseInt(document.getElementById('fpImgAltura').value||'145');
-  const manutEstado = document.getElementById('fpManutEstado').value || 'nenhum';
-  const manutPrazo = document.getElementById('fpManutPrazo').value.trim();
-  const manutValor = document.getElementById('fpManutValor').value.trim();
-  const aPartir = document.getElementById('fpAPartir').checked;
-  const indAtivo = document.getElementById('fpIndAtivo').checked;
+  const manutEstado=document.getElementById('fpManutEstado').value||'nenhum';
+  const manutPrazo=document.getElementById('fpManutPrazo').value.trim();
+  const manutValor=document.getElementById('fpManutValor').value.trim();
+  const aPartir=document.getElementById('fpAPartir').checked;
+  const indAtivo=document.getElementById('fpIndAtivo').checked;
+  const emoji=document.getElementById('fpEmoji').value||'✦';
   if(!nome){toast('Informe o nome do procedimento','warn');return;}
   if(!desc){toast('Informe a descrição','warn');return;}
   btn.innerHTML='<span class="spinner"></span> Salvando...';btn.disabled=true;
@@ -1841,10 +1823,8 @@ async function salvarProc(){
       toast(`Enviando ${imgPend.length} foto${imgPend.length!==1?'s':''}...`,'info');
       for(const foto of imgPend){
         const url=await cloudUpload(foto.pendingFile,'image');
-        if(foto.temp && foto.url?.startsWith('blob:')) URL.revokeObjectURL(foto.url);
-        foto.url=url;
-        delete foto.pendingFile;
-        delete foto.temp;
+        if(foto.temp&&foto.url?.startsWith('blob:'))URL.revokeObjectURL(foto.url);
+        foto.url=url;delete foto.pendingFile;delete foto.temp;
       }
       syncPendenciasProc();
     }
@@ -1852,20 +1832,16 @@ async function salvarProc(){
     const ei=document.getElementById('editIdx').value;
     const atual=ei!==''?PROCS[parseInt(ei)]:null;
     const obj={
-      id:atual?.id||makeId('proc'),
-      aba:abaAtiva.nome,nome,descricao:desc,valor,aPartir,duracao:dur,fixacao:fix,
-      indicado: indAtivo ? ind : '',
-      indAtivo,
-      imagem:fotos[0]||'',fotos,imgPosY:posY,imgAltura:altura,
-      manutEstado,
-      temManut: manutEstado==='tem', // retrocompat
-      manutPrazo: manutEstado==='tem' ? manutPrazo : '',
-      manutValor: manutEstado==='tem' ? manutValor : ''
+      id:atual?.id||makeId('proc'),aba:abaAtiva.nome,nome,descricao:desc,valor,aPartir,
+      duracao:dur,fixacao:fix,indicado:indAtivo?ind:'',indAtivo,
+      imagem:fotos[0]||'',fotos,imgPosY:posY,imgAltura:altura,emoji,
+      manutEstado,temManut:manutEstado==='tem',
+      manutPrazo:manutEstado==='tem'?manutPrazo:'',
+      manutValor:manutEstado==='tem'?manutValor:''
     };
     if(ei!=='')PROCS[parseInt(ei)]=obj;else PROCS.push(obj);
     await salvarProcUnico(obj,ei!=='');
-    cacheWrite(CACHE_KEYS.procs,PROCS);
-    renderProcsAbaGrid();renderTabsPub();updateStats();
+    cacheWrite(CACHE_KEYS.procs,PROCS);renderProcsAbaGrid();renderTabsPub();updateStats();
     toast(ei!==''?'Procedimento atualizado!':'Procedimento criado!','ok');
     voltarParaAbaDetalhe();
   }catch(e){toast('Erro: '+e.message,'err');}
@@ -1873,7 +1849,7 @@ async function salvarProc(){
 }
 
 /* ════════════════════════════════════════
-   UPLOAD IMAGEM PROC — com ajuste
+   UPLOAD IMAGEM PROC — ajuste
 ════════════════════════════════════════ */
 function atualizarImgPos(){
   const val=parseInt(document.getElementById('imgSliderPos').value);
@@ -1882,7 +1858,6 @@ function atualizarImgPos(){
   const labels=['Topo','Quase topo','Centro','Quase base','Base'];
   document.getElementById('imgPosLabel').textContent=labels[Math.min(Math.round(val/25),4)];
 }
-
 function atualizarImgAlt(){
   const val=parseInt(document.getElementById('imgSliderAlt').value);
   document.getElementById('fpImgAltura').value=val;
@@ -1893,79 +1868,63 @@ function atualizarImgAlt(){
 const imgArea=document.getElementById('imgArea');
 ['dragover','dragenter'].forEach(ev=>imgArea.addEventListener(ev,e=>{e.preventDefault();imgArea.classList.add('drag-over');}));
 ['dragleave','drop'].forEach(ev=>imgArea.addEventListener(ev,()=>imgArea.classList.remove('drag-over')));
-
-function onImgPick(e){
-  adicionarArquivosProc(e.target.files);
-  e.target.value='';
-}
-
-imgArea.addEventListener('drop',e=>{
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  adicionarArquivosProc(e.dataTransfer?.files||[]);
-},true);
+function onImgPick(e){adicionarArquivosProc(e.target.files);e.target.value='';}
+imgArea.addEventListener('drop',e=>{e.preventDefault();e.stopImmediatePropagation();adicionarArquivosProc(e.dataTransfer?.files||[]);},true);
 
 /* ════════════════════════════════════════
    TELA PRINCIPAL — TIPO DE MÍDIA
 ════════════════════════════════════════ */
-let tipoMidia = 'video';
-let fotoPend  = null;
+let tipoMidia='video';
+let fotoPend=null;
+let fotoPosY=50;
+let fotoAltura=420;
+let fotoLarg=100;
+let fotoFit='cover';
 
-async function persistirMidiaPublica(tipo, url, posY=null, altura=null){
+async function persistirMidiaPublica(tipo,url,posY=null,altura=null,largura=null,fit=null){
   if(tipo==='foto'){
     await gasCall({action:'setFoto',url});
     await gasCall({action:'setMidiaConfig',tipoMidia:'foto'});
     await gasCall({action:'setFotoConfig',posY,altura});
-
-    const [df, dc, dm] = await Promise.all([
-      gasCall({aba:'FOTO'}),
-      gasCall({aba:'FOTO_CONFIG'}),
-      gasCall({aba:'MIDIA_CONFIG'})
-    ]);
+    const [df,dc,dm]=await Promise.all([gasCall({aba:'FOTO'}),gasCall({aba:'FOTO_CONFIG'}),gasCall({aba:'MIDIA_CONFIG'})]);
     const savedUrl=df?.[0]?.col1||'';
-    const savedPos=parseInt(dc?.[0]?.col1 ?? posY ?? 50);
-    const savedAlt=parseInt(dc?.[0]?.col2 ?? altura ?? 420);
+    const savedPos=parseInt(dc?.[0]?.col1??posY??50);
+    const savedAlt=parseInt(dc?.[0]?.col2??altura??420);
     const savedTipo=dm?.[0]?.col1||'';
-    if(savedUrl!==url || savedTipo!=='foto') throw new Error('A foto nao foi confirmada no servidor.');
-
+    if(savedUrl!==url||savedTipo!=='foto')throw new Error('A foto não foi confirmada no servidor.');
     try{
-      localStorage.setItem('studio_foto_url',savedUrl);
-      localStorage.setItem('studio_midia_tipo','foto');
-      localStorage.setItem('studio_foto_posY',savedPos);
-      localStorage.setItem('studio_foto_altura',savedAlt);
+      localStorage.setItem('studio_foto_url',savedUrl);localStorage.setItem('studio_midia_tipo','foto');
+      localStorage.setItem('studio_foto_posY',savedPos);localStorage.setItem('studio_foto_altura',savedAlt);
+      localStorage.setItem('studio_foto_larg',largura??100);localStorage.setItem('studio_foto_fit',fit||'cover');
     }catch{}
-    return {url:savedUrl,posY:savedPos,altura:savedAlt};
+    return {url:savedUrl,posY:savedPos,altura:savedAlt,largura:largura??100,fit:fit||'cover'};
   }
-
-  await gasCall({action:'setVideo',url});
-  await gasCall({action:'setMidiaConfig',tipoMidia:'video'});
-
-  const [dv, dm] = await Promise.all([
-    gasCall({aba:'VIDEO'}),
-    gasCall({aba:'MIDIA_CONFIG'})
-  ]);
-  const savedUrl=dv?.[0]?.col1||'';
-  const savedTipo=dm?.[0]?.col1||'';
-  if(savedUrl!==url || savedTipo!=='video') throw new Error('O video nao foi confirmado no servidor.');
-
-  try{
-    localStorage.setItem('studio_video_url',savedUrl);
-    localStorage.setItem('studio_midia_tipo','video');
-  }catch{}
+  await gasCall({action:'setVideo',url});await gasCall({action:'setMidiaConfig',tipoMidia:'video'});
+  const [dv,dm]=await Promise.all([gasCall({aba:'VIDEO'}),gasCall({aba:'MIDIA_CONFIG'})]);
+  const savedUrl=dv?.[0]?.col1||'';const savedTipo=dm?.[0]?.col1||'';
+  if(savedUrl!==url||savedTipo!=='video')throw new Error('O vídeo não foi confirmado no servidor.');
+  try{localStorage.setItem('studio_video_url',savedUrl);localStorage.setItem('studio_midia_tipo','video');}catch{}
   return {url:savedUrl};
 }
 
+function setFotoFit(fit){
+  fotoFit=fit;
+  ['fitCover','fitContain','fitFill'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  const map={cover:'fitCover',contain:'fitContain',fill:'fitFill'};
+  document.getElementById(map[fit])?.classList.add('active');
+  const img=document.getElementById('fotoPreviewImg');
+  if(img){img.style.objectFit=fit;}
+}
+
 function setTipoMidia(tipo){
-  tipoMidia = tipo;
-  const bV=document.getElementById('btnTipoVideo');
-  const bF=document.getElementById('btnTipoFoto');
-  const boxV=document.getElementById('uploadVideoBox');
-  const boxF=document.getElementById('uploadFotoBox');
+  tipoMidia=tipo;
+  const bV=document.getElementById('btnTipoVideo');const bF=document.getElementById('btnTipoFoto');
+  const boxV=document.getElementById('uploadVideoBox');const boxF=document.getElementById('uploadFotoBox');
   if(tipo==='video'){
     bV.style.background='linear-gradient(135deg,var(--b),#EC407A)';bV.style.color='#fff';bV.style.border='2px solid var(--b)';
     bF.style.background='var(--white)';bF.style.color='var(--text-mid)';bF.style.border='2px solid var(--border)';
     boxV.style.display='block';boxF.style.display='none';
-  } else {
+  }else{
     bF.style.background='linear-gradient(135deg,var(--b),#EC407A)';bF.style.color='#fff';bF.style.border='2px solid var(--b)';
     bV.style.background='var(--white)';bV.style.color='var(--text-mid)';bV.style.border='2px solid var(--border)';
     boxF.style.display='block';boxV.style.display='none';
@@ -1978,20 +1937,20 @@ function loadVideoAdmin(){
     const url=localStorage.getItem('studio_video_url')||'';
     const urlFoto=localStorage.getItem('studio_foto_url')||'';
     setTipoMidia(tipo);
-    const urlAtual = tipo==='foto' ? urlFoto : url;
-    if(urlAtual) atualizarVidPreview(urlAtual, tipo);
+    const urlAtual=tipo==='foto'?urlFoto:url;
+    if(urlAtual)atualizarVidPreview(urlAtual,tipo);
     document.getElementById('stVideo').textContent=(url||urlFoto)?'✓':'–';
   }catch{}
 }
-function atualizarVidPreview(url, tipo){
+function atualizarVidPreview(url,tipo){
   const w=document.getElementById('vidPreview');
   if(tipo==='foto'&&url){
-    w.innerHTML=`<img src="${mediaImageUrl(url,'hero')}" alt="Foto principal" style="width:100%;height:100%;object-fit:cover;">`;
+    w.innerHTML=`<img src="${url.replace(/\/upload\/[^/]+\//,'/upload/f_auto,q_auto/')}" alt="Foto principal" style="width:100%;height:100%;object-fit:cover;">`;
     document.getElementById('vidLabel').textContent='✓ Foto configurada';
-  } else if(tipo==='video'&&url){
+  }else if(tipo==='video'&&url){
     w.innerHTML=`<video src="${url}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;"></video>`;
     document.getElementById('vidLabel').textContent='✓ Vídeo configurado';
-  } else {
+  }else{
     w.innerHTML='<span>🖼</span>';document.getElementById('vidLabel').textContent='Nenhuma mídia configurada.';
   }
   document.getElementById('stVideo').textContent='✓';
@@ -2006,17 +1965,14 @@ vidZ.addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer?.file
 
 async function uploadVideo(){
   if(!vidPend){toast('Selecione um vídeo','warn');return;}
-  const btn=document.getElementById('btnVid');
-  const pw=document.getElementById('vidProgressWrap');
-  const bar=document.getElementById('vidProgBar');
-  const lbl=document.getElementById('vidProgLabel');
+  const btn=document.getElementById('btnVid');const pw=document.getElementById('vidProgressWrap');
+  const bar=document.getElementById('vidProgBar');const lbl=document.getElementById('vidProgLabel');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Enviando...';pw.style.display='block';
   try{
     toast('Iniciando upload...','info');
     const url=await cloudUpload(vidPend,'video',pct=>{bar.style.width=pct+'%';lbl.textContent=`Enviando... ${pct}%`;});
     const saved=await persistirMidiaPublica('video',url);
-    atualizarVidPreview(saved.url,'video');
-    aplicarMidiaNoSite('video', saved.url);
+    atualizarVidPreview(saved.url,'video');aplicarMidiaNoSite('video',saved.url);
     bar.style.width='100%';lbl.textContent='Concluído!';
     updateStats();toast('Vídeo publicado!','ok');vidPend=null;document.getElementById('vidFile').value='';
   }catch(e){toast('Erro: '+e.message,'err');}
@@ -2024,20 +1980,27 @@ async function uploadVideo(){
 }
 
 // ── FOTO ──
-let fotoPosY  = 50;
-let fotoAltura= 420;
-
 function onFotoPick(e){
   const f=e.target.files[0];if(!f)return;
-  fotoPend=f;
-  document.getElementById('btnFoto').disabled=false;
+  fotoPend=f;document.getElementById('btnFoto').disabled=false;
   document.getElementById('vidLabel').textContent=`✓ ${f.name}`;
   const r=new FileReader();
   r.onload=ev=>{
-    document.getElementById('fotoPreviewImg').src=ev.target.result;
+    const img=document.getElementById('fotoPreviewImg');
+    img.src=ev.target.result;
+    // ajusta altura do preview proporcional
+    img.onload=()=>{
+      const ratio=img.naturalHeight/img.naturalWidth;
+      const h=Math.round(Math.min(img.naturalHeight,400));
+      document.getElementById('fotoPreviewFrame').style.height=h+'px';
+      // sincroniza slider de altura
+      fotoAltura=Math.min(Math.max(h,280),800);
+      document.getElementById('fotoSliderAlt').value=fotoAltura;
+      document.getElementById('fotoAltLabel').textContent=fotoAltura+'px';
+    };
     document.getElementById('fotoAjusteBox').style.display='block';
+    setFotoFit('cover');
     atualizarFotoPos();
-    atualizarFotoAlt();
   };
   r.readAsDataURL(f);
 }
@@ -2046,46 +2009,44 @@ function atualizarFotoPos(){
   fotoPosY=parseInt(document.getElementById('fotoSliderPos').value);
   document.getElementById('fotoPreviewImg').style.objectPosition=`center ${fotoPosY}%`;
   const labels=['Topo','Quase topo','Centro','Quase base','Base'];
-  const idx=Math.round(fotoPosY/25);
-  document.getElementById('fotoPosLabel').textContent=labels[Math.min(idx,4)];
+  document.getElementById('fotoPosLabel').textContent=labels[Math.min(Math.round(fotoPosY/25),4)];
   const mainPhoto=document.getElementById('mainPhoto');
-  if(mainPhoto.style.display!=='none') mainPhoto.style.objectPosition=`center ${fotoPosY}%`;
+  if(mainPhoto.style.display!=='none')mainPhoto.style.objectPosition=`center ${fotoPosY}%`;
 }
-
 function atualizarFotoAlt(){
   fotoAltura=parseInt(document.getElementById('fotoSliderAlt').value);
-  document.getElementById('fotoAjusteBox').querySelector('#fotoPreviewFrame').style.height=Math.round(fotoAltura*0.50)+'px';
+  document.getElementById('fotoPreviewFrame').style.height=fotoAltura+'px';
   document.getElementById('fotoAltLabel').textContent=fotoAltura+'px';
   const frame=document.querySelector('.video-frame');
-  if(frame) frame.style.setProperty('--frame-h', fotoAltura+'px');
+  if(frame)frame.style.setProperty('--frame-h',fotoAltura+'px');
+}
+function atualizarFotoLarg(){
+  fotoLarg=parseInt(document.getElementById('fotoSliderLarg').value);
+  document.getElementById('fotoLargLabel').textContent=fotoLarg+'%';
 }
 
+// arrastar imagem de foto para ajustar posição
 (function(){
   let dragging=false,startY=0,startPos=0;
   function getFrame(){return document.getElementById('fotoPreviewFrame');}
   function onDown(e){
-    if(!document.getElementById('fotoAjusteBox').style.display||document.getElementById('fotoAjusteBox').style.display==='none')return;
-    dragging=true;startY=e.clientY||e.touches?.[0]?.clientY||0;
-    startPos=parseInt(document.getElementById('fotoSliderPos').value);
-    e.preventDefault();
+    const frame=getFrame();if(!frame||frame.style.display==='none')return;
+    if(!document.getElementById('fotoAjusteBox')||document.getElementById('fotoAjusteBox').style.display==='none')return;
+    dragging=true;startY=e.clientY||(e.touches?.[0]?.clientY)||0;
+    startPos=parseInt(document.getElementById('fotoSliderPos').value);e.preventDefault();
   }
   function onMove(e){
     if(!dragging)return;
-    const y=e.clientY||e.touches?.[0]?.clientY||0;
-    const delta=y-startY;
+    const y=e.clientY||(e.touches?.[0]?.clientY)||0;const delta=y-startY;
     const frame=getFrame();
     const newVal=Math.max(0,Math.min(100,startPos+(delta/frame.offsetHeight*100)));
-    document.getElementById('fotoSliderPos').value=newVal;
-    atualizarFotoPos();
-    e.preventDefault();
+    document.getElementById('fotoSliderPos').value=newVal;atualizarFotoPos();e.preventDefault();
   }
   function onUp(){dragging=false;}
   document.addEventListener('mousedown',e=>{if(e.target.closest('#fotoPreviewFrame'))onDown(e);});
-  document.addEventListener('mousemove',e=>{if(dragging)onMove(e);});
-  document.addEventListener('mouseup',onUp);
+  document.addEventListener('mousemove',e=>{if(dragging)onMove(e);});document.addEventListener('mouseup',onUp);
   document.addEventListener('touchstart',e=>{if(e.target.closest('#fotoPreviewFrame'))onDown(e);},{passive:false});
-  document.addEventListener('touchmove',e=>{if(dragging)onMove(e);},{passive:false});
-  document.addEventListener('touchend',onUp);
+  document.addEventListener('touchmove',e=>{if(dragging)onMove(e);},{passive:false});document.addEventListener('touchend',onUp);
 })();
 
 const fotoZ=document.getElementById('fotoZone');
@@ -2095,28 +2056,21 @@ fotoZ.addEventListener('drop',e=>{
   e.preventDefault();const f=e.dataTransfer?.files?.[0];if(!f)return;
   fotoPend=f;document.getElementById('btnFoto').disabled=false;
   const r=new FileReader();
-  r.onload=ev=>{
-    document.getElementById('fotoPreviewImg').src=ev.target.result;
-    document.getElementById('fotoAjusteBox').style.display='block';
-    atualizarFotoPos();atualizarFotoAlt();
-  };
-  r.readAsDataURL(f);
-  document.getElementById('vidLabel').textContent=`✓ ${f.name}`;
+  r.onload=ev=>{document.getElementById('fotoPreviewImg').src=ev.target.result;document.getElementById('fotoAjusteBox').style.display='block';atualizarFotoPos();atualizarFotoAlt();};
+  r.readAsDataURL(f);document.getElementById('vidLabel').textContent=`✓ ${f.name}`;
 });
 
 async function uploadFoto(){
   if(!fotoPend){toast('Selecione uma foto','warn');return;}
-  const btn=document.getElementById('btnFoto');
-  const pw=document.getElementById('fotoProgressWrap');
-  const bar=document.getElementById('fotoProgBar');
-  const lbl=document.getElementById('fotoProgLabel');
+  const btn=document.getElementById('btnFoto');const pw=document.getElementById('fotoProgressWrap');
+  const bar=document.getElementById('fotoProgBar');const lbl=document.getElementById('fotoProgLabel');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Publicando...';pw.style.display='block';
   try{
     toast('Enviando foto...','info');
     const url=await cloudUpload(fotoPend,'image',pct=>{bar.style.width=pct+'%';lbl.textContent=`Enviando... ${pct}%`;});
-    const saved=await persistirMidiaPublica('foto',url,fotoPosY,fotoAltura);
+    const saved=await persistirMidiaPublica('foto',url,fotoPosY,fotoAltura,fotoLarg,fotoFit);
     atualizarVidPreview(saved.url,'foto');
-    aplicarMidiaNoSite('foto',saved.url,saved.posY,saved.altura);
+    aplicarMidiaNoSite('foto',saved.url,saved.posY,saved.altura,saved.fit);
     bar.style.width='100%';lbl.textContent='Concluído!';
     updateStats();toast('Foto publicada!','ok');fotoPend=null;document.getElementById('fotoFile').value='';
   }catch(e){toast('Erro: '+e.message,'err');}
@@ -2131,7 +2085,7 @@ function cloudUpload(file,type,onProg=null){
     const fd=new FormData();fd.append('file',file);fd.append('upload_preset',CLOUD.preset);
     const url=`https://api.cloudinary.com/v1_1/${CLOUD.cloud}/${type}/upload`;
     const xhr=new XMLHttpRequest();xhr.open('POST',url);
-    if(onProg) xhr.upload.addEventListener('progress',e=>{if(e.lengthComputable)onProg(Math.round(e.loaded/e.total*100));});
+    if(onProg)xhr.upload.addEventListener('progress',e=>{if(e.lengthComputable)onProg(Math.round(e.loaded/e.total*100));});
     xhr.onload=()=>{if(xhr.status===200){res(JSON.parse(xhr.responseText).secure_url);}else{try{rej(new Error(JSON.parse(xhr.responseText).error?.message||'Erro'));}catch{rej(new Error('Erro '+xhr.status));}}};
     xhr.onerror=()=>rej(new Error('Falha de rede'));xhr.send(fd);
   });

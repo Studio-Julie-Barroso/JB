@@ -977,11 +977,16 @@ footer strong{color:#fff;font-weight:600;}
 <div class="modal-bd" id="modalEditarAba">
   <div class="modal-box">
     <div class="modal-title">Editar Aba</div>
-    <div class="modal-sub">Altere o nome da categoria</div>
+    <div class="modal-sub">Altere o nome e o ícone da categoria</div>
     <input type="hidden" id="editAbaId">
     <div class="form-row">
       <label class="form-label">Nome da Aba</label>
       <input class="form-input" id="editAbaNome" placeholder="Nome da aba">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Emoji (ícone)</label>
+      <div id="emojiPickerEditarAba" class="emoji-picker"></div>
+      <input class="form-input" id="editAbaEmoji" placeholder="ou cole aqui" maxlength="4" style="max-width:90px;font-size:20px;margin-top:8px;" oninput="sincEmojiInput('editAbaEmoji','emojiPickerEditarAba')">
     </div>
     <div style="display:flex;gap:9px;margin-top:4px;">
       <button class="btn-primary" onclick="confirmarEditarAba()">Salvar</button>
@@ -1602,15 +1607,20 @@ function abrirEditarAba(id){
   const a=ABAS.find(x=>x.id===id);if(!a)return;
   document.getElementById('editAbaId').value=id;
   document.getElementById('editAbaNome').value=a.nome;
-  abrirModal('modalEditarAba');
+  document.getElementById('editAbaEmoji').value=a.emoji||'✦';
+  document.getElementById('modalEditarAba').classList.add('open');
+  renderEmojiPicker('emojiPickerEditarAba','editAbaEmoji',a.emoji||'✦');
   setTimeout(()=>document.getElementById('editAbaNome').focus(),100);
 }
 async function confirmarEditarAba(){
   const id=document.getElementById('editAbaId').value;
   const novoNome=document.getElementById('editAbaNome').value.trim();
+  const novoEmoji=document.getElementById('editAbaEmoji').value.trim()||'✦';
   if(!novoNome){toast('Informe o nome','warn');return;}
   const a=ABAS.find(x=>x.id===id);if(!a)return;
-  const nomeAntigo=a.nome;a.nome=novoNome;
+  const nomeAntigo=a.nome;
+  a.nome=novoNome;
+  a.emoji=novoEmoji;
   PROCS.forEach(p=>{if(p.aba===nomeAntigo)p.aba=novoNome;});
   await Promise.all([salvarAbas(),renomearProcsDaAbaServidor(nomeAntigo,novoNome)]);
   cacheWrite(CACHE_KEYS.procs,PROCS);renderAbasGrid();renderTabsPub();updateStats();

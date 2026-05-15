@@ -1826,7 +1826,7 @@ async function reorderProcToTarget(fromId,targetId){
   renderTabsPub();
   cacheWrite(CACHE_KEYS.procs,PROCS);
   try{
-    await salvarProcs();
+    await salvarOrdemProcs(abaAtiva.nome);
     toast('Ordem salva!','ok');
   }catch(err){
     toast('Não consegui salvar a ordem: '+err.message,'err');
@@ -1867,6 +1867,13 @@ function novoProc(){if(!abaAtiva){toast('Abra uma aba primeiro','warn');return;}
 async function salvarAbas(){await gasCall({action:'setAbas',dados:JSON.stringify(ABAS.map(a=>[a.id,a.nome,a.emoji]))});cacheWrite(CACHE_KEYS.abas,ABAS);}
 async function salvarProcs(){
   await gasCall({action:'setProcs',dados:JSON.stringify(PROCS.map((p,i)=>[p.aba,p.nome,p.descricao,p.valor,p.duracao,p.fixacao,p.indicado,serializeProcImagens(p.fotos||parseProcImagens(p.imagem)),p.imgPosY??50,p.imgAltura??145,p.manutEstado||'nenhum',p.manutPrazo||'',p.manutValor||'',p.id||makeId('proc'),p.aPartir?'true':'false',p.indAtivo?'true':'false',p.emoji||'✦',getProcOrder(p,i)]))});
+  cacheWrite(CACHE_KEYS.procs,PROCS);
+}
+async function salvarOrdemProcs(abaNome){
+  const ordem=sortProcsForAba(abaNome).map((p,i)=>({id:p.id,ordem:i}));
+  const resp=await gasCall({action:'updateProcOrders',dados:JSON.stringify(ordem)});
+  if(resp?.error)throw new Error(resp.error);
+  if(!resp?.ok||Number(resp.updated||0)<ordem.length)throw new Error('atualize o Apps Script publicado e tente novamente');
   cacheWrite(CACHE_KEYS.procs,PROCS);
 }
 function salvarProcUnico(proc,editando=false){

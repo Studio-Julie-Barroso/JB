@@ -256,8 +256,12 @@ footer strong{color:#fff;font-weight:600;}
 
 /* grid de procedimentos */
 .procs-aba-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:20px;}
-.proc-aba-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(240,98,146,.09);transition:transform .2s,box-shadow .2s;}
+.proc-aba-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(240,98,146,.09);transition:transform .2s,box-shadow .2s,border-color .2s,opacity .2s;position:relative;}
 .proc-aba-card:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(240,98,146,.16);}
+.proc-aba-card.dragging{opacity:.55;transform:scale(.98);border-color:var(--b);}
+.proc-aba-card.drag-over{border-color:var(--b);box-shadow:0 0 0 3px rgba(240,98,146,.14),0 12px 32px rgba(240,98,146,.16);}
+.proc-drag-handle{position:absolute;top:8px;right:8px;z-index:2;width:34px;height:34px;border:none;border-radius:10px;background:rgba(255,255,255,.92);color:var(--b-deep);box-shadow:0 4px 14px rgba(58,16,32,.14);font-size:17px;line-height:1;cursor:grab;display:flex;align-items:center;justify-content:center;touch-action:none;}
+.proc-drag-handle:active{cursor:grabbing;}
 .proc-aba-img{width:100%;height:130px;object-fit:cover;display:block;background:var(--b-pale);}
 .proc-aba-ph{width:100%;height:130px;background:linear-gradient(135deg,var(--b-pale),var(--b-blush));display:flex;align-items:center;justify-content:center;font-size:38px;}
 .proc-aba-body{padding:13px 14px 11px;}
@@ -1164,6 +1168,21 @@ function serializeProcImagens(list){
   if(!urls.length)return '';
   return urls.length===1?urls[0]:JSON.stringify(urls);
 }
+function getProcOrder(p,fallback=0){
+  const n=parseInt(p?.ordem);
+  return Number.isFinite(n)?n:fallback;
+}
+function sortProcsForAba(nome){
+  return PROCS
+    .map((p,i)=>({p,i}))
+    .filter(item=>item.p.aba===nome)
+    .sort((a,b)=>getProcOrder(a.p,a.i)-getProcOrder(b.p,b.i)||a.i-b.i)
+    .map(item=>item.p);
+}
+function nextProcOrder(abaNome){
+  const lista=PROCS.filter(p=>p.aba===abaNome);
+  return lista.reduce((max,p,i)=>Math.max(max,getProcOrder(p,i)),-1)+1;
+}
 function syncProcFotosField(){
   const urls=procFotos.map(f=>f?.url).filter(url=>url&&!String(url).startsWith('blob:'));
   document.getElementById('fpImg').value=serializeProcImagens(urls);
@@ -1373,7 +1392,7 @@ async function loadProcs(){
         duracao:r.col5||'',fixacao:r.col6||'',indicado:r.col7||'',
         indAtivo:r.col16==='true'||r.col16===true||(r.col7||'')!=='',
         imagem:fotos[0]||'',fotos,
-        imgPosY:parseInt(r.col9||'50'),imgAltura:parseInt(r.col10||'145'),
+        imgPosY:parseInt(r.col9||'50'),imgAltura:parseInt(r.col10||'145'),ordem:parseInt(r.col18??r.rowId??'0')||0,
         emoji:r.col17||'✦',
         manutEstado,temManut:manutEstado==='tem',manutPrazo:r.col12||'',manutValor:r.col13||''
       };
@@ -1514,7 +1533,7 @@ function showAba(nome){
     activateLocationCarousel();
     return;
   }
-  const lista=PROCS.filter(p=>p.aba===nome);
+  const lista=sortProcsForAba(nome);
   const aba=ABAS.find(a=>a.nome===nome);
   const emoji=aba?.emoji||'✦';
   if(!lista.length){
@@ -1734,7 +1753,7 @@ function voltarParaAbas(){abaAtiva=null;document.getElementById('telaAbas').styl
 function voltarParaAbaDetalhe(){document.getElementById('telaAbaDetalhe').style.display='block';document.getElementById('telaProcForm').style.display='none';if(abaAtiva)renderProcsAbaGrid();}
 
 function renderProcsAbaGrid(){
-  const lista=PROCS.filter(p=>p.aba===abaAtiva.nome);
+  const lista=sortProcsForAba(abaAtiva.nome);
   const cnt=lista.length;
   document.getElementById('detSub').textContent=`${cnt} procedimento${cnt!==1?'s':''}`;
   let html='';
@@ -1747,7 +1766,8 @@ function renderProcsAbaGrid(){
       ?`<img class="proc-aba-img" src="${mediaImageUrl(p.imagem,'card')}" alt="${p.nome}" style="height:${altura}px;object-position:center ${posY}%;">`
       :`<div class="proc-aba-ph">${cardEmoji}</div>`;
     const valorFmt=p.valor?formatarValor(p.valor):'';
-    html+=`<div class="proc-aba-card">
+    html+=`<div class="proc-aba-card" data-proc-id="${p.id}" ondragover="procDragOver(event,'${p.id}')" ondragleave="procDragLeave(event)" ondrop="procDrop(event,'${p.id}')">
+      <button type="button" class="proc-drag-handle" draggable="true" title="Arrastar para ordenar" ondragstart="procDragStart(event,'${p.id}')" ondragend="procDragEnd(event)" onpointerdown="procPointerStart(event,'${p.id}')" onmousedown="event.stopPropagation()">↕</button>
       ${imgHtml}
       <div class="proc-aba-body">
         <div class="proc-aba-name">${cardEmoji} ${p.nome}</div>
@@ -1768,11 +1788,85 @@ function renderProcsAbaGrid(){
   document.getElementById('procsAbaGrid').innerHTML=html;
 }
 
+let procDragId=null;
+function procDragStart(e,id){
+  procDragId=id;
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain',id);
+  document.querySelector(`[data-proc-id="${id}"]`)?.classList.add('dragging');
+}
+function procDragEnd(){
+  procDragId=null;
+  document.querySelectorAll('.proc-aba-card').forEach(card=>card.classList.remove('dragging','drag-over'));
+}
+function procDragOver(e,id){
+  if(!procDragId||procDragId===id)return;
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+  e.dataTransfer.dropEffect='move';
+}
+function procDragLeave(e){e.currentTarget.classList.remove('drag-over');}
+async function procDrop(e,targetId){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const fromId=procDragId||e.dataTransfer.getData('text/plain');
+  procDragEnd();
+  await reorderProcToTarget(fromId,targetId);
+}
+async function reorderProcToTarget(fromId,targetId){
+  if(!fromId||fromId===targetId||!abaAtiva)return;
+  const ordenados=sortProcsForAba(abaAtiva.nome);
+  const from=ordenados.findIndex(p=>p.id===fromId);
+  const to=ordenados.findIndex(p=>p.id===targetId);
+  if(from<0||to<0)return;
+  const [movido]=ordenados.splice(from,1);
+  ordenados.splice(to,0,movido);
+  ordenados.forEach((p,i)=>{p.ordem=i;});
+  renderProcsAbaGrid();
+  renderTabsPub();
+  cacheWrite(CACHE_KEYS.procs,PROCS);
+  try{
+    await salvarProcs();
+    toast('Ordem salva!','ok');
+  }catch(err){
+    toast('Não consegui salvar a ordem: '+err.message,'err');
+  }
+}
+let procPointerDrag=null;
+function procPointerStart(e,id){
+  if(e.pointerType==='mouse')return;
+  e.preventDefault();
+  procPointerDrag={id,pointerId:e.pointerId,lastX:e.clientX,lastY:e.clientY};
+  document.querySelector(`[data-proc-id="${id}"]`)?.classList.add('dragging');
+  e.currentTarget.setPointerCapture?.(e.pointerId);
+  window.addEventListener('pointermove',procPointerMove,{passive:false});
+  window.addEventListener('pointerup',procPointerEnd,{once:true});
+  window.addEventListener('pointercancel',procPointerEnd,{once:true});
+}
+function procPointerMove(e){
+  if(!procPointerDrag)return;
+  e.preventDefault();
+  procPointerDrag.lastX=e.clientX;
+  procPointerDrag.lastY=e.clientY;
+  document.querySelectorAll('.proc-aba-card.drag-over').forEach(card=>card.classList.remove('drag-over'));
+  const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.proc-aba-card[data-proc-id]');
+  if(target&&target.dataset.procId!==procPointerDrag.id)target.classList.add('drag-over');
+}
+function procPointerEnd(){
+  const drag=procPointerDrag;
+  procPointerDrag=null;
+  window.removeEventListener('pointermove',procPointerMove);
+  document.querySelectorAll('.proc-aba-card').forEach(card=>card.classList.remove('dragging','drag-over'));
+  if(!drag)return;
+  const target=document.elementFromPoint(drag.lastX,drag.lastY)?.closest('.proc-aba-card[data-proc-id]');
+  if(target)reorderProcToTarget(drag.id,target.dataset.procId);
+}
+
 function novoProc(){if(!abaAtiva){toast('Abra uma aba primeiro','warn');return;}abrirFormProc(-1);}
 
 async function salvarAbas(){await gasCall({action:'setAbas',dados:JSON.stringify(ABAS.map(a=>[a.id,a.nome,a.emoji]))});cacheWrite(CACHE_KEYS.abas,ABAS);}
 async function salvarProcs(){
-  await gasCall({action:'setProcs',dados:JSON.stringify(PROCS.map(p=>[p.aba,p.nome,p.descricao,p.valor,p.duracao,p.fixacao,p.indicado,serializeProcImagens(p.fotos||parseProcImagens(p.imagem)),p.imgPosY??50,p.imgAltura??145,p.manutEstado||'nenhum',p.manutPrazo||'',p.manutValor||'',p.id||makeId('proc'),p.aPartir?'true':'false',p.indAtivo?'true':'false']))});
+  await gasCall({action:'setProcs',dados:JSON.stringify(PROCS.map((p,i)=>[p.aba,p.nome,p.descricao,p.valor,p.duracao,p.fixacao,p.indicado,serializeProcImagens(p.fotos||parseProcImagens(p.imagem)),p.imgPosY??50,p.imgAltura??145,p.manutEstado||'nenhum',p.manutPrazo||'',p.manutValor||'',p.id||makeId('proc'),p.aPartir?'true':'false',p.indAtivo?'true':'false',p.emoji||'✦',getProcOrder(p,i)]))});
   cacheWrite(CACHE_KEYS.procs,PROCS);
 }
 function salvarProcUnico(proc,editando=false){
@@ -2006,6 +2100,7 @@ function removerProcPorNome(chave){
   if(idx===-1)return;
   confirmar(`Excluir "${PROCS[idx].nome}"?`,async()=>{
     const [removido]=PROCS.splice(idx,1);
+    sortProcsForAba(abaAtiva.nome).forEach((p,i)=>{p.ordem=i;});
     await removerProcServidor(removido.id||'');
     cacheWrite(CACHE_KEYS.procs,PROCS);renderProcsAbaGrid();updateStats();renderTabsPub();toast('Procedimento removido!','ok');
   });
@@ -2047,6 +2142,7 @@ async function salvarProc(){
       id:atual?.id||makeId('proc'),aba:abaAtiva.nome,nome,descricao:desc,valor,aPartir,
       duracao:dur,fixacao:fix,indicado:indAtivo?ind:'',indAtivo,
       imagem:fotos[0]||'',fotos,imgPosY:posY,imgAltura:altura,emoji,
+      ordem:atual?getProcOrder(atual,parseInt(ei)||0):nextProcOrder(abaAtiva.nome),
       manutEstado,temManut:manutEstado==='tem',
       manutPrazo:manutEstado==='tem'?manutPrazo:'',
       manutValor:manutEstado==='tem'?manutValor:''

@@ -172,9 +172,13 @@ footer strong{color:#fff;font-weight:600;}
 .login-eyebrow{font-size:10px;font-weight:500;letter-spacing:8px;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:10px;position:relative;}
 .login-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;letter-spacing:6px;color:#fff;margin-bottom:6px;position:relative;}
 .login-sub{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:32px;position:relative;}
+.login-pass-wrap{position:relative;margin-bottom:14px;}
 .login-field{width:100%;padding:13px 18px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:12px;color:#fff;font-family:'Jost',sans-serif;font-size:14px;outline:none;margin-bottom:14px;transition:background .2s,border-color .2s;position:relative;}
+.login-pass-wrap .login-field{padding-right:52px;margin-bottom:0;}
 .login-field::placeholder{color:rgba(255,255,255,.55);}
 .login-field:focus{background:rgba(255,255,255,.26);border-color:rgba(255,255,255,.65);}
+.login-pass-toggle{position:absolute;top:50%;right:10px;transform:translateY(-50%);width:34px;height:34px;border:none;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:background .2s;}
+.login-pass-toggle:hover{background:rgba(255,255,255,.26);}
 .login-btn{width:100%;padding:14px;background:rgba(255,255,255,.92);color:var(--b-deep);border:none;border-radius:12px;font-family:'Jost',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;position:relative;}
 .login-btn:hover{background:#fff;transform:translateY(-2px);}
 .login-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .2s;}
@@ -569,7 +573,10 @@ footer strong{color:#fff;font-weight:600;}
     <div class="login-eyebrow">Área Restrita</div>
     <div class="login-title">Admin</div>
     <div class="login-sub">Studio Julie Barroso</div>
-    <input class="login-field" id="loginPass" type="password" placeholder="Senha de acesso">
+    <div class="login-pass-wrap">
+      <input class="login-field" id="loginPass" type="password" placeholder="Senha de acesso">
+      <button class="login-pass-toggle" type="button" id="loginPassToggle" onclick="toggleLoginPass()" title="Mostrar senha">👁</button>
+    </div>
     <button class="login-btn" onclick="doLogin()">Entrar</button>
     <div class="login-err" id="loginErr">Senha incorreta.</div>
   </div>
@@ -1179,6 +1186,10 @@ function sortProcsForAba(nome){
     .sort((a,b)=>getProcOrder(a.p,a.i)-getProcOrder(b.p,b.i)||a.i-b.i)
     .map(item=>item.p);
 }
+function aplicarOrdemProcsNaLista(abaNome,ordenados){
+  const fila=ordenados.slice();
+  PROCS=PROCS.map(p=>p.aba===abaNome?fila.shift()||p:p);
+}
 function nextProcOrder(abaNome){
   const lista=PROCS.filter(p=>p.aba===abaNome);
   return lista.reduce((max,p,i)=>Math.max(max,getProcOrder(p,i)),-1)+1;
@@ -1673,7 +1684,16 @@ function verDetalhe(idx){
    LOGIN
 ════════════════════════════════════════ */
 function abrirLogin(){document.getElementById('loginAdmin').classList.add('open');setTimeout(()=>document.getElementById('loginPass').focus(),100);}
-function fecharLogin(){document.getElementById('loginAdmin').classList.remove('open');document.getElementById('loginPass').value='';document.getElementById('loginErr').style.display='none';}
+function fecharLogin(){document.getElementById('loginAdmin').classList.remove('open');document.getElementById('loginPass').value='';document.getElementById('loginPass').type='password';document.getElementById('loginPassToggle').textContent='👁';document.getElementById('loginErr').style.display='none';}
+function toggleLoginPass(){
+  const input=document.getElementById('loginPass');
+  const btn=document.getElementById('loginPassToggle');
+  const show=input.type==='password';
+  input.type=show?'text':'password';
+  btn.textContent=show?'🙈':'👁';
+  btn.title=show?'Ocultar senha':'Mostrar senha';
+  input.focus();
+}
 function doLogin(){
   if(document.getElementById('loginPass').value===SENHA){fecharLogin();document.getElementById('adminPanel').classList.add('open');initAdmin();}
   else{document.getElementById('loginErr').style.display='block';document.getElementById('loginPass').value='';}
@@ -1822,6 +1842,7 @@ async function reorderProcToTarget(fromId,targetId){
   const [movido]=ordenados.splice(from,1);
   ordenados.splice(to,0,movido);
   ordenados.forEach((p,i)=>{p.ordem=i;});
+  aplicarOrdemProcsNaLista(abaAtiva.nome,ordenados);
   renderProcsAbaGrid();
   renderTabsPub();
   cacheWrite(CACHE_KEYS.procs,PROCS);
@@ -1868,7 +1889,7 @@ const ordemProcsSave={salvando:false,pendente:null};
 async function salvarOrdemProcsEmFila(abaNome){
   ordemProcsSave.pendente={
     abaNome,
-    ordem:sortProcsForAba(abaNome).map((p,i)=>({id:p.id,ordem:i}))
+    ids:sortProcsForAba(abaNome).map(p=>p.id)
   };
   if(ordemProcsSave.salvando)return;
   ordemProcsSave.salvando=true;
@@ -1876,17 +1897,17 @@ async function salvarOrdemProcsEmFila(abaNome){
     while(ordemProcsSave.pendente){
       const lote=ordemProcsSave.pendente;
       ordemProcsSave.pendente=null;
-      await salvarOrdemProcsLote(lote.ordem);
+      await salvarOrdemProcsLote(lote.abaNome,lote.ids);
       if(!ordemProcsSave.pendente)toast('Ordem salva!','ok');
     }
   }finally{
     ordemProcsSave.salvando=false;
   }
 }
-async function salvarOrdemProcsLote(ordem){
-  const resp=await gasCall({action:'updateProcOrders',dados:JSON.stringify(ordem)});
+async function salvarOrdemProcsLote(abaNome,ids){
+  const resp=await gasCall({action:'reorderAbaProcs',abaNome,ids:JSON.stringify(ids)});
   if(resp?.error)throw new Error(resp.error);
-  if(!resp?.ok||Number(resp.updated||0)<ordem.length)throw new Error('atualize o Apps Script publicado e tente novamente');
+  if(!resp?.ok||Number(resp.updated||0)<ids.length)throw new Error('atualize o Apps Script publicado e tente novamente');
   cacheWrite(CACHE_KEYS.procs,PROCS);
 }
 function salvarProcUnico(proc,editando=false){

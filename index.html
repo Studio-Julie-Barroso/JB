@@ -1825,12 +1825,7 @@ async function reorderProcToTarget(fromId,targetId){
   renderProcsAbaGrid();
   renderTabsPub();
   cacheWrite(CACHE_KEYS.procs,PROCS);
-  try{
-    await salvarOrdemProcs(abaAtiva.nome);
-    toast('Ordem salva!','ok');
-  }catch(err){
-    toast('Não consegui salvar a ordem: '+err.message,'err');
-  }
+  salvarOrdemProcsEmFila(abaAtiva.nome).catch(err=>toast('Não consegui salvar a ordem: '+err.message,'err'));
 }
 let procPointerDrag=null;
 function procPointerStart(e,id){
@@ -1869,8 +1864,26 @@ async function salvarProcs(){
   await gasCall({action:'setProcs',dados:JSON.stringify(PROCS.map((p,i)=>[p.aba,p.nome,p.descricao,p.valor,p.duracao,p.fixacao,p.indicado,serializeProcImagens(p.fotos||parseProcImagens(p.imagem)),p.imgPosY??50,p.imgAltura??145,p.manutEstado||'nenhum',p.manutPrazo||'',p.manutValor||'',p.id||makeId('proc'),p.aPartir?'true':'false',p.indAtivo?'true':'false',p.emoji||'✦',getProcOrder(p,i)]))});
   cacheWrite(CACHE_KEYS.procs,PROCS);
 }
-async function salvarOrdemProcs(abaNome){
-  const ordem=sortProcsForAba(abaNome).map((p,i)=>({id:p.id,ordem:i}));
+const ordemProcsSave={salvando:false,pendente:null};
+async function salvarOrdemProcsEmFila(abaNome){
+  ordemProcsSave.pendente={
+    abaNome,
+    ordem:sortProcsForAba(abaNome).map((p,i)=>({id:p.id,ordem:i}))
+  };
+  if(ordemProcsSave.salvando)return;
+  ordemProcsSave.salvando=true;
+  try{
+    while(ordemProcsSave.pendente){
+      const lote=ordemProcsSave.pendente;
+      ordemProcsSave.pendente=null;
+      await salvarOrdemProcsLote(lote.ordem);
+      if(!ordemProcsSave.pendente)toast('Ordem salva!','ok');
+    }
+  }finally{
+    ordemProcsSave.salvando=false;
+  }
+}
+async function salvarOrdemProcsLote(ordem){
   const resp=await gasCall({action:'updateProcOrders',dados:JSON.stringify(ordem)});
   if(resp?.error)throw new Error(resp.error);
   if(!resp?.ok||Number(resp.updated||0)<ordem.length)throw new Error('atualize o Apps Script publicado e tente novamente');

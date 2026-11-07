@@ -2309,11 +2309,20 @@ footer strong{color:#fff;font-weight:600;}
       <!-- GERÊNCIA -->
       <div id="sec-gerencia" class="adm-sec">
         <div class="sched-scope">
-        <div class="adm-title">Gerência</div>
-        <div class="adm-sub">Configurações do studio: expediente e valor da reserva.</div>
+        <div class="adm-title">Configurações</div>
+        <div class="adm-sub">Expediente, valor da reserva e demais ajustes do studio.</div>
         <div class="adm-rule"></div>
         <div class="admin-cards">
           <div class="admin-card" onclick="openConfig()"><span class="ac-ico">⚙️</span><div class="ac-lbl">Configurações</div><div class="ac-desc">Expediente e Valor da Reserva</div></div>
+        <div class="admin-card" onclick="openClientesSheet()"><span class="ac-ico">👥</span><div class="ac-lbl">Clientes</div><div class="ac-desc">Ranking de frequência e contato</div></div>
+        <div class="admin-card" onclick="openTaxaMesAdmin()"><span class="ac-ico">🧾</span><div class="ac-lbl">Taxa do mês</div><div class="ac-desc">Cobrança obrigatória no agendamento</div></div>
+        <div class="admin-card" onclick="openDezAdmin()"><span class="ac-ico">🎄</span><div class="ac-lbl">Agenda de Dezembro</div><div class="ac-desc">Taxa de reserva e dias com cobrança</div></div>
+        <div class="admin-card" onclick="openPixAdmin()"><span class="ac-ico">💳</span><div class="ac-lbl">PIX · Pagamentos</div><div class="ac-desc">Pendentes, recebidos e expirados</div></div>
+        <div class="admin-card" onclick="openTransferenciasAdmin()"><span class="ac-ico">🔁</span><div class="ac-lbl">TRANSFERENCIAS CLIENTE</div><div class="ac-desc">Trocas de horário e situação do pagamento</div></div>
+        <div class="admin-card" onclick="openBlockPanel()"><span class="ac-ico">🔒</span><div class="ac-lbl">Bloqueios</div><div class="ac-desc">Folgas e horários indisponíveis</div></div>
+        <div class="admin-card" onclick="goSec('abas')"><span class="ac-ico">💅</span><div class="ac-lbl">Serviços</div><div class="ac-desc">Abas e procedimentos do studio</div></div>
+        <div class="admin-card" onclick="goSec('video')"><span class="ac-ico">🖼️</span><div class="ac-lbl">Tela Principal</div><div class="ac-desc">Foto ou vídeo de apresentação</div></div>
+        <div class="admin-card" onclick="goSec('localizacao')"><span class="ac-ico">📍</span><div class="ac-lbl">Localização</div><div class="ac-desc">Foto e link do Maps</div></div>
         </div>
         </div>
       </div>
@@ -2332,17 +2341,6 @@ footer strong{color:#fff;font-weight:600;}
         <div class="stat-item" style="border-left:1px solid rgba(255,255,255,.1);padding-left:8px;cursor:pointer;" id="wrapNext"><span class="stat-num" id="statNext" style="font-size:1.1rem;color:var(--rose);">—</span><span class="stat-lbl">Próximo</span></div>
       </div>
       <div id="admAgendaSlot" class="adm-agenda-slot" style="margin:4px 0 18px;"></div>
-      <div class="admin-cards">
-        <div class="admin-card" onclick="openClientesSheet()"><span class="ac-ico">👥</span><div class="ac-lbl">Clientes</div><div class="ac-desc">Ranking de frequência e contato</div></div>
-        <div class="admin-card" onclick="openTaxaMesAdmin()"><span class="ac-ico">🧾</span><div class="ac-lbl">Taxa do mês</div><div class="ac-desc">Cobrança obrigatória no agendamento</div></div>
-        <div class="admin-card" onclick="openDezAdmin()"><span class="ac-ico">🎄</span><div class="ac-lbl">Agenda de Dezembro</div><div class="ac-desc">Taxa de reserva e dias com cobrança</div></div>
-        <div class="admin-card" onclick="openPixAdmin()"><span class="ac-ico">💳</span><div class="ac-lbl">PIX · Pagamentos</div><div class="ac-desc">Pendentes, recebidos e expirados</div></div>
-        <div class="admin-card" onclick="openTransferenciasAdmin()"><span class="ac-ico">🔁</span><div class="ac-lbl">TRANSFERENCIAS CLIENTE</div><div class="ac-desc">Trocas de horário e situação do pagamento</div></div>
-        <div class="admin-card" onclick="openBlockPanel()"><span class="ac-ico">🔒</span><div class="ac-lbl">Bloqueios</div><div class="ac-desc">Folgas e horários indisponíveis</div></div>
-        <div class="admin-card" onclick="goSec('abas')"><span class="ac-ico">💅</span><div class="ac-lbl">Serviços</div><div class="ac-desc">Abas e procedimentos do studio</div></div>
-        <div class="admin-card" onclick="goSec('video')"><span class="ac-ico">🖼️</span><div class="ac-lbl">Tela Principal</div><div class="ac-desc">Foto ou vídeo de apresentação</div></div>
-        <div class="admin-card" onclick="goSec('localizacao')"><span class="ac-ico">📍</span><div class="ac-lbl">Localização</div><div class="ac-desc">Foto e link do Maps</div></div>
-      </div>
       <div id="logPanel">
         <div class="log-ttl">✦ Registros do Sistema</div>
         <div id="logEntries"></div>

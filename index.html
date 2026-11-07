@@ -1863,6 +1863,8 @@ footer strong{color:#fff;font-weight:600;}
       <div class="adm-nav-sect">Mídia</div>
       <button class="adm-nav-btn" onclick="goSec('video')"><span class="ni">🖼</span>Tela Principal</button>
       <button class="adm-nav-btn" onclick="goSec('localizacao')"><span class="ni">📍</span>Localização</button>
+      <div class="adm-nav-sect">Gerência</div>
+      <button class="adm-nav-btn" onclick="goSec('gerencia')"><span class="ni">⚙️</span>Configurações</button>
     </nav>
 
     <!-- nav inferior mobile -->
@@ -1887,6 +1889,10 @@ footer strong{color:#fff;font-weight:600;}
         <button class="adm-mobile-tab" id="mnt-localizacao" onclick="goSec('localizacao')">
           <div class="mn-icon mn-icon-pill">📍</div>
           <span>Local</span>
+        </button>
+        <button class="adm-mobile-tab" id="mnt-gerencia" onclick="goSec('gerencia')">
+          <div class="mn-icon mn-icon-pill">⚙️</div>
+          <span>Gerência</span>
         </button>
       </div>
     </div>
@@ -2300,6 +2306,18 @@ footer strong{color:#fff;font-weight:600;}
         </div>
       </div>
 
+      <!-- GERÊNCIA -->
+      <div id="sec-gerencia" class="adm-sec">
+        <div class="sched-scope">
+        <div class="adm-title">Gerência</div>
+        <div class="adm-sub">Configurações do studio: expediente e valor da reserva.</div>
+        <div class="adm-rule"></div>
+        <div class="admin-cards">
+          <div class="admin-card" onclick="openConfig()"><span class="ac-ico">⚙️</span><div class="ac-lbl">Configurações</div><div class="ac-desc">Expediente e Valor da Reserva</div></div>
+        </div>
+        </div>
+      </div>
+
       <div id="sec-agenda" class="adm-sec">
         <div class="sched-scope">
     <!-- ADMIN -->
@@ -2320,7 +2338,6 @@ footer strong{color:#fff;font-weight:600;}
         <div class="admin-card" onclick="openDezAdmin()"><span class="ac-ico">🎄</span><div class="ac-lbl">Agenda de Dezembro</div><div class="ac-desc">Taxa de reserva e dias com cobrança</div></div>
         <div class="admin-card" onclick="openPixAdmin()"><span class="ac-ico">💳</span><div class="ac-lbl">PIX · Pagamentos</div><div class="ac-desc">Pendentes, recebidos e expirados</div></div>
         <div class="admin-card" onclick="openTransferenciasAdmin()"><span class="ac-ico">🔁</span><div class="ac-lbl">TRANSFERENCIAS CLIENTE</div><div class="ac-desc">Trocas de horário e situação do pagamento</div></div>
-        <div class="admin-card" onclick="openConfig()"><span class="ac-ico">⚙️</span><div class="ac-lbl">Configurações</div><div class="ac-desc">Expediente e Valor da Reserva</div></div>
         <div class="admin-card" onclick="openBlockPanel()"><span class="ac-ico">🔒</span><div class="ac-lbl">Bloqueios</div><div class="ac-desc">Folgas e horários indisponíveis</div></div>
         <div class="admin-card" onclick="goSec('abas')"><span class="ac-ico">💅</span><div class="ac-lbl">Serviços</div><div class="ac-desc">Abas e procedimentos do studio</div></div>
         <div class="admin-card" onclick="goSec('video')"><span class="ac-ico">🖼️</span><div class="ac-lbl">Tela Principal</div><div class="ac-desc">Foto ou vídeo de apresentação</div></div>

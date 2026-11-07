@@ -2313,6 +2313,7 @@ footer strong{color:#fff;font-weight:600;}
         <div class="stat-item" style="border-left:1px solid rgba(255,255,255,.1);padding-left:8px;"><span class="stat-num" id="statPix" style="font-size:1.1rem;color:var(--gold);">—</span><span class="stat-lbl">Taxa PIX</span></div>
         <div class="stat-item" style="border-left:1px solid rgba(255,255,255,.1);padding-left:8px;cursor:pointer;" id="wrapNext"><span class="stat-num" id="statNext" style="font-size:1.1rem;color:var(--rose);">—</span><span class="stat-lbl">Próximo</span></div>
       </div>
+      <div id="admAgendaSlot" class="adm-agenda-slot" style="margin:4px 0 18px;"></div>
       <div class="admin-cards">
         <div class="admin-card" onclick="openClientesSheet()"><span class="ac-ico">👥</span><div class="ac-lbl">Clientes</div><div class="ac-desc">Ranking de frequência e contato</div></div>
         <div class="admin-card" onclick="openTaxaMesAdmin()"><span class="ac-ico">🧾</span><div class="ac-lbl">Taxa do mês</div><div class="ac-desc">Cobrança obrigatória no agendamento</div></div>
@@ -5864,10 +5865,19 @@ function applyPubCfg(pub){
 function setText(sel,val){const el=document.querySelector(sel);if(el&&val!==undefined)el.textContent=val;}
 
 /* ── Abas do site (sidebar) ─────────────────────────────────── */
+const MESES_NOME=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+// Mês corrente pelo fuso de Manaus (AMT, UTC-4)
+function mesCorrenteNome(){
+  let m=new Date().getMonth();
+  try{ m=parseInt(new Intl.DateTimeFormat('en-US',{month:'numeric',timeZone:'America/Manaus'}).format(new Date()),10)-1; }catch(e){}
+  return MESES_NOME[m]||MESES_NOME[new Date().getMonth()];
+}
+function tituloAgendamento(){ return 'Agendamento - '+mesCorrenteNome(); }
+
 function schedTabsHtml(){
   let h=`<button class="tab-main-btn" data-aba="__sched_agendamento" onclick="openSchedView('agendamento')">
       <span class="tab-main-icon">✦</span>
-      <span class="tab-main-label"><strong>Agendamento</strong><small>Escolha data e horário</small></span>
+      <span class="tab-main-label"><strong>${tituloAgendamento()}</strong><small>Escolha data e horário</small></span>
     </button>`;
   if(dezVisivel()){
     h+=`<button class="tab-main-btn" data-aba="__sched_dezembro" onclick="openSchedView('dezembro')">
@@ -5894,7 +5904,7 @@ function setPublicMainTab(tab){
     if(el) el.style.display = (k===t)?'block':'none';
   });
   const tt=document.getElementById('schedViewTitle');
-  if(tt) tt.textContent = SCHED_TITLE_BY_TAB[t] || 'Agendamento';
+  if(tt) tt.textContent = (t==='agendamento') ? tituloAgendamento() : (SCHED_TITLE_BY_TAB[t] || 'Agendamento');
   if(t==='agendamento' && currentDay) renderGrid(currentDay);
   if(t==='agendamento' && !currentDay) renderDays();
   if(t==='dezembro') renderDezSection();
@@ -5903,6 +5913,9 @@ function setPublicMainTab(tab){
 }
 
 function openSchedView(tab){
+  devolverAgendaAoSite();
+  const back=document.querySelector('#schedView .sched-back');
+  if(back) back.textContent=(isAdmin&&document.getElementById('adminPanel')?.classList.contains('open'))?'← Voltar ao painel':'← Voltar ao site';
   setPublicMainTab(tab||'agendamento');
   const v=document.getElementById('schedView');
   if(v){ v.style.display='block'; v.scrollTop=0; }
@@ -5914,7 +5927,35 @@ function closeSchedView(){
   const v=document.getElementById('schedView');
   if(v) v.style.display='none';
   if(!document.getElementById('adminPanel')?.classList.contains('open')) document.body.style.overflow='';
+  sincronizarAgendaAdmin();
 }
+
+/* ── Agenda por dia dentro do painel admin ─────────────────────
+   A grade (horários, ocupados, WhatsApp, transferir) é a mesma da tela
+   de agendamento. Enquanto o admin está em "Agenda e Reservas", a seção
+   #bookingSection é levada para dentro do painel; ao sair, volta para a
+   tela pública. A grade é achada pelos IDs, então mudar de lugar não
+   quebra nada. */
+function devolverAgendaAoSite(){
+  const bs=document.getElementById('bookingSection');
+  const page=document.querySelector('#schedView .page');
+  if(bs&&page&&bs.parentNode!==page) page.insertBefore(bs,page.firstChild);
+}
+function sincronizarAgendaAdmin(){
+  const bs=document.getElementById('bookingSection');
+  const slot=document.getElementById('admAgendaSlot');
+  if(!bs||!slot) return;
+  const noPainel=!!isAdmin
+    && !!document.getElementById('adminPanel')?.classList.contains('open')
+    && !!document.getElementById('sec-agenda')?.classList.contains('active')
+    && document.getElementById('schedView')?.style.display!=='block';
+  if(!noPainel){ devolverAgendaAoSite(); return; }
+  if(bs.parentNode!==slot) slot.appendChild(bs);
+  bs.style.display='block';
+  if(!currentDay) selectDay(getManausIsoDate(new Date())); else renderGrid(currentDay);
+}
+const _goSecBase=goSec;
+goSec=function(id){ _goSecBase(id); sincronizarAgendaAdmin(); };
 
 function openPixAdmin(){ openSchedView('pix'); }
 function focusBooking(){ openSchedView('agendamento'); }

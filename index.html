@@ -2878,7 +2878,7 @@ function renderTabsPub(){
   const wrap=document.getElementById('tabsMain');
   let html=schedTabsHtml()+ABAS.map(a=>{
     const cnt=PROCS.filter(p=>p.aba===a.nome).length;
-    return `<button class="tab-main-btn" data-aba="${a.nome}" onclick="showAba('${a.nome}')">
+    return `<button class="tab-main-btn" data-aba="${a.nome}" onclick="showAba('${a.nome}',true)">
       <span class="tab-main-icon">${a.emoji}</span>
       <span class="tab-main-label"><strong>${a.nome}</strong><small>${cnt} serviço${cnt!==1?'s':''}</small></span>
     </button>`;
@@ -2890,7 +2890,7 @@ function renderTabsPub(){
   wrap.innerHTML=html;
 }
 
-function showAba(nome){
+function showAba(nome,irParaPainel=false){
   document.querySelectorAll('.tab-main-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('data-aba')===nome));
   const panel=document.getElementById('contentPanel');
   if(nome==='__loc__'){
@@ -2946,6 +2946,7 @@ function showAba(nome){
   const emoji=aba?.emoji||'✦';
   if(!lista.length){
     panel.innerHTML=`<div class="panel-heading">${nome}</div><div class="panel-rule"></div><div class="panel-placeholder"><div class="panel-placeholder-icon">${emoji}</div><p>Nenhum serviço nesta categoria ainda.</p></div>`;
+    if(irParaPainel)irParaPainelAba();
     return;
   }
   panel.innerHTML=`<div class="panel-heading">${nome}</div><div class="panel-rule"></div>`+
@@ -2961,6 +2962,18 @@ function showAba(nome){
         <span class="pub-card-arrow">›</span>
       </div>`;
     }).join('');
+  if(irParaPainel)irParaPainelAba();
+}
+
+/* Leva o cliente até a lista de serviços da aba, com um leve deslize.
+   Só rola quando a lista começa na metade de baixo da tela. */
+function irParaPainelAba(){
+  const painel=document.getElementById('contentPanel');
+  if(!painel) return;
+  const topo=painel.getBoundingClientRect().top;
+  if(topo<=window.innerHeight*0.5) return;
+  const reduzir=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  window.scrollTo({top:window.scrollY+topo-12,behavior:reduzir?'auto':'smooth'});
 }
 function activateLocationCarousel(){
   const track=document.getElementById('locationCarouselTrack');

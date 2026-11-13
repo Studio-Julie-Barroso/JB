@@ -1517,6 +1517,8 @@ footer strong{color:#fff;font-weight:600;}
 .sched-scope .dez-sw.low{border-color:#F48FB1;background:#FCE4EC;}
 .sched-scope .dez-sw.full{border-color:#F8BBD0;background:#FFF0F5;}
 .sched-scope .dez-sw.hoje{border:2px solid #F06292;background:#FFF0F5;box-shadow:0 0 8px rgba(240,98,146,.6);}
+.sched-scope #saveDezMonthBtn{display:none;align-items:center;gap:6px;}
+.sched-scope.admin-on #saveDezMonthBtn{display:inline-flex;}
 /* Admin · calendário de Dezembro no painel "Agenda e Reservas" */
 .sched-scope .dez-day.adm-dia .dez-dc > span{display:block;}
 .sched-scope .dez-day.adm-com{border-color:#F48FB1;}
@@ -1810,12 +1812,6 @@ footer strong{color:#fff;font-weight:600;}
       <span><i class="dez-sw ok"></i> Disponível</span>
       <span><i class="dez-sw low"></i> Últimos 7 horários</span>
       <span><i class="dez-sw full"></i> Esgotado</span>
-    </div>
-    <div id="dezAdminBar">
-      <button type="button" class="day-btn" id="saveDezMonthBtn" onclick="saveDezMonthImage()">
-        <span class="day-btn-ico">⬇</span>
-        <span id="saveDezMonthBtnTitle">Baixar imagem do mês</span>
-      </button>
     </div>
     <section id="dezDayWrap">
       <div class="grid-date-box" style="margin:6px 2px 4px;">
@@ -2392,7 +2388,7 @@ footer strong{color:#fff;font-weight:600;}
     <!-- ADMIN -->
     <section id="schedAdminPanel">
       <div class="admin-title">✦ Agenda e Reservas ✦</div>
-      <div style="display:flex;gap:8px;justify-content:center;margin:-4px 0 14px;flex-wrap:wrap;"><button type="button" class="nav-btn primary" id="syncBtn" onclick="syncData()">↻ Atualizar</button><button type="button" class="nav-btn" onclick="toggleUserView()" style="border:1px solid var(--gold);color:var(--gold);">👁 Ver como cliente</button></div>
+      <div style="display:flex;gap:8px;justify-content:center;margin:-4px 0 14px;flex-wrap:wrap;"><button type="button" class="nav-btn primary" id="syncBtn" onclick="syncData()">↻ Atualizar</button><button type="button" class="nav-btn" onclick="toggleUserView()" style="border:1px solid var(--gold);color:var(--gold);">👁 Ver como cliente</button><button type="button" class="nav-btn" id="saveDezMonthBtn" onclick="saveDezMonthImage()" style="border:1px solid var(--gold);color:var(--gold);"><span aria-hidden="true">⬇</span> <span id="saveDezMonthBtnTitle">Baixar imagem do mês</span></button></div>
       <div class="admin-stats">
         <div class="stat-item" style="cursor:pointer" id="wrapOcupado"><span class="stat-num" id="statOcupado">—</span><span class="stat-lbl">Agendados</span></div>
         <div class="stat-item" style="cursor:pointer" id="wrapLivre"><span class="stat-num" id="statLivre">—</span><span class="stat-lbl" id="statLivreLbl">Livres hoje</span></div>

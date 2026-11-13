@@ -3146,13 +3146,19 @@ function mostrarRecuperacaoAdmin(on){
     document.getElementById('loginResetErr').style.display='none';
   }
 }
+function erroServidor(r,padrao){
+  if(r?.message) return r.message;
+  if(r?.error) return 'Erro no servidor: '+r.error;
+  if(r?.ok===true) return 'O servidor não reconheceu o pedido. Publique uma nova versão do Web App no Apps Script.';
+  return padrao;
+}
 async function pedirCodigoAdmin(){
   const btn=document.getElementById('btnPedirCodigo'), err=document.getElementById('loginResetErr'), msg=document.getElementById('loginResetMsg');
   err.style.display='none';
   btn.disabled=true; btn.textContent='Enviando...';
   try{
     const r=await gasCall({action:'admin_reset_request'});
-    if(!r||r.status!=='OK') throw new Error(r?.message||'Não foi possível enviar o código.');
+    if(!r||r.status!=='OK') throw new Error(erroServidor(r,'Não foi possível enviar o código.'));
     msg.textContent='Código enviado para o e-mail de recuperação. Ele vale por 10 minutos.';
     document.getElementById('loginResetCampos').style.display='block';
     btn.style.display='none';
@@ -3175,7 +3181,7 @@ async function redefinirSenhaAdmin(){
   if(n1!==n2) return falha('As senhas não conferem.');
   try{
     const r=await gasCall({action:'admin_reset_confirm',codigo:cod,nova_senha:n1});
-    if(!r||r.status!=='OK') throw new Error(r?.message||'Não foi possível redefinir a senha.');
+    if(!r||r.status!=='OK') throw new Error(erroServidor(r,'Não foi possível redefinir a senha.'));
     ['loginCodigo','loginNovaSenha','loginNovaSenha2'].forEach(id=>document.getElementById(id).value='');
     mostrarRecuperacaoAdmin(false);
     toast('Senha redefinida. Entre com a nova senha.','ok',4000);

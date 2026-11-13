@@ -4178,12 +4178,9 @@ async function saveDezMonthImage(){
 }
 
 
-async function syncData(){
-  const btn=document.getElementById('syncBtn');
-  if(btn){btn.textContent='⏱ Sync...';btn.style.opacity='.7';}
-  try{
-    const cb='_ld_'+Date.now();
-    await new Promise((res,rej)=>{
+function buscarSnapshot_(){
+  const cb='_ld_'+Date.now();
+  return new Promise((res,rej)=>{
       const s=document.createElement('script');
       window[cb]=r=>{delete window[cb];s.remove();if(r.status==='OK')res(r);else rej();};
       let savedToken='';
@@ -4191,7 +4188,9 @@ async function syncData(){
       const tokenParam=savedToken?`&client_token=${encodeURIComponent(savedToken)}`:'';
       s.src=`${CFG.API_URL}?pass=${encodeURIComponent(adminPass)}${tokenParam}&_t=${Date.now()}&callback=${cb}`;
       s.onerror=rej;document.body.appendChild(s);setTimeout(rej,10000);
-    }).then(r=>{
+  });
+}
+function aplicarSnapshot_(r){
       db=r.agenda||[];agendaCarregada=true;systemLogs=r.logs||[];srvCfg=r.config||srvCfg;applyPubCfg(r.pub);AGENDA_ANO_ATIVA=!!r.agendaAnoAtiva;DEZ=r.dez||DEZ;TAXA=r.taxa||TAXA;isAdmin=!!r.isAdmin;
       if(!isAdmin)reconciliarBookingLocal();
       updateAppMode();atualizarCardAgendaAno();if(publicMainTab==='agendamento'&&agendamentoOculto())setPublicMainTab('dezembro');renderDays();if(publicMainTab==='dezembro'&&!dezVisivel())closeSchedView();renderDezSection();
@@ -4199,10 +4198,51 @@ async function syncData(){
       if(admDezAtivo())renderAdmDez();
       updateAdminStats();
       renderMyBookingBanner(); // atualiza o banner da cliente
-    });
+}
+async function syncData(){
+  const btn=document.getElementById('syncBtn');
+  if(btn){btn.textContent='⏱ Sync...';btn.style.opacity='.7';}
+  try{
+    await buscarSnapshot_().then(aplicarSnapshot_);
   }catch(e){}
   finally{if(btn){btn.textContent='↻ Atualizar';btn.style.opacity='1';}}
 }
+
+/* ── Agenda de Dezembro: atualização automática a cada 5 s ─────────
+   Enquanto a aba Agenda de Dezembro estiver aberta e a página visível,
+   busca a agenda de novo a cada 5 s. Só redesenha quando algo mudou,
+   para não atrapalhar quem está escolhendo um horário. */
+const DEZ_AUTO_MS=5000;
+let dezAutoTimer=null, dezAutoBusy=false, dezAutoAssin='';
+function dezAutoAtivo(){
+  const v=document.getElementById('schedView');
+  return publicMainTab==='dezembro' && !!v && v.style.display==='block' && !document.hidden;
+}
+async function dezAutoSync(){
+  if(!dezAutoAtivo()){ atualizarAutoDezembro(); return; }
+  if(dezAutoBusy) return;
+  dezAutoBusy=true;
+  try{
+    const r=await buscarSnapshot_();
+    if(!dezAutoAtivo()) return;
+    const assin=JSON.stringify([r.agenda,r.dez,r.taxa,r.agendaAnoAtiva,r.pub,r.config]);
+    if(assin===dezAutoAssin) return;
+    dezAutoAssin=assin;
+    aplicarSnapshot_(r);
+  }catch(e){}
+  finally{ dezAutoBusy=false; }
+}
+function atualizarAutoDezembro(){
+  if(dezAutoAtivo()){
+    if(!dezAutoTimer){
+      dezAutoTimer=setInterval(dezAutoSync,DEZ_AUTO_MS);
+      dezAutoSync();
+    }
+  }else if(dezAutoTimer){
+    clearInterval(dezAutoTimer); dezAutoTimer=null;
+  }
+}
+document.addEventListener('visibilitychange',atualizarAutoDezembro);
 
 function getLocalBk(){try{return JSON.parse(localStorage.getItem('last_booking_v3')||'null');}catch{return null;}}
 /** true enquanto o PIX pendente ainda está dentro do prazo (a vaga segue reservada). */
@@ -6060,6 +6100,7 @@ function setPublicMainTab(tab){
   if(t==='dezembro') renderDezSection();
   if(t==='pix') openPixTab();
   renderMyBookingBanner();
+  atualizarAutoDezembro();
 }
 
 function openSchedView(tab){
@@ -6071,6 +6112,7 @@ function openSchedView(tab){
   if(v){ v.style.display='block'; v.scrollTop=0; }
   document.body.style.overflow='hidden';
   renderTabsPub();
+  atualizarAutoDezembro();
 }
 
 function closeSchedView(){
@@ -6078,6 +6120,7 @@ function closeSchedView(){
   if(v) v.style.display='none';
   if(!document.getElementById('adminPanel')?.classList.contains('open')) document.body.style.overflow='';
   sincronizarAgendaAdmin();
+  atualizarAutoDezembro();
 }
 
 /* ── Agenda por dia dentro do painel admin ─────────────────────

@@ -1516,6 +1516,20 @@ footer strong{color:#fff;font-weight:600;}
 .sched-scope .dez-sw.ok{border-color:#F8BBD0;background:#FCE4EC;}
 .sched-scope .dez-sw.low{border-color:#F48FB1;background:#FCE4EC;}
 .sched-scope .dez-sw.full{border-color:#F8BBD0;background:#FFF0F5;}
+.sched-scope .dez-sw.hoje{border:2px solid #F06292;background:#FFF0F5;box-shadow:0 0 8px rgba(240,98,146,.6);}
+/* Admin · calendário de Dezembro no painel "Agenda e Reservas" */
+.sched-scope .dez-day.adm-dia .dez-dc > span{display:block;}
+.sched-scope .dez-day.adm-com{border-color:#F48FB1;}
+.sched-scope .dez-day.adm-com .dez-dc > span:first-child{color:#7C2A47;font-weight:700;}
+.sched-scope .dez-day.hoje{border:2px solid #F06292;background:linear-gradient(180deg,#FFFFFF,#FFF0F5);color:var(--ink);animation:adm-hoje-brilho 1.8s ease-in-out infinite;}
+.sched-scope .dez-day.hoje.active{background:var(--gradient-rose);border-color:#FFFFFF;}
+@keyframes adm-hoje-brilho{
+  0%,100%{box-shadow:0 0 0 2px rgba(240,98,146,.18),0 0 8px 1px rgba(240,98,146,.45);}
+  50%{box-shadow:0 0 0 4px rgba(240,98,146,.10),0 0 18px 4px rgba(240,98,146,.75);}
+}
+@media (prefers-reduced-motion: reduce){
+  .sched-scope .dez-day.hoje{animation:none;box-shadow:0 0 0 3px rgba(240,98,146,.25),0 0 14px 2px rgba(240,98,146,.55);}
+}
 .sched-scope .pix-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
 .sched-scope .pix-tab b{font-weight:700;margin-left:5px;}
 .sched-scope .pix-filtros{margin-bottom:10px;}
@@ -2387,6 +2401,34 @@ footer strong{color:#fff;font-weight:600;}
         <div class="stat-item" style="border-left:1px solid rgba(255,255,255,.1);padding-left:8px;cursor:pointer;" id="wrapNext"><span class="stat-num" id="statNext" style="font-size:1.1rem;color:var(--rose);">—</span><span class="stat-lbl">Próximo</span></div>
       </div>
       <div id="admAgendaSlot" class="adm-agenda-slot" style="margin:4px 0 18px;"></div>
+      <div id="admDezBox" style="display:none;margin:4px 0 18px;">
+        <div class="dez-month-title" id="admDezMonthTitle">Dezembro</div>
+        <div class="dez-day-note" style="text-align:center;">Toque em um dia para ver os agendamentos. O dia de hoje fica destacado.</div>
+        <div class="dez-cal" id="admDezCal"></div>
+        <div class="dez-legend">
+          <span><i class="dez-sw ok"></i> Com horários livres</span>
+          <span><i class="dez-sw full"></i> Esgotado</span>
+          <span><i class="dez-sw hoje"></i> Hoje</span>
+        </div>
+        <section id="admDezDayWrap">
+          <div class="grid-date-box" style="margin:6px 2px 4px;">
+            <span class="grid-weekday" id="admDezDayWeekday"></span>
+            <span class="grid-daynum" id="admDezDayDate"></span>
+            <span class="grid-resume" id="admDezResume"></span>
+          </div>
+          <div class="multi-bar" data-scope="admDezSlots">
+            <span class="sel-count">Toque nos horários para selecionar</span>
+            <div class="ms-actions">
+              <button class="ms-cancel ms-clear" onclick="clearSelection()">Limpar</button>
+              <button class="ms-all" onclick="selectAll('admDezSlots')">Selecionar tudo</button>
+              <button class="ms-block" onclick="blockSelected()">🔒 Bloquear</button>
+              <button class="ms-block-day" onclick="blockDay('admDezSlots')">🔒 Bloquear dia inteiro</button>
+              <button class="ms-free" onclick="freeSelected()">🔓 Liberar</button>
+            </div>
+          </div>
+          <div class="slots" id="admDezSlots"></div>
+        </section>
+      </div>
       <div style="text-align:center;margin-top:4px;">
         <button class="nav-btn" onclick="doLogout()" style="color:var(--rose);font-size:.62rem;">Sair do painel</button>
         <div style="font-size:.55rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-lt);margin-top:2px;">Versão <span id="appBuild">—</span></div>
@@ -4145,6 +4187,7 @@ async function syncData(){
       if(!isAdmin)reconciliarBookingLocal();
       updateAppMode();atualizarCardAgendaAno();if(publicMainTab==='agendamento'&&agendamentoOculto())setPublicMainTab('dezembro');renderDays();if(publicMainTab==='dezembro'&&!dezVisivel())closeSchedView();renderDezSection();
       if(currentDay)renderGrid(currentDay);
+      if(admDezAtivo())renderAdmDez();
       updateAdminStats();
       renderMyBookingBanner(); // atualiza o banner da cliente
     });
@@ -6004,15 +6047,82 @@ function devolverAgendaAoSite(){
   const page=document.querySelector('#schedView .page');
   if(bs&&page&&bs.parentNode!==page) page.insertBefore(bs,page.firstChild);
 }
+/* ── Admin: calendário de Dezembro no painel "Agenda e Reservas" ──────
+   Com a agenda do ano bloqueada, o painel mostra só o mês de Dezembro
+   (o mesmo mês que os clientes veem). Tocar num dia lista os agendamentos
+   daquele dia (mesma grade do admin). O dia de hoje tem borda brilhante.
+   Com a agenda do ano liberada, o painel volta ao comportamento anterior. */
+let admDezSel='';
+function admDezAtivo(){ return adminTabAvailable() && !AGENDA_ANO_ATIVA; }
+function admDezResumo(iso){
+  const recs=db.filter(r=>String(r.data).substring(0,10)===iso);
+  const livres=getAvailableSlotsForDay(iso).length;
+  const ocup=recs.filter(r=>r.status==='Ocupado').length;
+  const aguard=recs.filter(r=>r.status==='Aguardando Pagamento').length;
+  const bloq=recs.filter(r=>r.status==='Bloqueado').length;
+  const partes=[`<b>${livres}</b> livre${livres===1?'':'s'}`,`<b>${ocup}</b> agendado${ocup===1?'':'s'}`];
+  if(aguard)partes.push(`<b>${aguard}</b> aguardando`);
+  if(bloq)partes.push(`<b>${bloq}</b> bloqueado${bloq===1?'':'s'}`);
+  return partes.join('<span class="gr-sep">·</span>');
+}
+function renderAdmDez(){
+  const cal=document.getElementById('admDezCal'); if(!cal) return;
+  const mes=dezMesRef();
+  const[y,m]=mes.split('-').map(Number);
+  const hoje=getManausIsoDate(new Date());
+  const title=document.getElementById('admDezMonthTitle');
+  if(title)title.textContent=formatManausLabel(mes+'-01',{month:'long',year:'numeric'}).replace(/^\w/,c=>c.toUpperCase());
+  if(!admDezSel||admDezSel.substring(0,7)!==mes)admDezSel=hoje.substring(0,7)===mes?hoje:`${mes}-01`;
+  const primeiro=new Date(y,m-1,1).getDay(), total=new Date(y,m,0).getDate();
+  let html=DEZ_WD.map(d=>`<span class="dez-wd">${d}</span>`).join('');
+  for(let i=0;i<primeiro;i++)html+='<span class="dez-blank"></span>';
+  for(let d=1;d<=total;d++){
+    const iso=`${mes}-${pad2(d)}`;
+    const passado=iso<hoje, eHoje=iso===hoje;
+    const ocup=db.filter(r=>String(r.data).substring(0,10)===iso&&r.status==='Ocupado').length;
+    const livres=passado?0:getAvailableSlotsForDay(iso).length;
+    const cls=['dez-day','adm-dia',ocup>0?'adm-com':'',passado?'past':'',eHoje?'hoje':'',iso===admDezSel?'active':'',dezFeeDay(iso)?'fee':''].filter(Boolean).join(' ');
+    const rotulo=passado?'—':`${livres} livre${livres===1?'':'s'}`;
+    html+=`<button type="button" class="${cls}" title="${eHoje?'Hoje · ':''}${pad2(d)}/${pad2(m)}" onclick="admDezSelectDay('${iso}')"><span class="dez-dn">${d}</span><span class="dez-dc"><span>${ocup} agend.</span><span>${rotulo}</span></span></button>`;
+  }
+  cal.innerHTML=html;
+  renderAdmDezDay();
+}
+function admDezSelectDay(iso){
+  admDezSel=iso;
+  renderAdmDez();
+  document.getElementById('admDezDayWrap')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function renderAdmDezDay(){
+  const wrap=document.getElementById('admDezDayWrap'); if(!wrap||!admDezSel) return;
+  const set=(id,v)=>{const n=document.getElementById(id);if(n)n.textContent=v;};
+  const wd=formatManausLabel(admDezSel,{weekday:'long'});
+  const ehHoje=admDezSel===getManausIsoDate(new Date());
+  set('admDezDayWeekday',wd.charAt(0).toUpperCase()+wd.slice(1)+(ehHoje?' · hoje':''));
+  set('admDezDayDate',formatManausLabel(admDezSel,{day:'2-digit',month:'long'}));
+  const res=document.getElementById('admDezResume'); if(res)res.innerHTML=admDezResumo(admDezSel);
+  renderGrid(admDezSel,'admDezSlots');
+  updateMultiBar();
+}
+
 function sincronizarAgendaAdmin(){
   const bs=document.getElementById('bookingSection');
   const slot=document.getElementById('admAgendaSlot');
+  const box=document.getElementById('admDezBox');
   if(!bs||!slot) return;
   const noPainel=!!isAdmin
     && !!document.getElementById('adminPanel')?.classList.contains('open')
     && !!document.getElementById('sec-agenda')?.classList.contains('active')
     && document.getElementById('schedView')?.style.display!=='block';
   if(!noPainel){ devolverAgendaAoSite(); return; }
+  if(admDezAtivo()){
+    devolverAgendaAoSite();              // a grade de Novembro fica fora do painel
+    slot.style.display='none';
+    if(box){ box.style.display='block'; renderAdmDez(); }
+    return;
+  }
+  if(box) box.style.display='none';
+  slot.style.display='';
   if(bs.parentNode!==slot) slot.appendChild(bs);
   bs.style.display='block';
   if(!currentDay) selectDay(getManausIsoDate(new Date())); else renderGrid(currentDay);

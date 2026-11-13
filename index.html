@@ -5077,7 +5077,42 @@ function renderTransferenciasLista(){
 
 // CONFIG
 
-function openConfig(){openSheet('Configurações','Expediente e Valor da Reserva (PIX)');document.getElementById('sheetBody').innerHTML=`<label class="f-label">Horário de início</label><input id="cfgS" class="f-inp" value="${srvCfg.start}" placeholder="08:00"><label class="f-label">Horário de término</label><input id="cfgE" class="f-inp" value="${srvCfg.end}" placeholder="20:00"><label class="f-label">Duração padrão (minutos)</label><input id="cfgD" class="f-inp" type="number" value="${srvCfg.duration}" min="30" step="15"><label class="f-label">Valor da Reserva (PIX)</label><input id="cfgP" class="f-inp" value="${(srvCfg.pix_value||'0.00').toString().replace('.',',')}" placeholder="25,50">`;document.getElementById('sheetActions').innerHTML=`<button id="btnSaveCfg" class="btn btn-primary" onclick="saveConfig()">Salvar configurações</button><button class="btn btn-secondary" onclick="closeSheet()">Cancelar</button>`;}
+function openConfig(){openSheet('Configurações','Expediente, valor da reserva (PIX) e WhatsApp do studio');document.getElementById('sheetBody').innerHTML=`<label class="f-label">Horário de início</label><input id="cfgS" class="f-inp" value="${srvCfg.start}" placeholder="08:00"><label class="f-label">Horário de término</label><input id="cfgE" class="f-inp" value="${srvCfg.end}" placeholder="20:00"><label class="f-label">Duração padrão (minutos)</label><input id="cfgD" class="f-inp" type="number" value="${srvCfg.duration}" min="30" step="15"><label class="f-label">Valor da Reserva (PIX)</label><input id="cfgP" class="f-inp" value="${(srvCfg.pix_value||'0.00').toString().replace('.',',')}" placeholder="25,50"><label class="f-label">WhatsApp do studio (contato direto)</label><div style="display:flex;gap:8px;align-items:center;"><input id="cfgWa" class="f-inp" style="flex:1 1 0;min-width:0;width:auto;" inputmode="tel" value="${waFormatar(CFG.WA)}" placeholder="(92) 99999-9999"><button type="button" id="btnSaveWa" class="btn btn-secondary" style="white-space:nowrap;width:auto;flex:0 0 auto;" onclick="saveWaPhone()">Salvar número</button></div><div class="info-box" style="font-size:.7rem;margin-top:6px;">Usado nos botões “Avisar pelo WhatsApp” e “Preciso de ajuda”. Informe DDD e número. Deixe vazio para remover.</div>`;document.getElementById('sheetActions').innerHTML=`<button id="btnSaveCfg" class="btn btn-primary" onclick="saveConfig()">Salvar configurações</button><button class="btn btn-secondary" onclick="closeSheet()">Cancelar</button>`;}
+
+/* ── WhatsApp do studio (Configurações do admin) ─────────────────
+   Guardado na Propriedade wa_phone do Apps Script, só dígitos com DDI 55.
+   Usado pelos botões "Avisar pelo WhatsApp" e "Preciso de ajuda". */
+function waNormalizar(v){
+  const d=String(v||'').replace(/\D/g,'');
+  if(!d) return '';
+  if((d.length===12||d.length===13)&&d.indexOf('55')===0) return d;
+  return '55'+d;
+}
+function waValido(n){ return !n||/^55\d{10,11}$/.test(n); }
+function waFormatar(n){
+  const d=String(n||'').replace(/^55/,'');
+  if(d.length===11) return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+  if(d.length===10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
+  return d;
+}
+async function saveWaPhone(){
+  const input=document.getElementById('cfgWa'), btn=document.getElementById('btnSaveWa');
+  if(!input) return;
+  const num=waNormalizar(input.value);
+  if(!waValido(num)){ toast('Informe DDD e número, ex.: (92) 99999-9999','warn'); return; }
+  if(btn){ btn.disabled=true; btn.textContent='Salvando...'; }
+  try{
+    const r=await gasCall({action:'wa_phone_set',wa_phone:num});
+    if(!r||r.status!=='OK') throw new Error(r?.message||'Erro ao salvar o WhatsApp');
+    CFG.WA=r.wa_phone||'';
+    input.value=waFormatar(CFG.WA);
+    toast(CFG.WA?'WhatsApp do studio salvo!':'Número do WhatsApp removido','ok');
+  }catch(e){
+    toast(e&&e.message?e.message:'Erro ao salvar o WhatsApp','err');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent='Salvar número'; }
+  }
+}
 
 async function saveConfig(){const btn=document.getElementById('btnSaveCfg');const s=document.getElementById('cfgS').value;const e=document.getElementById('cfgE').value;const d=parseInt(document.getElementById('cfgD').value,10);const p=document.getElementById('cfgP').value.replace(',','.').trim();if(btn){btn.textContent='⏱ Salvando...';btn.disabled=true;}const cbName='onCfg_'+Date.now();window[cbName]=(res)=>{if(res.status==='OK'||res.status==='ok'){const dur=Number.isFinite(d)&&d>0?d:srvCfg.duration;srvCfg={...srvCfg,start:s,end:e,duration:dur,pix_value:p};updateAdminStats();syncData();setTimeout(()=>{toast('Configurações salvas!','ok');closeSheet();},500);}else{toast('Erro ao salvar','err');if(btn){btn.textContent='Salvar configurações';btn.disabled=false;}}const sEl=document.getElementById('scr_cfg');if(sEl)sEl.remove();delete window[cbName];};const scr=document.createElement('script');scr.id='scr_cfg';scr.src=`${CFG.API_URL}?action=update_config&pass=${encodeURIComponent(adminPass)}&start=${encodeURIComponent(s)}&end=${encodeURIComponent(e)}&duration=${d}&pix_value=${encodeURIComponent(p)}&callback=${cbName}`;document.body.appendChild(scr);}
 

@@ -1632,6 +1632,18 @@ footer strong{color:#fff;font-weight:600;}
 .sched-scope .dez-xmas{display:flex;flex-direction:column;align-items:center;gap:6px;margin:4px auto 12px;}
 .sched-scope .dez-xmas-svg{width:96px;height:96px;filter:drop-shadow(0 10px 22px rgba(236,64,122,.28));}
 .sched-scope .dez-xmas-cap{font-size:.56rem;letter-spacing:3px;text-transform:uppercase;color:#EC407A;font-weight:700;}
+
+/* ═══ Agenda por dia: descanso, desmarcado e configuração ═══ */
+.sched-scope .slot-card.descanso{border-style:dashed;}
+.sched-scope .my-booking-banner.desm{border-color:#D9822B;}
+.sched-scope .my-booking-banner-status.desm{color:#D9822B;}
+.sched-scope .my-booking-banner-status.desm::before{background:#D9822B;box-shadow:0 0 6px #D9822B;}
+.cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px;}
+.cfg-sec{margin-top:16px;padding-top:12px;border-top:1px solid var(--border,rgba(240,98,146,.16));}
+.cfg-sec-t{font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ink-mid,#5E4150);margin-bottom:8px;}
+.cfg-item{border:1px solid var(--border,rgba(240,98,146,.16));border-radius:14px;padding:10px;margin-bottom:10px;background:#fff;}
+.cfg-item-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;}
+.cfg-chk{display:flex;align-items:center;gap:8px;font-size:.78rem;margin-bottom:6px;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -1913,6 +1925,7 @@ footer strong{color:#fff;font-weight:600;}
       <button class="adm-nav-btn active" onclick="goSec('dashboard')"><span class="ni">📊</span>Dashboard</button>
       <div class="adm-nav-sect">Agenda</div>
       <button class="adm-nav-btn" onclick="goSec('agenda')"><span class="ni">📅</span>Agenda e Reservas</button>
+      <button class="adm-nav-btn" onclick="goSec('remarcar')"><span class="ni">🔁</span>Remarcar<span class="adm-cnt" id="navCntRemarcar">0</span></button>
       <div class="adm-nav-sect">Conteúdo</div>
       <button class="adm-nav-btn" onclick="goSec('abas')"><span class="ni">🗂</span>Minhas Abas<span class="adm-cnt" id="navCntAbas">0</span></button>
       <div class="adm-nav-sect">Mídia</div>
@@ -2369,19 +2382,30 @@ footer strong{color:#fff;font-weight:600;}
         <div class="adm-sub">Expediente, valor da reserva e demais ajustes do studio.</div>
         <div class="adm-rule"></div>
         <div class="admin-cards">
-          <div class="admin-card" onclick="openConfig()"><span class="ac-ico">⚙️</span><div class="ac-lbl">Configurações</div><div class="ac-desc">Expediente e Valor da Reserva</div></div>
+          <div class="admin-card" onclick="openConfig()"><span class="ac-ico">⚙️</span><div class="ac-lbl">Configurações</div><div class="ac-desc">Agenda por dia, intervalos e valor da reserva</div></div>
         <div class="admin-card" onclick="openAgendaAnoAdmin()"><span class="ac-ico">📅</span><div class="ac-lbl">Agendamento</div><div class="ac-desc" id="acAgendaAno">Bloqueada: só Agenda de Dezembro</div></div>
         <div class="admin-card" onclick="openClientesSheet()"><span class="ac-ico">👥</span><div class="ac-lbl">Clientes</div><div class="ac-desc">Ranking de frequência e contato</div></div>
         <div class="admin-card" onclick="openTaxaMesAdmin()"><span class="ac-ico">🧾</span><div class="ac-lbl">Taxa do mês</div><div class="ac-desc">Cobrança obrigatória no agendamento</div></div>
         <div class="admin-card" onclick="openDezAdmin()"><span class="ac-ico">🎄</span><div class="ac-lbl">Agenda de Dezembro</div><div class="ac-desc">Taxa de reserva e dias com cobrança</div></div>
         <div class="admin-card" onclick="openPixAdmin()"><span class="ac-ico">💳</span><div class="ac-lbl">PIX · Pagamentos</div><div class="ac-desc">Pendentes, recebidos e expirados</div></div>
         <div class="admin-card" onclick="openTransferenciasAdmin()"><span class="ac-ico">🔁</span><div class="ac-lbl">TRANSFERENCIAS CLIENTE</div><div class="ac-desc">Trocas de horário e situação do pagamento</div></div>
+        <div class="admin-card" onclick="openDesmarcarSheet()"><span class="ac-ico">⛔</span><div class="ac-lbl">Desmarcar horários</div><div class="ac-desc">Evento extraordinário: avisa as clientes</div></div>
         <div class="admin-card" onclick="openBlockPanel()"><span class="ac-ico">🔒</span><div class="ac-lbl">Bloqueios</div><div class="ac-desc">Folgas e horários indisponíveis</div></div>
         <div class="admin-card" onclick="goSec('abas')"><span class="ac-ico">💅</span><div class="ac-lbl">Serviços</div><div class="ac-desc">Abas e procedimentos do studio</div></div>
         <div class="admin-card" onclick="goSec('video')"><span class="ac-ico">🖼️</span><div class="ac-lbl">Tela Principal</div><div class="ac-desc">Foto ou vídeo de apresentação</div></div>
         <div class="admin-card" onclick="goSec('localizacao')"><span class="ac-ico">📍</span><div class="ac-lbl">Localização</div><div class="ac-desc">Foto e link do Maps</div></div>
           <div class="admin-card" onclick="goSec('registro')"><span class="ac-ico">📋</span><div class="ac-lbl">Registro do Sistema</div><div class="ac-desc">Eventos dos horários do dia</div></div>
         </div>
+        </div>
+      </div>
+
+      <!-- REMARCAR: atendimentos desmarcados pelo studio -->
+      <div id="sec-remarcar" class="adm-sec">
+        <div class="sched-scope">
+        <div class="adm-title">Remarcar</div>
+        <div class="adm-sub">Atendimentos desmarcados pelo studio. Entre em contato, transfira para outro horário ou encerre sem remarcar.</div>
+        <div class="adm-rule"></div>
+        <div id="remarcarList"></div>
         </div>
       </div>
 
@@ -2402,7 +2426,7 @@ footer strong{color:#fff;font-weight:600;}
     <!-- ADMIN -->
     <section id="schedAdminPanel">
       <div class="admin-title">✦ Agenda e Reservas ✦</div>
-      <div style="display:flex;gap:8px;justify-content:center;margin:-4px 0 14px;flex-wrap:wrap;"><button type="button" class="nav-btn primary" id="syncBtn" onclick="syncData()">↻ Atualizar</button><button type="button" class="nav-btn" onclick="toggleUserView()" style="border:1px solid var(--gold);color:var(--gold);">👁 Ver como cliente</button><button type="button" class="nav-btn" id="saveDezMonthBtn" onclick="saveDezMonthImage()" style="border:1px solid var(--gold);color:var(--gold);"><span aria-hidden="true">⬇</span> <span id="saveDezMonthBtnTitle">Baixar imagem do mês</span></button></div>
+      <div style="display:flex;gap:8px;justify-content:center;margin:-4px 0 14px;flex-wrap:wrap;"><button type="button" class="nav-btn primary" id="syncBtn" onclick="syncData()">↻ Atualizar</button><button type="button" class="nav-btn" onclick="toggleUserView()" style="border:1px solid var(--gold);color:var(--gold);">👁 Ver como cliente</button><button type="button" class="nav-btn" id="saveDezMonthBtn" onclick="saveDezMonthImage()" style="border:1px solid var(--gold);color:var(--gold);"><span aria-hidden="true">⬇</span> <span id="saveDezMonthBtnTitle">Baixar imagem do mês</span></button><button type="button" class="nav-btn" onclick="openDesmarcarSheet()" style="border:1px solid var(--gold);color:var(--gold);">⛔ Desmarcar horários</button><button type="button" class="nav-btn" onclick="goSec('remarcar')" style="border:1px solid var(--gold);color:var(--gold);">🔁 Remarcar <span id="btnCntRemarcar">0</span></button></div>
       <div class="admin-stats">
         <div class="stat-item" style="cursor:pointer" id="wrapOcupado"><span class="stat-num" id="statOcupado">—</span><span class="stat-lbl">Agendados</span></div>
         <div class="stat-item" style="cursor:pointer" id="wrapLivre"><span class="stat-num" id="statLivre">—</span><span class="stat-lbl" id="statLivreLbl">Livres hoje</span></div>
@@ -4032,7 +4056,12 @@ function cloudUpload(file,type,onProg=null){
 ════════════════════════════════════════ */
 function fecharModal(id){document.getElementById(id)?.classList.remove('open');}
 document.querySelectorAll('.modal-bd').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
-function confirmar(msg,cb){document.getElementById('confirmMsg').textContent=msg;confirmCb=cb;abrirModal('modalConfirm');}
+function confirmar(msg,cb,opts){
+  const o=opts||{};
+  const t=document.querySelector('#modalConfirm .modal-title');if(t)t.textContent=o.titulo||'Confirmar Exclusão';
+  const ok=document.getElementById('btnConfirmOk');if(ok)ok.textContent=o.rotulo||'Excluir';
+  document.getElementById('confirmMsg').textContent=msg;confirmCb=cb;abrirModal('modalConfirm');
+}
 document.getElementById('btnConfirmOk').addEventListener('click',()=>{fecharModal('modalConfirm');if(confirmCb){confirmCb();confirmCb=null;}});
 function toast(msg,type='ok',dur=3000){const w=document.getElementById('toastWrap');const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;w.appendChild(t);setTimeout(()=>t.remove(),dur);}
 
@@ -4041,6 +4070,544 @@ function toast(msg,type='ok',dur=3000){const w=document.getElementById('toastWra
 ════════════════════════════════════════ */
 /* ===== AGENDAMENTO (portado do look) ===== */
 const APP_TIME_ZONE = 'America/Manaus';
+
+/* ═══════════════ AGENDA POR DIA · MOTOR (cópia de motor_agenda.js; manter igual ao jgs.gs) ═══════════════ */
+/* ═══════════════════════════════════════════════════════════════════
+ *  MOTOR DA AGENDA — grade de horários por dia, intervalo e descanso
+ *  Funções puras: sem planilha, sem DOM, sem Apps Script.
+ *  Usado no servidor (jgs) e no site (j.html). Manter as duas cópias iguais.
+ *  Internamente os horários são minutos desde 00:00; na configuração, "HH:MM".
+ *
+ *  Configuração (salva em Propriedades do script, chave agenda_cfg):
+ *  {
+ *    padrao:     { inicio, fim, duracao, intervalos: [{ inicio, duracao }] },
+ *    diasSemana: { "0".."6": { ...campos parciais } },        // 0 = domingo
+ *    periodos:   [ { nome, de, ate, ...campos parciais } ],    // o último que casar vence
+ *    dias:       { "AAAA-MM-DD": { ...campos parciais } }      // exceção de um dia
+ *  }
+ *  Campos parciais: inicio, fim, duracao, intervalos. O que não for informado
+ *  herda da camada anterior. Ordem: padrão < dia da semana < período < dia específico.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+const MOTOR_DURACAO_MIN = 15;
+const MOTOR_DURACAO_MAX = 480;
+const MOTOR_NOMES_DIA = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+
+function motorMin(hhmm) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm == null ? "" : hhmm).trim());
+  if (!m) return NaN;
+  const h = Number(m[1]), mi = Number(m[2]);
+  return (h <= 23 && mi <= 59) ? h * 60 + mi : NaN;
+}
+
+function motorHora(min) {
+  return String(Math.floor(min / 60)).padStart(2, "0") + ":" + String(min % 60).padStart(2, "0");
+}
+
+function motorIso(s) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(s || ""))) return false;
+  const p = String(s).split("-").map(Number);
+  const d = new Date(Date.UTC(p[0], p[1] - 1, p[2]));
+  return d.getUTCFullYear() === p[0] && d.getUTCMonth() === p[1] - 1 && d.getUTCDate() === p[2];
+}
+
+function motorDiaSemana(iso) {
+  if (!motorIso(iso)) return NaN;
+  const p = iso.split("-").map(Number);
+  return new Date(Date.UTC(p[0], p[1] - 1, p[2])).getUTCDay();
+}
+
+/** Valida um bloco de campos. Retorna só os campos informados (normalizados) e acumula erros.
+ *  completo=true exige inicio, fim e duracao (usado no padrão). */
+function motorBloco(b, completo, erros, rotulo) {
+  const x = b || {};
+  const out = {};
+  if (completo || x.inicio !== undefined) {
+    const m = motorMin(x.inicio);
+    if (isNaN(m)) erros.push(rotulo + ": horário de início inválido"); else out.inicio = motorHora(m);
+  }
+  if (completo || x.fim !== undefined) {
+    const m = motorMin(x.fim);
+    if (isNaN(m)) erros.push(rotulo + ": horário de término inválido"); else out.fim = motorHora(m);
+  }
+  if (completo || x.duracao !== undefined) {
+    const d = Number(x.duracao);
+    if (!(d >= MOTOR_DURACAO_MIN && d <= MOTOR_DURACAO_MAX && d % 5 === 0)) {
+      erros.push(rotulo + ": duração deve ser de 15 a 480 minutos, em múltiplos de 5");
+    } else {
+      out.duracao = d;
+    }
+  }
+  if (completo || x.intervalos !== undefined) {
+    const lista = Array.isArray(x.intervalos) ? x.intervalos : [];
+    out.intervalos = lista.map((iv, i) => {
+      const ini = motorMin(iv && iv.inicio), dur = Number(iv && iv.duracao);
+      if (isNaN(ini) || !(dur > 0 && dur % 5 === 0 && dur <= MOTOR_DURACAO_MAX)) {
+        erros.push(rotulo + ": intervalo " + (i + 1) + " inválido");
+        return null;
+      }
+      return { inicio: motorHora(ini), duracao: dur };
+    }).filter(Boolean);
+  }
+  if (completo && !out.intervalos) out.intervalos = [];
+  return out;
+}
+
+/** Sobrepõe os campos de "over" sobre "base". */
+function motorMescla(base, over) {
+  const r = Object.assign({}, base);
+  ["inicio", "fim", "duracao", "intervalos"].forEach(k => {
+    if (over && over[k] !== undefined) r[k] = over[k];
+  });
+  return r;
+}
+
+/** Bloco completo (HH:MM) → dia em minutos, com intervalos como faixas [ini, fim). */
+function motorDiaEmMinutos(b) {
+  return {
+    inicio: motorMin(b.inicio),
+    fim: motorMin(b.fim),
+    duracao: b.duracao,
+    intervalos: (b.intervalos || []).map(iv => ({ ini: motorMin(iv.inicio), fim: motorMin(iv.inicio) + iv.duracao }))
+  };
+}
+
+/** Motivo de um dia inválido (em minutos) ou null. */
+function motorErroDia(d) {
+  if (isNaN(d.inicio) || isNaN(d.fim)) return "horário inválido";
+  if (!(d.fim > d.inicio)) return "o término deve ser depois do início";
+  if (d.duracao > d.fim - d.inicio) return "a duração é maior que o expediente";
+  const iv = d.intervalos.slice().sort((a, b) => a.ini - b.ini);
+  for (let i = 0; i < iv.length; i++) {
+    if (iv[i].ini < d.inicio || iv[i].fim > d.fim) return "intervalo fora do expediente";
+    if (i > 0 && iv[i].ini < iv[i - 1].fim) return "intervalos se sobrepõem";
+  }
+  return null;
+}
+
+/** Empilha as camadas: padrão < dia da semana < período < dia específico. */
+function motorCamadas(cfg, dow, periodo, dia) {
+  let b = cfg.padrao;
+  const semana = (cfg.diasSemana || {})[String(dow)];
+  if (semana) b = motorMescla(b, semana);
+  if (periodo) b = motorMescla(b, periodo);
+  if (dia) b = motorMescla(b, dia);
+  return b;
+}
+
+/** Valida a configuração inteira, incluindo todas as combinações possíveis de camadas. */
+function motorValidaCfg(cfg) {
+  const erros = [];
+  const c = cfg || {};
+  const padrao = motorBloco(c.padrao, true, erros, "Padrão");
+  if (erros.length) return { ok: false, erros };
+
+  const semanas = {};
+  Object.keys(c.diasSemana || {}).forEach(k => {
+    if (!/^[0-6]$/.test(k)) { erros.push("dia da semana inválido: " + k); return; }
+    semanas[k] = motorBloco(c.diasSemana[k], false, erros, MOTOR_NOMES_DIA[Number(k)]);
+  });
+
+  const periodos = (Array.isArray(c.periodos) ? c.periodos : []).map((p, i) => {
+    p = p || {};
+    const nome = String(p.nome || ("Período " + (i + 1))).trim().slice(0, 40);
+    if (!motorIso(p.de) || !motorIso(p.ate) || p.ate < p.de) erros.push(nome + ": datas inválidas");
+    return Object.assign({ nome: nome, de: p.de, ate: p.ate }, motorBloco(p, false, erros, nome));
+  });
+
+  const dias = {};
+  Object.keys(c.dias || {}).forEach(iso => {
+    if (!motorIso(iso)) { erros.push("data inválida: " + iso); return; }
+    dias[iso] = motorBloco(c.dias[iso], false, erros, iso);
+  });
+
+  if (erros.length) return { ok: false, erros: Array.from(new Set(erros)) };
+
+  const cfgN = { padrao: padrao, diasSemana: semanas, periodos: periodos, dias: dias };
+
+  for (let dow = 0; dow < 7; dow++) {
+    [null].concat(periodos).forEach(per => {
+      const e = motorErroDia(motorDiaEmMinutos(motorCamadas(cfgN, dow, per, null)));
+      if (e) erros.push((per ? per.nome : "Padrão") + " / " + MOTOR_NOMES_DIA[dow] + ": " + e);
+    });
+  }
+  Object.keys(dias).forEach(iso => {
+    const dow = motorDiaSemana(iso);
+    const per = periodos.filter(p => iso >= p.de && iso <= p.ate).pop() || null;
+    const e = motorErroDia(motorDiaEmMinutos(motorCamadas(cfgN, dow, per, dias[iso])));
+    if (e) erros.push(iso + ": " + e);
+  });
+
+  if (erros.length) return { ok: false, erros: Array.from(new Set(erros)) };
+  return { ok: true, cfg: cfgN };
+}
+
+/** Resolve o dia: expediente, duração e intervalos que valem para a data. */
+function motorResolve(cfg, iso) {
+  const dow = motorDiaSemana(iso);
+  if (isNaN(dow)) return { erro: "data inválida", iso: iso };
+  const periodo = (cfg.periodos || []).filter(p => iso >= p.de && iso <= p.ate).pop() || null;
+  const dia = (cfg.dias || {})[iso] || null;
+  const b = motorCamadas(cfg, dow, periodo, dia);
+  const d = motorDiaEmMinutos(b);
+  let origem = "padrão";
+  if (dia) origem = "dia específico";
+  else if (periodo) origem = "período: " + periodo.nome;
+  else if ((cfg.diasSemana || {})[String(dow)]) origem = "dia da semana";
+  return Object.assign({ iso: iso, origem: origem, erro: motorErroDia(d) }, d);
+}
+
+/** Horários de início possíveis na grade do dia (sem considerar agendamentos).
+ *  Um atendimento começa em inicio, inicio+duracao, ... e pula qualquer intervalo. */
+function motorGrade(dia) {
+  const out = [];
+  const dur = dia.duracao;
+  let t = dia.inicio;
+  while (t + dur <= dia.fim) {
+    const iv = dia.intervalos.find(i => t < i.fim && i.ini < t + dur);
+    if (iv) { t = iv.fim; continue; }
+    out.push(t);
+    t += dur;
+  }
+  return out;
+}
+
+/** Análise do dia para a gerente e para a cliente.
+ *  ocupados: [{ ini, fim }] em minutos (reservas e bloqueios ativos).
+ *  Retorna:
+ *   - livres: horários de início que a cliente pode escolher agora;
+ *   - janelas: trechos livres do expediente. Quando nenhum horário da grade cabe
+ *     numa janela, ela vem com descanso = true ("recomendado descanso"). */
+function motorAnalisa(dia, ocupados) {
+  const dur = dia.duracao;
+  const grade = motorGrade(dia);
+  const todos = (ocupados || []).concat(dia.intervalos.map(i => ({ ini: i.ini, fim: i.fim })));
+  const sobreposto = s => todos.some(o => s < o.fim && o.ini < s + dur);
+  const livres = grade.filter(s => !sobreposto(s));
+
+  const ord = todos.slice().sort((a, b) => a.ini - b.ini);
+  const trechos = [];
+  let cur = dia.inicio;
+  for (const o of ord) {
+    if (cur >= dia.fim) break;
+    if (o.ini > cur) trechos.push({ ini: cur, fim: Math.min(o.ini, dia.fim) });
+    cur = Math.max(cur, o.fim);
+  }
+  if (cur < dia.fim) trechos.push({ ini: cur, fim: dia.fim });
+
+  return {
+    grade: grade,
+    livres: livres,
+    janelas: trechos.map(t => {
+      const cabem = livres.filter(s => s >= t.ini && s + dur <= t.fim);
+      return { ini: t.ini, fim: t.fim, minutos: t.fim - t.ini, livres: cabem, descanso: cabem.length === 0 };
+    })
+  };
+}
+
+/* ═══════════════ AGENDA POR DIA · ESTADO ═══════════════ */
+let agendaCfg={padrao:{inicio:'08:00',fim:'20:00',duracao:60,intervalos:[]},diasSemana:{},periodos:[],dias:{}};
+const CFG_DIAS_ORDEM=[1,2,3,4,5,6,0];
+let cfgDraft=null;
+
+function minsDeHora_(h){return motorMin(String(h==null?'':h).substring(0,5));}
+
+function diaAgendaIso_(iso){return motorResolve(agendaCfg,String(iso||'').substring(0,10));}
+
+function duracaoDoDia(iso){const d=diaAgendaIso_(iso);return d.erro?(srvCfg.duration||60):d.duracao;}
+
+function pixExpirada_(r,agora){return r.status==='Aguardando Pagamento'&&!!r.reservedUntil&&new Date(r.reservedUntil).getTime()<=agora.getTime();}
+
+function ocupacoesDoDia(iso){
+  const dia=diaAgendaIso_(iso),durPadrao=dia.erro?60:dia.duracao,agora=new Date();
+  return db
+    .filter(r=>String(r.data).substring(0,10)===iso&&r.status&&r.status!=='Livre'&&!pixExpirada_(r,agora))
+    .map(r=>{const ini=minsDeHora_(r.horario);const dur=parseInt(r.duration,10)||durPadrao;return{ini,fim:ini+dur,row:r};})
+    .filter(o=>!isNaN(o.ini));
+}
+
+function analiseDoDia(iso){
+  const dia=diaAgendaIso_(iso);
+  if(dia.erro)return{dia,ocup:[],grade:[],livres:[],janelas:[]};
+  const ocup=ocupacoesDoDia(iso);
+  return Object.assign({dia,ocup},motorAnalisa(dia,ocup));
+}
+
+function lerWaForm(){const e=document.getElementById('cfgWa');return e?e.value:undefined;}
+
+function lerCfgForm(){
+  const el=k=>document.querySelector(`[data-f="${k}"]`);
+  const v=k=>{const e=el(k);if(!e)return undefined;return e.type==='checkbox'?e.checked:String(e.value||'').trim();};
+  const bloco=pre=>{
+    const o={};
+    const ini=v(pre+'inicio'),fim=v(pre+'fim'),dur=v(pre+'duracao'),bi=v(pre+'bi'),bd=v(pre+'bd');
+    if(ini)o.inicio=ini;
+    if(fim)o.fim=fim;
+    if(dur)o.duracao=Number(dur);
+    if(bd!==undefined&&bd!=='')o.intervalos=Number(bd)===0?[]:[{inicio:bi||'',duracao:Number(bd)}];
+    return o;
+  };
+  const d=cfgDraft||{};
+  const out={padrao:bloco('p.'),diasSemana:{},periodos:[],diasLista:[],pix:v('pix')??(d.pix||'0.00')};
+  CFG_DIAS_ORDEM.forEach(k=>{if(v(`s${k}.on`))out.diasSemana[String(k)]=bloco(`s${k}.`);});
+  (d.periodos||[]).forEach((_,i)=>{const pre=`per${i}.`;out.periodos.push(Object.assign({nome:v(pre+'nome')||`Período ${i+1}`,de:v(pre+'de')||'',ate:v(pre+'ate')||''},bloco(pre)));});
+  (d.diasLista||[]).forEach((_,i)=>{const pre=`dia${i}.`;out.diasLista.push(Object.assign({iso:v(pre+'iso')||''},bloco(pre)));});
+  return out;
+}
+
+function renderCfgForm(waValor){
+  const d=cfgDraft,p=d.padrao||{};
+  const pb=(p.intervalos&&p.intervalos[0])||null;
+  const ref={inicio:p.inicio||'',fim:p.fim||'',duracao:p.duracao||'',bi:pb?pb.inicio:'',bd:pb?String(pb.duracao):'0'};
+  const campos=(pre,b,dica)=>{
+    const x=b||{};
+    const xb=x.intervalos?(x.intervalos[0]||null):null;
+    const valBi=xb?xb.inicio:'';
+    const valBd=x.intervalos===undefined?'':(xb?String(xb.duracao):'0');
+    const ph=k=>dica?` placeholder="${htmlEsc(String(dica[k]??''))}"`:'';
+    return `<div class="cfg-grid">
+      <div><label class="f-label">Início</label><input class="f-inp" data-f="${pre}inicio" value="${htmlEsc(x.inicio||'')}"${ph('inicio')} inputmode="numeric" maxlength="5"></div>
+      <div><label class="f-label">Término</label><input class="f-inp" data-f="${pre}fim" value="${htmlEsc(x.fim||'')}"${ph('fim')} inputmode="numeric" maxlength="5"></div>
+      <div><label class="f-label">Duração (min)</label><input class="f-inp" data-f="${pre}duracao" value="${x.duracao!==undefined?htmlEsc(String(x.duracao)):''}"${ph('duracao')} inputmode="numeric"></div>
+      <div><label class="f-label">Intervalo · início</label><input class="f-inp" data-f="${pre}bi" value="${htmlEsc(valBi)}"${ph('bi')} inputmode="numeric" maxlength="5"></div>
+      <div><label class="f-label">Intervalo · min (0 = sem)</label><input class="f-inp" data-f="${pre}bd" value="${htmlEsc(valBd)}"${ph('bd')} inputmode="numeric"></div>
+    </div>`;
+  };
+  const semanas=CFG_DIAS_ORDEM.map(k=>{
+    const on=!!(d.diasSemana&&d.diasSemana[String(k)]!==undefined);
+    return `<div class="cfg-item"><label class="cfg-chk"><input type="checkbox" data-f="s${k}.on"${on?' checked':''} onchange="cfgToggleSemana()"><strong>${MOTOR_NOMES_DIA[k]}</strong> · horário diferente do padrão</label>${on?campos(`s${k}.`,d.diasSemana[String(k)],ref):''}</div>`;
+  }).join('');
+  const periodos=(d.periodos||[]).map((per,i)=>`<div class="cfg-item">
+      <div class="cfg-item-h"><strong>Período ${i+1}</strong><button type="button" class="btn-sm-secondary" onclick="cfgRemoveItem('per',${i})">Remover</button></div>
+      <div class="cfg-grid">
+        <div><label class="f-label">Nome</label><input class="f-inp" data-f="per${i}.nome" value="${htmlEsc(per.nome||'')}" maxlength="40" placeholder="Ex.: BUSTER"></div>
+        <div><label class="f-label">De (data)</label><input type="date" class="f-inp" data-f="per${i}.de" value="${htmlEsc(per.de||'')}"></div>
+        <div><label class="f-label">Até (data)</label><input type="date" class="f-inp" data-f="per${i}.ate" value="${htmlEsc(per.ate||'')}"></div>
+      </div>
+      ${campos(`per${i}.`,per,ref)}
+    </div>`).join('')||'<div class="info-box">Nenhum período. Use para horários que valem só numa época, como o BUSTER.</div>';
+  const dias=(d.diasLista||[]).map((dd,i)=>`<div class="cfg-item">
+      <div class="cfg-item-h"><strong>Dia ${i+1}</strong><button type="button" class="btn-sm-secondary" onclick="cfgRemoveItem('dia',${i})">Remover</button></div>
+      <div class="cfg-grid" style="grid-template-columns:1fr;"><div><label class="f-label">Data</label><input type="date" class="f-inp" data-f="dia${i}.iso" value="${htmlEsc(dd.iso||'')}"></div></div>
+      ${campos(`dia${i}.`,dd,ref)}
+    </div>`).join('')||'<div class="info-box">Nenhum dia específico. Use para mudar só um dia, sem alterar os outros.</div>';
+  document.getElementById('sheetBody').innerHTML=`
+    <div class="info-box">O <strong>padrão</strong> vale para todos os dias até você mudar. Os itens abaixo são exceções. Campos em branco herdam o padrão (o valor herdado aparece em cinza).</div>
+    <div id="cfgErros"></div>
+    <div class="cfg-sec"><div class="cfg-sec-t">Expediente padrão</div>
+      ${campos('p.',p,null)}
+      <div class="info-box" style="font-size:.66rem;margin-top:4px;">Duração = tempo de cada procedimento. Intervalo = pausa fixa (ex.: almoço). Intervalo 0 = sem pausa.</div>
+    </div>
+    <div class="cfg-sec"><div class="cfg-sec-t">Dias da semana com horário próprio</div>${semanas}</div>
+    <div class="cfg-sec"><div class="cfg-sec-t">Períodos especiais</div>${periodos}<button type="button" class="btn btn-secondary" onclick="cfgAddItem('per')">+ Adicionar período</button></div>
+    <div class="cfg-sec"><div class="cfg-sec-t">Dias específicos</div>${dias}<button type="button" class="btn btn-secondary" onclick="cfgAddItem('dia')">+ Adicionar dia</button></div>
+    <div class="cfg-sec"><div class="cfg-sec-t">Valor e WhatsApp</div>
+      <label class="f-label">Valor da Reserva (PIX)</label>
+      <input id="cfgP" data-f="pix" class="f-inp" value="${htmlEsc(String(d.pix||'0.00').replace('.',','))}" placeholder="25,50">
+      <label class="f-label">WhatsApp do studio (contato direto)</label>
+      <div style="display:flex;gap:8px;align-items:center;"><input id="cfgWa" class="f-inp" style="flex:1 1 0;min-width:0;width:auto;" inputmode="tel" value="${htmlEsc(waValor!==undefined?waValor:waFormatar(CFG.WA))}" placeholder="(92) 99999-9999"><button type="button" id="btnSaveWa" class="btn btn-secondary" style="white-space:nowrap;width:auto;flex:0 0 auto;" onclick="saveWaPhone()">Salvar número</button></div>
+      <div class="info-box" style="font-size:.7rem;margin-top:6px;">Usado nos botões “Avisar pelo WhatsApp” e “Preciso de ajuda”. Informe DDD e número. Deixe vazio para remover.</div>
+    </div>`;
+  document.getElementById('sheetActions').innerHTML=`<button id="btnSaveCfg" class="btn btn-primary" onclick="salvarCfgAgenda()">Salvar agenda</button><button class="btn btn-secondary" onclick="closeSheet()">Cancelar</button>`;
+}
+
+function cfgToggleSemana(){cfgDraft=lerCfgForm();renderCfgForm(lerWaForm());}
+
+function cfgAddItem(tipo){
+  cfgDraft=lerCfgForm();
+  if(tipo==='per')cfgDraft.periodos.push({nome:'',de:'',ate:''});
+  else cfgDraft.diasLista.push({iso:''});
+  renderCfgForm(lerWaForm());
+}
+
+function cfgRemoveItem(tipo,i){
+  cfgDraft=lerCfgForm();
+  if(tipo==='per')cfgDraft.periodos.splice(i,1);
+  else cfgDraft.diasLista.splice(i,1);
+  renderCfgForm(lerWaForm());
+}
+
+function mostrarErrosCfg(lista){
+  const box=document.getElementById('cfgErros');
+  if(!box)return;
+  box.innerHTML=lista.length?`<div class="info-box" style="border-color:var(--rose);">${lista.map(e=>htmlEsc(e)).join('<br>')}</div>`:'';
+}
+
+async function salvarCfgAgenda(){
+  const btn=document.getElementById('btnSaveCfg');
+  const rascunho=lerCfgForm();
+  cfgDraft=rascunho;
+  const erros=[];
+  const dias={};
+  rascunho.diasLista.forEach(x=>{
+    const{iso,...b}=x;
+    if(!iso){erros.push('Escolha a data de cada dia específico, ou remova o item.');return;}
+    if(dias[iso])erros.push('Dia repetido: '+brData(iso));
+    dias[iso]=b;
+  });
+  const cfg={padrao:rascunho.padrao,diasSemana:rascunho.diasSemana,periodos:rascunho.periodos,dias};
+  const v=motorValidaCfg(cfg);
+  if(!v.ok)erros.push(...v.erros);
+  if(erros.length){mostrarErrosCfg(erros);toast('Revise os campos destacados.','err');return;}
+  mostrarErrosCfg([]);
+  if(btn){btn.disabled=true;btn.textContent='⏱ Salvando...';}
+  let r=null;
+  try{r=await gasCall({action:'agenda_cfg_save',cfg:JSON.stringify(cfg),pix_value:rascunho.pix});}catch(e){r=null;}
+  if(!r||r.status!=='OK'){
+    mostrarErrosCfg(r&&r.erros?r.erros:[(r&&r.message)||'Não foi possível salvar a agenda. Tente de novo.']);
+    if(btn){btn.disabled=false;btn.textContent='Salvar agenda';}
+    return;
+  }
+  agendaCfg=r.agendaCfg||v.cfg;
+  const pd=agendaCfg.padrao;
+  srvCfg={...srvCfg,start:pd.inicio,end:pd.fim,duration:pd.duracao,pix_value:String(rascunho.pix||srvCfg.pix_value||'0.00').replace(',','.')};
+  updateAdminStats();
+  mostrarResultadoCfg(r.afetados||[]);
+  if(currentDay)renderGrid(currentDay);
+  renderRemarcarList();
+  syncData();
+}
+
+function mostrarResultadoCfg(afetados){
+  const btn=document.getElementById('btnSaveCfg');
+  if(btn){btn.disabled=false;btn.textContent='Salvar agenda';}
+  if(!afetados.length){toast('Agenda salva. Horários atualizados.','ok');closeSheet();return;}
+  const linhas=afetados.map(a=>`<div class="log-entry" style="border-left-color:var(--st-ocupado)"><strong>${brData(a.data)} · ${htmlEsc(a.horario)}</strong> · ${htmlEsc(a.cliente||'—')}<div class="log-meta">${htmlEsc(a.motivo)} · ${htmlEsc(a.status)}</div></div>`).join('');
+  openSheet('Agenda salva','Alguns agendamentos ficaram fora da nova grade');
+  document.getElementById('sheetBody').innerHTML=`<div class="info-box">Os agendamentos abaixo <strong>foram mantidos</strong>. Para avisar a cliente e remarcar, use <em>Desmarcar horários</em> no dia dela (ela recebe o aviso no cartão) e depois a aba <strong>Remarcar</strong>.</div>${linhas}`;
+  document.getElementById('sheetActions').innerHTML=`<button class="btn btn-primary" onclick="closeSheet()">Entendido</button>`;
+}
+
+function openDesmarcarSheet(){
+  if(!isAdmin||isUserView)return;
+  const dia=currentDay||getManausIsoDate(new Date());
+  openSheet('Desmarcar horários','Evento extraordinário do studio');
+  document.getElementById('sheetBody').innerHTML=`
+    <div class="info-box">Os atendimentos <strong>confirmados</strong> do período viram <strong>desmarcados</strong>. A cliente vê o aviso no cartão dela, e o caso aparece na aba <strong>Remarcar</strong> para você entrar em contato. Os horários livres do período ficam bloqueados até você liberá-los.</div>
+    <label class="f-label">Dia</label>
+    <input type="date" id="dsDia" class="f-inp" value="${dia}">
+    <label class="f-label">Das (opcional)</label>
+    <input type="time" id="dsDe" class="f-inp">
+    <label class="f-label">Até (opcional)</label>
+    <input type="time" id="dsAte" class="f-inp">
+    <label class="f-label">Motivo (aparece no registro)</label>
+    <input id="dsMotivo" class="f-inp" maxlength="120" placeholder="Ex.: evento externo, emergência">`;
+  document.getElementById('sheetActions').innerHTML=`<button class="btn btn-danger" onclick="confirmarDesmarcar()">Desmarcar</button><button class="btn btn-secondary" onclick="closeSheet()">Voltar</button>`;
+}
+
+function confirmarDesmarcar(){
+  const iso=(document.getElementById('dsDia')||{}).value||'';
+  const de=((document.getElementById('dsDe')||{}).value||'').trim();
+  const ate=((document.getElementById('dsAte')||{}).value||'').trim();
+  const motivo=((document.getElementById('dsMotivo')||{}).value||'').trim();
+  if(!iso){toast('Escolha o dia.','warn');return;}
+  const janela=(de||ate)?`das ${de||'00:00'} às ${ate||'23:59'}`:'o dia inteiro';
+  confirmar(`Desmarcar os atendimentos confirmados de ${brData(iso)} (${janela})? As clientes veem o aviso no cartão delas.`,()=>executarDesmarcar(iso,de,ate,motivo),{titulo:'Desmarcar atendimentos',rotulo:'Desmarcar'});
+}
+
+async function executarDesmarcar(iso,de,ate,motivo){
+  closeSheet();
+  let r=null;
+  try{r=await gasCall({action:'agenda_desmarcar',data:iso,de:de,ate:ate,motivo:motivo});}catch(e){r=null;}
+  if(!r||r.status!=='OK'){toast((r&&r.message)||'Não foi possível desmarcar. Confira a agenda.','err');await syncData();return;}
+  toast(r.desmarcados?`${r.desmarcados} atendimento(s) desmarcado(s). Veja em Remarcar.`:'Nenhum atendimento confirmado nesse período.',r.desmarcados?'ok':'info',4000);
+  await syncData();
+  if(r.desmarcados)goSec('remarcar');
+}
+
+async function encerrarDesmarcado(iso,clock){
+  confirmar(`Encerrar o atendimento de ${brData(iso)} às ${clock} sem remarcar? O horário volta a ficar livre e a cliente deixa de ver o aviso.`,async()=>{
+    let r=null;
+    try{r=await gasCall({action:'agenda_encerrar_desmarcado',data:iso,horario:clock});}catch(e){r=null;}
+    if(r&&r.status==='OK')toast('Atendimento encerrado. Horário liberado.','ok');
+    else toast((r&&r.message)||'Não foi possível encerrar.','err');
+    await syncData();
+  },{titulo:'Encerrar sem remarcar',rotulo:'Encerrar'});
+}
+
+function getDesmarcadosAdmin(){
+  return db.filter(r=>r.status==='Desmarcado').sort((a,b)=>(String(a.data).substring(0,10)+String(a.horario)).localeCompare(String(b.data).substring(0,10)+String(b.horario)));
+}
+
+function renderRemarcarList(){
+  const admVisao=isAdmin&&!isUserView;
+  const lista=admVisao?getDesmarcadosAdmin():[];
+  ['navCntRemarcar','btnCntRemarcar'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=String(lista.length);});
+  const box=document.getElementById('remarcarList');
+  if(!box)return;
+  if(!admVisao){box.innerHTML='';return;}
+  if(!lista.length){box.innerHTML='<div class="info-box">Nenhum atendimento desmarcado. Quando um evento do studio desmarcar horários, eles aparecem aqui para você remarcar com cada cliente.</div>';return;}
+  box.innerHTML=lista.map(r=>{
+    const iso=String(r.data).substring(0,10),clock=String(r.horario).substring(0,5);
+    const tel=String(r.telefone||'').replace(/\D/g,'');
+    const phoneFull=tel?(tel.startsWith('55')?tel:'55'+tel):'';
+    const msg=encWaText(`Olá, ${r.cliente||''}! Aqui é do Studio Julie Barroso. Precisamos remarcar seu horário de ${brData(iso)} às ${clock}. Qual horário fica melhor para você?`);
+    const btnWa=phoneFull?`<button type="button" class="wa-contact-btn" onclick="openWaContact('${phoneFull}','${msg}','normal')">💬 WhatsApp</button>`:'<span class="log-meta">Sem telefone cadastrado</span>';
+    return `<div class="log-entry" style="border-left-color:var(--st-desm,#D9822B)">
+      <strong>${brData(iso)} · ${clock}</strong> · ${htmlEsc(r.cliente||'—')}
+      <div class="log-meta">${htmlEsc(r.telefone||'')} · código ${htmlEsc(r.codigo||'')}</div>
+      <div class="log-meta">${htmlEsc(r.log||'')}</div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        ${btnWa}
+        <button type="button" class="wa-contact-btn transf" onclick="abrirTransferencia('${iso}','${clock}')">🔁 Transferir para outro horário</button>
+        <button type="button" class="wa-contact-btn" onclick="encerrarDesmarcado('${iso}','${clock}')">Encerrar sem remarcar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getDesmarcadoDaCliente(){
+  if(isAdmin&&!isUserView)return null;
+  const bk=getLocalBk();
+  if(!bk||!bk.token)return null;
+  return db.find(r=>String(r.codigo||'')===String(bk.token)&&r.status==='Desmarcado')||null;
+}
+
+function renderDesmarcadoBanner(wrap,r){
+  const iso=String(r.data).substring(0,10);
+  const dateLabel=formatManausLabel(iso,{weekday:'long',day:'2-digit',month:'long'}).replace(/^\w/,c=>c.toUpperCase());
+  wrap.style.display='block';
+  wrap.innerHTML=`
+    <div class="my-booking-banner desm" onclick="openDesmarcadoSheet()">
+      <div class="my-booking-banner-top">
+        <div class="my-booking-banner-badge">Seu agendamento</div>
+        <div class="my-booking-banner-status desm">Desmarcado</div>
+      </div>
+      <div class="my-booking-banner-body">
+        <div class="my-booking-banner-time">${htmlEsc(String(r.horario).substring(0,5))}</div>
+        <div class="my-booking-banner-divider"></div>
+        <div class="my-booking-banner-details">
+          <div class="my-booking-banner-date">${htmlEsc(dateLabel)}</div>
+          <div class="my-booking-banner-name">Precisamos remarcar</div>
+        </div>
+        <div class="my-booking-banner-arrow">›</div>
+      </div>
+      <div class="my-booking-banner-footer">Toque para ver o aviso e escolher outro horário</div>
+    </div>`;
+}
+
+function openDesmarcadoSheet(){
+  const r=getDesmarcadoDaCliente();
+  if(!r){closeSheet();return;}
+  const iso=String(r.data).substring(0,10),clock=String(r.horario).substring(0,5);
+  const df=formatManausLabel(iso,{weekday:'long',day:'2-digit',month:'long'}).replace(/^\w/,c=>c.toUpperCase());
+  const txt=encodeURIComponent(`Olá! Vi que meu horário de ${df} às ${clock} (código ${r.codigo||''}) foi desmarcado. Podemos remarcar?`);
+  const waLink=CFG.WA?`https://wa.me/${CFG.WA}?text=${txt}`:'';
+  openSheet('Seu horário foi desmarcado','Precisamos remarcar');
+  document.getElementById('sheetBody').innerHTML=`
+    <div class="info-box" style="border-color:var(--rose);">Por um imprevisto do studio, este horário foi desmarcado. Pedimos desculpas pelo transtorno. A equipe entrará em contato para remarcar, ou você pode escolher agora outro horário livre na agenda.</div>
+    <div class="booking-tag">
+      <div class="booking-tag-label">✦ Desmarcado</div>
+      <div class="booking-tag-time">${clock}</div>
+      <div class="booking-tag-date">${htmlEsc(df)}</div>
+      <div class="booking-tag-row">
+        <div class="booking-tag-client">${htmlEsc(r.cliente||'')}</div>
+        <div class="booking-tag-code">${htmlEsc(r.codigo||'')}</div>
+      </div>
+    </div>
+    ${waLink?`<a href="${waLink}" target="_blank" class="wa-link">💬 Falar com o studio</a>`:''}`;
+  document.getElementById('sheetActions').innerHTML=`<button class="btn btn-primary" onclick="closeSheet();document.getElementById('slotsContainer')?.scrollIntoView({behavior:'smooth',block:'start'})">Escolher outro horário</button><button class="btn btn-secondary" onclick="closeSheet()">Fechar</button>`;
+}
 
 let db=[], srvCfg={start:'08:00',end:'20:00',duration:60,pix_value:'0.00'};
 
@@ -4136,14 +4703,15 @@ function fmtDur(min){min=Math.max(0,parseInt(min)||0);const h=Math.floor(min/60)
  *  Usado pelo agendamento manual do admin para nunca deixar duas reservas se sobreporem. */
 
 function getScheduleGapInfo(iso,clock){
-  const[eH,eM]=srvCfg.end.split(':').map(Number);
-  const endMins=eH*60+eM;
-  const[h,m]=String(clock).split(':').map(Number);
-  const cur=h*60+m;
-  const next=db.filter(r=>String(r.data).substring(0,10)===iso&&r.status!=='Livre').map(r=>{const[hh,mm]=String(r.horario).substring(0,5).split(':').map(Number);return{mins:hh*60+mm,clock:String(r.horario).substring(0,5),cliente:r.cliente,duration:parseInt(r.duration||srvCfg.duration)};}).filter(r=>r.mins>cur).sort((a,b)=>a.mins-b.mins)[0]||null;
-  const limitMins=next?next.mins:endMins;
-  const gap=Math.max(0,limitMins-cur);
-  return{gap,next};
+  const a=analiseDoDia(iso),cur=minsDeHora_(clock);
+  if(a.dia.erro||isNaN(cur))return{gap:0,next:null};
+  const candidatos=[];
+  a.ocup.filter(o=>o.ini>cur).forEach(o=>candidatos.push({mins:o.ini,clock:motorHora(o.ini),cliente:o.row.cliente||'—',duration:o.fim-o.ini}));
+  a.dia.intervalos.filter(iv=>iv.ini>cur).forEach(iv=>candidatos.push({mins:iv.ini,clock:motorHora(iv.ini),cliente:'intervalo',duration:iv.fim-iv.ini}));
+  candidatos.sort((x,y)=>x.mins-y.mins);
+  const prox=candidatos[0]||null;
+  const limite=prox?Math.min(prox.mins,a.dia.fim):a.dia.fim;
+  return{gap:Math.max(0,limite-cur),next:(prox&&prox.mins<a.dia.fim)?prox:null};
 }
 /** Verifica se um agendamento (data + horário [+ duração]) da cliente ainda está por vir —
  *  ou seja, se a data/hora escolhida (considerando a duração do serviço) ainda não passou.
@@ -4171,7 +4739,11 @@ function scrollDays(dir){const s=document.getElementById('dayScroller');s.scroll
 
 function htmlEsc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 
-function getAvailableSlotsForDay(iso){const now=new Date(),todayIso=getManausIsoDate(now),curMins=getManausMinutes(now);const[sH,sM]=srvCfg.start.split(':').map(Number),[eH,eM]=srvCfg.end.split(':').map(Number);let cur=sH*60+sM,end=eH*60+eM;const slots=[];while(cur<end){const hh=String(Math.floor(cur/60)).padStart(2,'0'),mm=String(cur%60).padStart(2,'0'),clock=`${hh}:${mm}`;const isPast=(iso<todayIso)||(iso===todayIso&&cur<curMins);const reg=db.find(r=>String(r.data).substring(0,10)===iso&&String(r.horario).substring(0,5)===clock);let st=reg?reg.status:'Livre',durMin=reg?parseInt(reg.duration||srvCfg.duration):srvCfg.duration;const reservedUntil=reg?reg.reservedUntil:null;let isExpired=false;if(st==='Aguardando Pagamento'&&reservedUntil&&new Date()>new Date(reservedUntil))isExpired=true;if(st==='Aguardando Pagamento'&&isExpired)st='Livre';if(st==='Livre'){const nextOcc=db.filter(r=>String(r.data).substring(0,10)===iso&&r.status!=='Livre').map(r=>{const[h,m]=String(r.horario).substring(0,5).split(':').map(Number);return h*60+m;}).filter(m=>m>cur).sort((a,b)=>a-b)[0];if(nextOcc!==undefined){const gap=nextOcc-cur;if(gap<durMin){cur=nextOcc;continue;}}if(!isPast)slots.push(clock);}cur+=Math.max(30,durMin||30);}return slots;}
+function getAvailableSlotsForDay(iso){
+  const a=analiseDoDia(iso);
+  const hoje=getManausIsoDate(new Date()),agora=getManausMinutes(new Date());
+  return a.livres.filter(s=>!(iso<hoje||(iso===hoje&&s<agora))).map(motorHora);
+}
 
 function refreshGridHead(){if(currentDay)renderGridHead(currentDay);}
 
@@ -4264,12 +4836,13 @@ function buscarSnapshot_(){
   });
 }
 function aplicarSnapshot_(r){
-      db=r.agenda||[];agendaCarregada=true;systemLogs=r.logs||[];srvCfg=r.config||srvCfg;applyPubCfg(r.pub);AGENDA_ANO_ATIVA=!!r.agendaAnoAtiva;DEZ=r.dez||DEZ;TAXA=r.taxa||TAXA;isAdmin=!!r.isAdmin;
+      db=r.agenda||[];agendaCarregada=true;systemLogs=r.logs||[];srvCfg=r.config||srvCfg;agendaCfg=r.agendaCfg||agendaCfg;applyPubCfg(r.pub);AGENDA_ANO_ATIVA=!!r.agendaAnoAtiva;DEZ=r.dez||DEZ;TAXA=r.taxa||TAXA;isAdmin=!!r.isAdmin;
       if(!isAdmin)reconciliarBookingLocal();
       updateAppMode();atualizarCardAgendaAno();if(publicMainTab==='agendamento'&&agendamentoOculto())setPublicMainTab('dezembro');renderDays();if(publicMainTab==='dezembro'&&!dezVisivel())closeSchedView();renderDezSection();
       if(currentDay)renderGrid(currentDay);
       if(admDezAtivo())renderAdmDez();
       updateAdminStats();
+      renderRemarcarList();
       renderMyBookingBanner(); // atualiza o banner da cliente
 }
 async function syncData(){
@@ -4370,19 +4943,25 @@ function reconciliarBookingLocal(){
     if(dezPollRef!==bk.ref)iniciarVerificacaoDez(bk.ref,{iso:bk.iso,clock:bk.clock,name:bk.name,phone:bk.phone},bk.expiraEm);
     return;
   }
-  const still=db.find(x=>String(x.codigo||'')===String(bk.token||'')&&x.status==='Ocupado');
+  // "Desmarcado" também conta: a cliente precisa continuar vendo o aviso até ser encerrado
+  const still=db.find(x=>String(x.codigo||'')===String(bk.token||'')&&(x.status==='Ocupado'||x.status==='Desmarcado'));
   const bIso=String(still?.data||bk.iso||'').substring(0,10);
   const bClock=String(still?.horario||bk.clock||'').substring(0,5);
   // Limpa o bloqueio local se o agendamento não existe mais OU se a data/hora já passou
-  if(!still||!isBookingUpcoming(bIso,bClock,still?.duration))clearClientBlock();
+  if(!still||(still.status==='Ocupado'&&!isBookingUpcoming(bIso,bClock,still.duration)))clearClientBlock();
 }
 
 
 function renderMyBookingBanner(){
   const wrap=document.getElementById('myBookingBanner');
   if(!wrap)return;
+  const clienteVisao=!(isAdmin&&!isUserView);
   const booking=getActiveClientBooking();
-  if(!booking&&!(isAdmin&&!isUserView)&&getPixExpirado()){renderPixExpiradoBanner(wrap);return;}
+  if(!booking&&clienteVisao&&getPixExpirado()){renderPixExpiradoBanner(wrap);return;}
+  if(!booking&&clienteVisao){
+    const dsm=getDesmarcadoDaCliente();
+    if(dsm){renderDesmarcadoBanner(wrap,dsm);return;}
+  }
   if(!booking||isAdmin&&!isUserView){
     wrap.style.display='none';
     wrap.innerHTML='';
@@ -4629,8 +5208,7 @@ function renderGridHead(iso){
   el('gridWeekday',htmlEsc(wd.charAt(0).toUpperCase()+wd.slice(1)));
   el('gridDate',htmlEsc(formatManausLabel(iso,{day:'2-digit',month:'long'})));
   const tx=document.getElementById('gridTaxa');if(tx){const v=taxaDia(iso);tx.innerHTML=v>0?`💳 Taxa obrigatória <b>${dezValorLabel(v)}</b> · pague o PIX para confirmar o horário`:'';}
-  /* O resumo é informação de gestão (agendados, aguardando, bloqueados) e
-     não pode aparecer pra cliente — some por completo fora do modo admin. */
+  /* O resumo é informação de gestão e não pode aparecer pra cliente */
   const resumo=document.getElementById('gridResume');
   if(!resumo)return;
   if(!isAdmin||isUserView){resumo.innerHTML='';resumo.style.display='none';return;}
@@ -4640,9 +5218,11 @@ function renderGridHead(iso){
   const ocup=recs.filter(r=>r.status==='Ocupado').length;
   const aguard=recs.filter(r=>r.status==='Aguardando Pagamento').length;
   const bloq=recs.filter(r=>r.status==='Bloqueado').length;
+  const desm=recs.filter(r=>r.status==='Desmarcado').length;
   const partes=[`<b>${livres}</b> livre${livres===1?'':'s'}`,`<b>${ocup}</b> agendado${ocup===1?'':'s'}`];
   if(aguard)partes.push(`<b>${aguard}</b> aguardando`);
   if(bloq)partes.push(`<b>${bloq}</b> bloqueado${bloq===1?'':'s'}`);
+  if(desm)partes.push(`<b>${desm}</b> desmarcado${desm===1?'':'s'}`);
   resumo.innerHTML=partes.join('<span class="gr-sep">·</span>');
 }
 
@@ -4655,44 +5235,70 @@ function renderGrid(iso,targetId){
   container.innerHTML='';
   const logContainer=document.getElementById('logEntries');
   if(!targetId)logContainer.innerHTML='';
-  const now=new Date(),todayIso=formatLocalIsoDate(now),curMins=now.getHours()*60+now.getMinutes();
-  const lastBooking=JSON.parse(localStorage.getItem('last_booking_v3')||'null');
-  // Só considera a reserva salva como "ativa" (bloqueando a grade) se ela ainda estiver
-  // por vir — uma reserva cuja data/hora já passou não deve mais impedir novos agendamentos.
+  const agora=new Date(),todayIso=getManausIsoDate(agora),curMins=getManausMinutes(agora);
+  const lastBooking=getLocalBk();
+  // Com reserva ativa, a cliente vê só a própria reserva na grade
   const hasActiveBooking=!isAdmin&&!!getActiveClientBooking();
-  const[sH,sM]=srvCfg.start.split(':').map(Number);
-  const[eH,eM]=srvCfg.end.split(':').map(Number);
-  let cur=sH*60+sM,end=eH*60+eM;
-  let idx=0;
+  const admVisao=isAdmin&&!isUserView;
+  const a=analiseDoDia(iso);
+  const itens=[];
+  // 1) reservas, bloqueios e desmarcados (inclusive fora da grade padrão)
+  a.ocup.forEach(o=>itens.push({ini:o.ini,tipo:'reg',reg:o.row}));
+  // 2) inícios livres da grade do dia
+  a.grade.forEach(g=>{
+    if(a.ocup.some(o=>o.ini===g))return;
+    if(a.livres.indexOf(g)>-1)itens.push({ini:g,tipo:'livre'});
+  });
+  // 3) janelas livres que não cabem um atendimento da grade: recomendado descanso (só a gerente vê)
+  if(admVisao){
+    a.janelas.forEach(j=>{
+      if(!j.descanso||j.minutos<=0)return;
+      if(iso<todayIso||(iso===todayIso&&j.fim<=curMins))return;
+      itens.push({ini:j.ini,tipo:'descanso',fim:j.fim,minutos:j.minutos});
+    });
+  }
+  itens.sort((x,y)=>x.ini-y.ini);
   const logs=[];
-  while(cur<end){
-    const hh=String(Math.floor(cur/60)).padStart(2,'0'),mm=String(cur%60).padStart(2,'0'),clock=`${hh}:${mm}`;
-    const isPast=(iso<todayIso)||(iso===todayIso&&cur<curMins);
-    const reg=db.find(r=>String(r.data).substring(0,10)===iso&&String(r.horario).substring(0,5)===clock);
-    let st=reg?reg.status:'Livre',durMin=reg?parseInt(reg.duration||srvCfg.duration):srvCfg.duration;
-    if(isPast&&!isAdmin){cur+=Math.max(15,durMin||30);continue;}
+  let idx=0;
+  for(const it of itens){
+    const clock=motorHora(it.ini);
+    const isPast=(iso<todayIso)||(iso===todayIso&&it.ini<curMins);
+    if(isPast&&!isAdmin)continue;
+    const reg=it.tipo==='reg'?it.reg:null;
+    const st=reg?reg.status:'Livre';
     const reservedUntil=reg?reg.reservedUntil:null,logMsg=reg?reg.log:null;
     const isMyBooking=!!(lastBooking&&reg&&(String(reg.codigo||'')===String(lastBooking.token||'')||(lastBooking.iso===iso&&lastBooking.clock===clock)));
     if(!isAdmin){
-      if(hasActiveBooking){if(!isMyBooking){cur+=Math.max(15,durMin||30);continue;}}
-      else{if(st!=='Livre'){cur+=Math.max(15,durMin||30);continue;}}
+      if(hasActiveBooking){if(!isMyBooking)continue;}
+      else if(st!=='Livre')continue;
     }
-    if(st==='Livre'){const nextOcc=db.filter(r=>String(r.data).substring(0,10)===iso&&r.status!=='Livre').map(r=>{const[h,m]=r.horario.split(':').map(Number);return h*60+m;}).filter(m=>m>cur).sort((a,b)=>a-b)[0];if(nextOcc!==undefined){const gap=nextOcc-cur;if(gap<durMin){cur=nextOcc;continue;}}}
-    const pipColor={'Livre':'var(--st-livre)','Aguardando Pagamento':'var(--st-aguard)','Ocupado':'var(--st-ocupado)','Bloqueado':'var(--st-block)'}[st]||'var(--st-block)';
+    const card=document.createElement('div');
+    card.dataset.time=clock;card.dataset.iso=iso;card.style.animationDelay=`${idx*.04}s`;
+    if(it.tipo==='descanso'){
+      card.className='slot-card descanso';card.dataset.status='Descanso';
+      card.onclick=()=>showAdminSlotSheet(iso,clock,'Livre',null);
+      card.innerHTML=`<div class="slot-pip" style="background:var(--st-descanso,#B08D57)"></div><div class="slot-time">${clock}</div><div class="slot-info"><div class="slot-status" style="color:var(--st-descanso,#B08D57)">RECOMENDADO DESCANSO</div><div class="slot-client">${fmtDur(it.minutos)} livres até ${motorHora(it.fim)}</div><div class="slot-dur" style="font-size:.6rem;opacity:.75;">Fora da grade de horários. Toque se quiser encaixar um serviço; a próxima cliente continua garantida.</div></div>`;
+      container.appendChild(card);idx++;
+      continue;
+    }
+    const durMin=reg?(parseInt(reg.duration,10)||duracaoDoDia(iso)):duracaoDoDia(iso);
+    card.dataset.status=st;
     let expiredHtml='';
     if(isMyBooking&&!isAdmin&&st==='Aguardando Pagamento'&&reservedUntil)expiredHtml=`<div class="slot-expira">Expira em <strong class="expira-cd" data-expira="${htmlEsc(reservedUntil)}">--:--</strong> · toque para ver o PIX</div>`;
     if(isAdmin&&logMsg)logs.push({time:clock,msg:logMsg,client:reg.cliente,phone:reg.telefone,token:reg.codigo});
+    const pipColor={'Livre':'var(--st-livre)','Aguardando Pagamento':'var(--st-aguard)','Ocupado':'var(--st-ocupado)','Bloqueado':'var(--st-block)','Desmarcado':'var(--st-desm,#D9822B)'}[st]||'var(--st-block)';
     const durLabel=durMin>=60?`${Math.floor(durMin/60)}h${durMin%60>0?' '+durMin%60+'min':''}`:durMin+' min';
-    const stLabels={'Livre':'DISPONÍVEL','Aguardando Pagamento':'AGUARDANDO','Ocupado':'OCUPADO','Bloqueado':'BLOQUEADO'};
+    const stLabels={'Livre':'DISPONÍVEL','Aguardando Pagamento':'AGUARDANDO','Ocupado':'OCUPADO','Bloqueado':'BLOQUEADO','Desmarcado':'DESMARCADO'};
     const stLabel=stLabels[st]||st;
     let clientName='Horário disponível';
-    if(st==='Ocupado'||st==='Aguardando Pagamento')clientName=(isMyBooking&&!isAdmin)?'Seu agendamento':(reg.cliente||'—');
+    if(st==='Ocupado'||st==='Aguardando Pagamento'||st==='Desmarcado')clientName=(isMyBooking&&!isAdmin)?'Seu agendamento':(reg.cliente||'—');
     if(st==='Bloqueado')clientName='Indisponível';
     let capacityHtml='';
     if(isAdmin&&st==='Livre'){
       const gi=getScheduleGapInfo(iso,clock);
-      const roomy=gi.gap>durMin+15; // tem bem mais espaço do que a duração padrão
-      capacityHtml=`<div class="slot-capacity${roomy?' roomy':''}">Espaço livre: <strong>${fmtDur(gi.gap)}</strong>${gi.next?` · próx. ${gi.next.clock} (${htmlEsc(gi.next.cliente||'—')})`:' · sem próximo compromisso hoje'}</div>`;
+      const roomy=gi.gap>durMin+15;
+      const prox=gi.next?` · próx. ${gi.next.clock} (${htmlEsc(gi.next.cliente==='intervalo'?'intervalo':(gi.next.cliente||'—'))})`:' · sem próximo compromisso neste dia';
+      capacityHtml=`<div class="slot-capacity${roomy?' roomy':''}">Espaço livre: <strong>${fmtDur(gi.gap)}</strong>${prox}</div>`;
     }
     let extra='';
     if(isAdmin&&reg&&reg.telefone){
@@ -4702,14 +5308,13 @@ function renderGrid(iso,targetId){
       extra=`<div class="wa-contact-row" onclick="event.stopPropagation()"><button type="button" class="wa-contact-btn" onclick="openWaContact('${phoneFull}','${msg}','normal')" title="Abrir no WhatsApp comum">💬 WhatsApp</button><button type="button" class="wa-contact-btn biz" onclick="openWaContact('${phoneFull}','${msg}','business')" title="Abrir no WhatsApp Business">💼 Business</button><button type="button" class="wa-contact-btn copy" onclick="copyClientPhone('${phoneFull}')" title="Copiar número">📋</button></div>`;
     }
     if(isAdmin&&reg&&st==='Ocupado')extra+=`<div class="wa-contact-row transf-row" onclick="event.stopPropagation()"><button type="button" class="wa-contact-btn transf" onclick="abrirTransferencia('${iso}','${clock}')" title="Transferir para outro horário livre">🔁 Transferir horário</button></div>`;
-    const card=document.createElement('div');
-    card.dataset.time=clock;card.dataset.status=st;card.dataset.iso=iso;card.style.animationDelay=`${idx*.04}s`;
+    if(isAdmin&&reg&&st==='Desmarcado')extra+=`<div class="wa-contact-row transf-row" onclick="event.stopPropagation()"><button type="button" class="wa-contact-btn transf" onclick="goSec('remarcar')" title="Remarcar ou encerrar">🔁 Ir para Remarcar</button></div>`;
     card.className='slot-card'+(isPast&&!isAdmin?' past':'')+(isAdmin&&selectedSlots.has(`${iso}|${clock}`)?' selected':'');
     const taxaTag=(targetId==='dezSlots'&&st==='Livre'&&dezFeeDay(iso))?`<span class="dez-taxa-tag">Taxa ${dezValorLabel(DEZ.valor)}</span>`:'';
     card.onclick=e=>handleSlotClick(e,card,iso,clock,st,reservedUntil,reg);
-    card.innerHTML=`<div class="slot-check" data-chk="true">✓</div><div class="slot-pip" style="background:${pipColor}"></div><div class="slot-time">${clock}</div>${taxaTag}<div class="slot-info"><div class="slot-status" style="color:${pipColor}">${stLabel}</div><div class="slot-client">${clientName}</div><div class="slot-dur" style="margin-top:1px;font-size:.58rem;opacity:.55;">${st!=='Livre'&&reg&&reg.telefone?'📞 '+reg.telefone:''} ${st!=='Livre'&&reg&&reg.codigo?' · 🎫 '+reg.codigo:''}</div><div class="slot-dur">${durLabel}</div>${capacityHtml}${extra}${expiredHtml}</div>`;
+    card.innerHTML=`<div class="slot-check" data-chk="true">✓</div><div class="slot-pip" style="background:${pipColor}"></div><div class="slot-time">${clock}</div>${taxaTag}<div class="slot-info"><div class="slot-status" style="color:${pipColor}">${stLabel}</div><div class="slot-client">${htmlEsc(clientName)}</div><div class="slot-dur" style="margin-top:1px;font-size:.58rem;opacity:.55;">${st!=='Livre'&&reg&&reg.telefone?'📞 '+htmlEsc(reg.telefone):''} ${st!=='Livre'&&reg&&reg.codigo?' · 🎫 '+htmlEsc(reg.codigo):''}</div><div class="slot-dur">${durLabel}</div>${capacityHtml}${extra}${expiredHtml}</div>`;
     container.appendChild(card);
-    cur+=Math.max(30,durMin);idx++;
+    idx++;
   }
   if(isAdmin&&logs.length&&!targetId){logs.forEach(l=>{const e=document.createElement('div');e.className='log-entry';e.innerHTML=`<strong>⏱ ${l.time} — Reserva Registrada</strong>${l.msg}<div class="log-meta">Token: ${l.token} · ${l.phone}</div>`;logContainer.appendChild(e);});}
   updateDayExportButton();
@@ -4810,7 +5415,7 @@ async function confirmBooking(iso,clock,df){
       horario:clock,
       codigo:token,
       bookingTime:bTime,
-      duration:srvCfg.duration
+      duration:duracaoDoDia(iso)
     });
   }catch(e){
     alert('Não foi possível registrar. Tente novamente.');
@@ -4827,7 +5432,7 @@ async function confirmBooking(iso,clock,df){
 
   const savedToken=res.booking.codigo||token;
   db=db.filter(r=>!(String(r.data).substring(0,10)===iso&&String(r.horario).substring(0,5)===clock));
-  db.push({...res.booking,data:iso,horario:clock,status:'Ocupado',cliente:name,telefone:phone,codigo:savedToken,duration:srvCfg.duration});
+  db.push({...res.booking,data:iso,horario:clock,status:'Ocupado',cliente:name,telefone:phone,codigo:savedToken,duration:duracaoDoDia(iso)});
 
   // Salva no localStorage (controla o bloqueio de 12h e o banner)
   localStorage.setItem('last_booking_v3',JSON.stringify({token:savedToken,iso,clock,phone:normalizedPhone,name}));
@@ -4954,23 +5559,27 @@ function showBlockedScreen(){
 function showAdminSlotSheet(iso,clock,st,reg){
   currentGapInfo=getScheduleGapInfo(iso,clock);
   const gap=currentGapInfo.gap,next=currentGapInfo.next;
-  const curDur=reg?parseInt(reg.duration||srvCfg.duration):srvCfg.duration;
+  const dia=diaAgendaIso_(iso);
+  const durPadrao=duracaoDoDia(iso);
+  const curDur=reg?(parseInt(reg.duration,10)||durPadrao):durPadrao;
   const durOpts=[30,45,60,75,90,120].map(d=>{
     const fits=d<=gap;
     return `<div class="dur-opt${(curDur===d&&fits)?' sel':''}${fits?'':' disabled'}" onclick="selectDur(this,${d})">${fmtDur(d)}</div>`;
   }).join('');
   selectedDur=(curDur<=gap)?curDur:0;
+  const fimTxt=dia.erro?'—':motorHora(dia.fim);
+  const quem=next?(next.cliente==='intervalo'?'o intervalo':htmlEsc(next.cliente||'outro horário')):'';
   const gapNoticeHtml=next
-    ?`<div class="gap-notice${gap<curDur?' warn':''}">⏱ <strong>${fmtDur(gap)} livres</strong> até ${next.clock} — depois disso, <strong>${htmlEsc(next.cliente||'outro horário')}</strong> ocupa a agenda (${fmtDur(next.duration)}).</div>`
-    :`<div class="gap-notice">⏱ <strong>${fmtDur(gap)} livres</strong> até o fechamento (${srvCfg.end}) — sem outros compromissos hoje.</div>`;
+    ?`<div class="gap-notice${gap<curDur?' warn':''}">⏱ <strong>${fmtDur(gap)} livres</strong> até ${next.clock} — depois disso, <strong>${quem}</strong> ocupa a agenda (${fmtDur(next.duration)}).</div>`
+    :`<div class="gap-notice">⏱ <strong>${fmtDur(gap)} livres</strong> até o fechamento (${fimTxt}) — sem outros compromissos neste dia.</div>`;
   const durBlock=`<label class="f-label">Duração do procedimento</label>${gapNoticeHtml}<div class="dur-grid" id="durGrid">${durOpts}</div><div class="dur-custom-row"><label class="f-lbl" style="display:block;margin-bottom:6px;">Duração personalizada (min) — aproveite todo o espaço livre</label><div style="display:flex;gap:8px;"><input id="durCustom" class="f-inp" style="margin-bottom:0;" type="number" min="5" step="5" placeholder="até ${gap} min"><button type="button" class="btn-sm-secondary" onclick="useMaxDur()" style="white-space:nowrap;">Usar máx. (${fmtDur(gap)})</button></div><div id="durCustomMsg" class="dur-custom-msg"></div></div>`;
-  const blockBtn=(st!=='Bloqueado'&&st!=='Aguardando Pagamento')
+  const blockBtn=(st!=='Bloqueado'&&st!=='Aguardando Pagamento'&&st!=='Desmarcado')
     ?`<button class="btn btn-danger" onclick="adminAction('${iso}','${clock}','block')">🔒 Bloquear este horário</button>`:'';
   const freeBtn=(st==='Bloqueado'||st==='Ocupado'||st==='Aguardando Pagamento')
     ?`<button class="btn btn-gold" onclick="adminAction('${iso}','${clock}','free')">🔓 Liberar horário</button>`:'';
   const actGrid=`<div class="admin-act-grid">${blockBtn}${freeBtn}</div>`;
 
-  openSheet(`Gestão · ${clock}`,`Status atual: ${st}`);
+  openSheet(`Gestão · ${clock}`,`Status atual: ${st==='Livre'&&gap<durPadrao?'livre (fora da grade)':st}`);
   let body,acts;
   if(st==='Livre'){
     // Horário livre: admin ocupa para cliente atendida na hora (pagamento recebido no local)
@@ -4995,11 +5604,14 @@ function showAdminSlotSheet(iso,clock,st,reg){
       ${durBlock}${actGrid}`;
     acts=`<button id="btnOcupar" class="btn btn-primary" onclick="adminOcupar('${iso}','${clock}')">✓ Confirmar e ocupar horário</button><button class="btn btn-secondary" onclick="closeSheet()">Voltar</button>`;
   } else if(st==='Ocupado'){
-    // Horário já ocupado: edição dos dados da reserva existente
     body=`${actGrid}<label class="f-label">Dados do Cliente</label><input id="aName" class="f-inp" placeholder="Nome do cliente" value="${reg?htmlEsc(reg.cliente):''}"><input id="aPhone" class="f-inp" placeholder="(92) 9 0000-0000" type="tel" value="${reg&&reg.telefone?htmlEsc(reg.telefone):''}" oninput="handlePhoneInput(this)">${durBlock}`;
     acts=`<button class="btn btn-primary" onclick="adminManual('${iso}','${clock}')">✓ Salvar agendamento</button><button class="btn btn-secondary" onclick="closeSheet()">Voltar</button>`;
+  } else if(st==='Desmarcado'){
+    body=`<div class="info-box">Este atendimento foi <strong>desmarcado pelo studio</strong>. Entre em contato com a cliente pela aba <strong>Remarcar</strong>: transfira para outro horário ou encerre sem remarcar.</div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="closeSheet();goSec('remarcar')">Abrir Remarcar</button>`;
+    acts=`<button class="btn btn-secondary" onclick="closeSheet()">Voltar</button>`;
   } else {
-    // Bloqueado ou aguardando PIX: sem formulário de agendamento, para não sobrescrever a vaga
+    // Bloqueado ou aguardando PIX: sem formulário, para não sobrescrever a vaga
     const msg=st==='Bloqueado'
       ?'Horário bloqueado. Libere o horário para poder agendar.'
       :'Há uma reserva por PIX aguardando pagamento neste horário.';
@@ -5110,13 +5722,16 @@ let transfCtx=null,transfLista=null,transfFiltro='todas';
 
 function abrirTransferencia(iso,clock){
   if(!isAdmin||isUserView)return;
-  const reg=db.find(r=>String(r.data).substring(0,10)===iso&&String(r.horario).substring(0,5)===clock&&r.status==='Ocupado');
-  if(!reg){toast('Horário ocupado não encontrado. Atualize a agenda.','err');return;}
-  transfCtx={iso,clock,cliente:reg.cliente||'Cliente',duracao:parseInt(reg.duration||srvCfg.duration,10)||srvCfg.duration};
+  const reg=db.find(r=>String(r.data).substring(0,10)===iso&&String(r.horario).substring(0,5)===clock&&(r.status==='Ocupado'||r.status==='Desmarcado'));
+  if(!reg){toast('Horário não encontrado. Atualize a agenda.','err');return;}
+  transfCtx={iso,clock,cliente:reg.cliente||'Cliente',duracao:parseInt(reg.duration,10)||duracaoDoDia(iso),status:reg.status};
   const hoje=getManausIsoDate(new Date());
+  const aviso=reg.status==='Desmarcado'
+    ?'Ao transferir, a cliente passa a ver o novo horário no cartão dela.'
+    :'O horário atual será liberado e a troca fica registrada em <strong>TRANSFERENCIAS CLIENTE</strong>, na Gerência.';
   openSheet('Transferir horário',`${transfCtx.cliente} · ${brData(iso)} às ${clock}`);
   document.getElementById('sheetBody').innerHTML=`
-    <div class="info-box">Escolha um horário livre para <strong>${htmlEsc(transfCtx.cliente)}</strong>. O horário atual será liberado e a troca fica registrada em <strong>TRANSFERENCIAS CLIENTE</strong>, na Gerência.</div>
+    <div class="info-box">Escolha um horário livre para <strong>${htmlEsc(transfCtx.cliente)}</strong>. ${aviso}</div>
     <label class="f-label">Novo dia</label>
     <input type="date" id="trDia" class="f-inp" value="${iso>=hoje?iso:hoje}" min="${hoje}" onchange="renderTransfSlots()">
     <label class="f-label">Horários livres (atendimento de ${fmtDur(transfCtx.duracao)})</label>
@@ -5203,7 +5818,19 @@ function renderTransferenciasLista(){
 
 // CONFIG
 
-function openConfig(){openSheet('Configurações','Expediente, valor da reserva (PIX) e WhatsApp do studio');document.getElementById('sheetBody').innerHTML=`<label class="f-label">Horário de início</label><input id="cfgS" class="f-inp" value="${srvCfg.start}" placeholder="08:00"><label class="f-label">Horário de término</label><input id="cfgE" class="f-inp" value="${srvCfg.end}" placeholder="20:00"><label class="f-label">Duração padrão (minutos)</label><input id="cfgD" class="f-inp" type="number" value="${srvCfg.duration}" min="30" step="15"><label class="f-label">Valor da Reserva (PIX)</label><input id="cfgP" class="f-inp" value="${(srvCfg.pix_value||'0.00').toString().replace('.',',')}" placeholder="25,50"><label class="f-label">WhatsApp do studio (contato direto)</label><div style="display:flex;gap:8px;align-items:center;"><input id="cfgWa" class="f-inp" style="flex:1 1 0;min-width:0;width:auto;" inputmode="tel" value="${waFormatar(CFG.WA)}" placeholder="(92) 99999-9999"><button type="button" id="btnSaveWa" class="btn btn-secondary" style="white-space:nowrap;width:auto;flex:0 0 auto;" onclick="saveWaPhone()">Salvar número</button></div><div class="info-box" style="font-size:.7rem;margin-top:6px;">Usado nos botões “Avisar pelo WhatsApp” e “Preciso de ajuda”. Informe DDD e número. Deixe vazio para remover.</div>`;document.getElementById('sheetActions').innerHTML=`<button id="btnSaveCfg" class="btn btn-primary" onclick="saveConfig()">Salvar configurações</button><button class="btn btn-secondary" onclick="closeSheet()">Cancelar</button>`;}
+function openConfig(){
+  if(!isAdmin||isUserView)return;
+  const pad=agendaCfg.padrao;
+  cfgDraft={
+    padrao:{inicio:pad.inicio,fim:pad.fim,duracao:pad.duracao,intervalos:(pad.intervalos||[]).slice(0,1)},
+    diasSemana:JSON.parse(JSON.stringify(agendaCfg.diasSemana||{})),
+    periodos:JSON.parse(JSON.stringify(agendaCfg.periodos||[])),
+    diasLista:Object.keys(agendaCfg.dias||{}).sort().map(iso=>Object.assign({iso},JSON.parse(JSON.stringify(agendaCfg.dias[iso])))),
+    pix:srvCfg.pix_value||'0.00'
+  };
+  openSheet('Agenda e expediente','Padrão, dias da semana, períodos especiais e dias específicos');
+  renderCfgForm();
+}
 
 /* ── WhatsApp do studio (Configurações do admin) ─────────────────
    Guardado na Propriedade wa_phone do Apps Script, só dígitos com DDI 55.
@@ -5240,7 +5867,7 @@ async function saveWaPhone(){
   }
 }
 
-async function saveConfig(){const btn=document.getElementById('btnSaveCfg');const s=document.getElementById('cfgS').value;const e=document.getElementById('cfgE').value;const d=parseInt(document.getElementById('cfgD').value,10);const p=document.getElementById('cfgP').value.replace(',','.').trim();if(btn){btn.textContent='⏱ Salvando...';btn.disabled=true;}const cbName='onCfg_'+Date.now();window[cbName]=(res)=>{if(res.status==='OK'||res.status==='ok'){const dur=Number.isFinite(d)&&d>0?d:srvCfg.duration;srvCfg={...srvCfg,start:s,end:e,duration:dur,pix_value:p};updateAdminStats();syncData();setTimeout(()=>{toast('Configurações salvas!','ok');closeSheet();},500);}else{toast('Erro ao salvar','err');if(btn){btn.textContent='Salvar configurações';btn.disabled=false;}}const sEl=document.getElementById('scr_cfg');if(sEl)sEl.remove();delete window[cbName];};const scr=document.createElement('script');scr.id='scr_cfg';scr.src=`${CFG.API_URL}?action=update_config&pass=${encodeURIComponent(adminPass)}&start=${encodeURIComponent(s)}&end=${encodeURIComponent(e)}&duration=${d}&pix_value=${encodeURIComponent(p)}&callback=${cbName}`;document.body.appendChild(scr);}
+
 
 function openBlockPanel(){openSheet('Bloqueios em Lote','Selecione uma data, marque os horários e use a barra para bloquear ou liberar.');document.getElementById('sheetBody').innerHTML=`<div class="info-box">🔒 <strong>Como usar:</strong><br>1. Feche este painel<br>2. Escolha a data no calendário<br>3. Toque nos horários desejados<br>4. Use a barra para Bloquear ou Liberar</div><div class="info-box" style="border-color:var(--rose);">💡 Para folga do dia inteiro, use o botão <em>Bloquear dia inteiro</em> na barra do dia.</div>`;document.getElementById('sheetActions').innerHTML=`<button class="btn btn-primary" onclick="closeSheet()">Entendido</button>`;}
 

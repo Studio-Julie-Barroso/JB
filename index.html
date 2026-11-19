@@ -1644,6 +1644,7 @@ footer strong{color:#fff;font-weight:600;}
 .cfg-item{border:1px solid var(--border,rgba(240,98,146,.16));border-radius:14px;padding:10px;margin-bottom:10px;background:#fff;}
 .cfg-item-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;}
 .cfg-chk{display:flex;align-items:center;gap:8px;font-size:.78rem;margin-bottom:6px;cursor:pointer;}
+.conf-cd{font-variant-numeric:tabular-nums;font-weight:700;}
 </style>
 </head>
 <body>
@@ -1925,6 +1926,7 @@ footer strong{color:#fff;font-weight:600;}
       <button class="adm-nav-btn active" onclick="goSec('dashboard')"><span class="ni">📊</span>Dashboard</button>
       <div class="adm-nav-sect">Agenda</div>
       <button class="adm-nav-btn" onclick="goSec('agenda')"><span class="ni">📅</span>Agenda e Reservas</button>
+      <button class="adm-nav-btn" onclick="goSec('confirmacoes')"><span class="ni">⏳</span>Confirmações<span class="adm-cnt" id="navCntConfirm">0</span></button>
       <button class="adm-nav-btn" onclick="goSec('remarcar')"><span class="ni">🔁</span>Remarcar<span class="adm-cnt" id="navCntRemarcar">0</span></button>
       <div class="adm-nav-sect">Conteúdo</div>
       <button class="adm-nav-btn" onclick="goSec('abas')"><span class="ni">🗂</span>Minhas Abas<span class="adm-cnt" id="navCntAbas">0</span></button>
@@ -1983,6 +1985,7 @@ footer strong{color:#fff;font-weight:600;}
           <div style="display:flex;flex-direction:column;gap:8px;">
             <button class="btn-primary" style="justify-content:center;" onclick="goSec('abas')">🗂 Gerenciar Abas e Procedimentos</button>
             <button class="btn-primary" style="justify-content:center;" onclick="goSec('agenda')">📅 Agenda e Reservas</button>
+            <button class="btn-primary" style="justify-content:center;" onclick="goSec('confirmacoes')">⏳ Confirmações pendentes</button>
             <button class="btn-secondary" style="justify-content:center;" onclick="goSec('video')">🖼 Tela Principal (Vídeo / Foto)</button>
             <button class="btn-secondary" style="justify-content:center;" onclick="goSec('localizacao')">📍 Foto da Localização</button>
           </div>
@@ -2406,6 +2409,16 @@ footer strong{color:#fff;font-weight:600;}
         <div class="adm-sub">Atendimentos desmarcados pelo studio. Entre em contato, transfira para outro horário ou encerre sem remarcar.</div>
         <div class="adm-rule"></div>
         <div id="remarcarList"></div>
+        </div>
+      </div>
+
+      <!-- CONFIRMAÇÕES PENDENTES (comprovante do PIX enviado pela cliente) -->
+      <div id="sec-confirmacoes" class="adm-sec">
+        <div class="sched-scope">
+        <div class="adm-title">Confirmações pendentes</div>
+        <div class="adm-sub">Reservas aguardando o comprovante do PIX. Confirme ao receber o comprovante no WhatsApp. Se não houver confirmação no prazo, o horário volta a ficar livre sozinho.</div>
+        <div class="adm-rule"></div>
+        <div id="confLista"></div>
         </div>
       </div>
 
@@ -3237,6 +3250,7 @@ function goSec(id){
   document.querySelectorAll('.adm-nav-btn').forEach(b=>b.classList.toggle('active',b.getAttribute('onclick')?.includes("'"+id+"'")));
   // mobile nav
   document.querySelectorAll('.adm-mobile-tab').forEach(b=>b.classList.toggle('active',b.id==='mnt-'+id));
+  if(id==='confirmacoes')renderConfirmacoes();
 }
 
 /* ════════════════════════════════════════
@@ -4070,6 +4084,8 @@ function toast(msg,type='ok',dur=3000){const w=document.getElementById('toastWra
 ════════════════════════════════════════ */
 /* ===== AGENDAMENTO (portado do look) ===== */
 const APP_TIME_ZONE = 'America/Manaus';
+const CONF_STATUS = 'Aguardando Confirmação'; // reserva com sinal PIX aguardando a gerente (prazo 12 h)
+let srvConf = [];
 
 /* ═══════════════ AGENDA POR DIA · MOTOR (cópia de motor_agenda.js; manter igual ao jgs.gs) ═══════════════ */
 /* ═══════════════════════════════════════════════════════════════════
@@ -4316,7 +4332,7 @@ function diaAgendaIso_(iso){return motorResolve(agendaCfg,String(iso||'').substr
 
 function duracaoDoDia(iso){const d=diaAgendaIso_(iso);return d.erro?(srvCfg.duration||60):d.duracao;}
 
-function pixExpirada_(r,agora){return r.status==='Aguardando Pagamento'&&!!r.reservedUntil&&new Date(r.reservedUntil).getTime()<=agora.getTime();}
+function pixExpirada_(r,agora){return (r.status==='Aguardando Pagamento'||r.status===CONF_STATUS)&&!!r.reservedUntil&&new Date(r.reservedUntil).getTime()<=agora.getTime();}
 
 function ocupacoesDoDia(iso){
   const dia=diaAgendaIso_(iso),durPadrao=dia.erro?60:dia.duracao,agora=new Date();
@@ -4843,6 +4859,7 @@ function aplicarSnapshot_(r){
       if(admDezAtivo())renderAdmDez();
       updateAdminStats();
       renderRemarcarList();
+      srvConf=isAdmin?(r.confirmacoes||[]):[];renderConfirmacoes();
       renderMyBookingBanner(); // atualiza o banner da cliente
 }
 async function syncData(){
@@ -4903,9 +4920,9 @@ function getActiveClientBooking(){
   const bk=getLocalBk();
   if(!bk)return null;
   // Vale tanto a vaga já paga (Ocupado) quanto a que ainda aguarda o PIX
-  const rec=db.find(r=>String(r.codigo||'')===String(bk.token||'')&&(r.status==='Ocupado'||r.status==='Aguardando Pagamento'));
-  if(rec&&rec.status==='Aguardando Pagamento'){
-    // PIX não pago no prazo: a reserva deixa de valer e o horário volta a ficar livre
+  const rec=db.find(r=>String(r.codigo||'')===String(bk.token||'')&&(r.status==='Ocupado'||r.status==='Aguardando Pagamento'||r.status===CONF_STATUS));
+  if(rec&&(rec.status==='Aguardando Pagamento'||rec.status===CONF_STATUS)){
+    // PIX não pago (ou comprovante sem confirmação) no prazo: a reserva deixa de valer e o horário volta a ficar livre
     if(!rec.reservedUntil||new Date(rec.reservedUntil).getTime()<=Date.now())return null;
     return{...bk,...rec};
   }
@@ -4929,6 +4946,19 @@ function clientLockIso(){const b=getActiveClientBooking();return b?String(b.data
 function reconciliarBookingLocal(){
   const bk=getLocalBk();
   if(!bk)return;
+  if(bk.confirmacao){
+    const rc=db.find(x=>String(x.codigo||'')===String(bk.token||'')&&(x.status==='Ocupado'||x.status===CONF_STATUS));
+    if(rc&&rc.status==='Ocupado'){
+      // A gerente confirmou o comprovante: a vaga passa a ser definitiva
+      localStorage.setItem('last_booking_v3',JSON.stringify({token:bk.token,iso:bk.iso,clock:bk.clock,phone:bk.phone,name:bk.name}));
+      toast('Sua vaga foi confirmada pela gerente ✨','ok',4000);
+      return reconciliarBookingLocal();
+    }
+    // Dentro do prazo: mantém. Recusada, vencida ou removida: libera o aparelho
+    const ainda=!!(rc&&rc.status===CONF_STATUS&&rc.reservedUntil&&new Date(rc.reservedUntil).getTime()>Date.now());
+    if(!ainda)clearClientBlock();
+    return;
+  }
   const rec=db.find(x=>String(x.codigo||'')===String(bk.token||'')&&(x.status==='Ocupado'||x.status==='Aguardando Pagamento'));
   if(bk.pendente){
     if(rec&&rec.status==='Ocupado'){
@@ -4972,15 +5002,16 @@ function renderMyBookingBanner(){
   const clock=booking.horario||booking.clock||'';
   const clientName=booking.cliente||booking.name||'';
   const pendente=booking.status==='Aguardando Pagamento';
+  const aguardConf=isConfStatus(booking.status);
   const pago=!pendente&&(!!booking.pago||dezFeeDay(iso));
-  const statusTxt=pendente?'Aguardando pagamento':(pago?'PIX confirmado':'Confirmado');
+  const statusTxt=pendente?'Aguardando pagamento':(aguardConf?'Aguardando confirmação':(pago?'PIX confirmado':'Confirmado'));
   const expiraIso=booking.expiraEm||booking.reservedUntil||'';
   wrap.style.display='block';
   wrap.innerHTML=`
     <div class="my-booking-banner" onclick="${pendente?'abrirPixPendente()':'openMyBookingDetail()'}">
       <div class="my-booking-banner-top">
         <div class="my-booking-banner-badge">Seu agendamento</div>
-        <div class="my-booking-banner-status${pendente?' pend':''}">${statusTxt}</div>
+        <div class="my-booking-banner-status${(pendente||aguardConf)?' pend':''}">${statusTxt}</div>
       </div>
       <div class="my-booking-banner-body">
         <div class="my-booking-banner-time">${clock}</div>
@@ -4994,10 +5025,13 @@ function renderMyBookingBanner(){
       <div class="my-booking-banner-footer">
         ${pendente
           ?`Expira em <strong class="expira-cd" data-expira="${htmlEsc(expiraIso)}">--:--</strong> · toque para ver o PIX`
-          :'Toque para ver detalhes e informações de pagamento'}
+          :aguardConf
+            ?`Confirma até ${htmlEsc(fmtHoraManaus(expiraIso))} · <strong class="conf-cd" data-expira="${htmlEsc(expiraIso)}">--:--</strong> · toque para enviar o comprovante`
+            :'Toque para ver detalhes e informações de pagamento'}
       </div>
     </div>`;
   atualizarContagemDez();
+  atualizarContagemConf();
 }
 
 
@@ -5005,6 +5039,7 @@ function openMyBookingDetail(){
   const booking=getActiveClientBooking();
   if(!booking)return;
   if(booking.status==='Aguardando Pagamento'){abrirPixPendente();return;}
+  if(isConfStatus(booking.status)){abrirConfirmacaoPendente();return;}
   const iso=booking.data||booking.iso;
   const clock=booking.horario||booking.clock||'';
   const name=booking.cliente||booking.name||'';
@@ -5185,6 +5220,122 @@ function isClientBlocked(){const bk=getLocalBk();if(bk&&bk.pendente)return local
 
 function clearClientBlock(){localStorage.removeItem('last_booking_timestamp');localStorage.removeItem('last_booking_v3');}
 
+/* ── Confirmação pela gerente (reserva com sinal PIX informativo) ── */
+function isConfStatus(st){return st===CONF_STATUS;}
+function fmtHoraManaus(iso){try{return new Intl.DateTimeFormat('pt-BR',{timeZone:APP_TIME_ZONE,day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(iso));}catch{return '';}}
+function fmtDurConf(ms){const t=Math.max(0,Math.floor(ms/1000));const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;return h>0?h+'h '+String(m).padStart(2,'0')+'min':String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
+/** Atualiza os "Confirma em ..." da cliente e do admin. */
+function atualizarContagemConf(){document.querySelectorAll('.conf-cd[data-expira]').forEach(el=>{const fim=new Date(el.getAttribute('data-expira')).getTime();if(isNaN(fim))return;const ms=fim-Date.now();el.textContent=ms<=0?'prazo encerrado':fmtDurConf(ms);});}
+/** Atualiza a agenda a cada 15 s enquanto a cliente aguarda confirmação ou o admin está na aba Confirmações. */
+function precisaSyncConf(){
+  if(document.hidden)return false;
+  const bk=getLocalBk();
+  if(bk&&bk.confirmacao)return true;
+  return !!(isAdmin&&!isUserView&&document.getElementById('sec-confirmacoes')?.classList.contains('active'));
+}
+/** Tela da cliente enquanto a reserva aguarda o comprovante do PIX (prazo de 12 h). */
+function showConfirmacaoPendente(name,iso,clock,df,token,expiraIso){
+  const valor=srvCfg.pix_value&&parseFloat(srvCfg.pix_value)>0?srvCfg.pix_value:null;
+  const waText=encodeURIComponent(
+    `Olá! Segue o comprovante do PIX do meu horário.\n\n`+
+    `📌 *Detalhes:*\n• Nome: ${name}\n• Data: ${df}\n• Horário: ${clock}\n• Código: *${token}*`+
+    (valor?`\n• Valor: R$ ${valor}`:''));
+  openSheet('Aguardando confirmação','Sua vaga está reservada. Envie o comprovante do PIX para a gerente confirmar.');
+  document.getElementById('sheetBody').innerHTML=`
+    <div class="info-box" style="border-color:var(--gold);background:rgba(240,98,146,.08);">
+      ⏳ <strong>Horário reservado, aguardando confirmação.</strong><br><br>
+      Envie o comprovante do PIX no WhatsApp com o seu código. Se não for confirmado até
+      <strong>${htmlEsc(fmtHoraManaus(expiraIso))}</strong>, o horário volta a ficar livre para outras clientes.<br><br>
+      Tempo restante: <strong class="conf-cd" data-expira="${htmlEsc(expiraIso)}">--:--</strong>
+    </div>
+    <div class="booking-tag">
+      <div class="booking-tag-label">✦ Aguardando confirmação</div>
+      <div class="booking-tag-time">${clock}</div>
+      <div class="booking-tag-date">${df}</div>
+      <div class="booking-tag-row">
+        <div class="booking-tag-client">${htmlEsc(name)}</div>
+        <div class="booking-tag-code">${htmlEsc(token)}</div>
+      </div>
+    </div>
+    <div class="pix-info-block">
+      <div class="pix-info-header">
+        <div class="pix-info-icon">💸</div>
+        <div>
+          <div class="pix-info-title">Pagamento via PIX</div>
+          <div class="pix-info-desc">Faça o PIX e envie o comprovante para a gerente.</div>
+        </div>
+      </div>
+      <div class="pix-info-key-row">
+        <div>
+          <div class="pix-info-key">${CFG.PIX_KEY}</div>
+          <div class="pix-info-holder">${CFG.PIX_BANK} · ${CFG.PIX_HOLDER}</div>
+        </div>
+        <button class="pix-copy-btn" onclick="navigator.clipboard.writeText('${CFG.PIX_KEY}').then(()=>toast('Chave copiada!','ok'))">Copiar</button>
+      </div>
+      ${valor?`<div class="pix-value-note"><strong>R$ ${valor}</strong> — valor do sinal</div>`:''}
+    </div>
+    <a href="https://wa.me/${CFG.WA}?text=${waText}" target="_blank" class="wa-link">📎 Enviar comprovante pelo WhatsApp</a>`;
+  document.getElementById('sheetActions').innerHTML=`<button class="btn btn-secondary" onclick="closeSheet()">Fechar</button>`;
+}
+/** Abre a tela de confirmação pendente a partir do banner ou da grade. */
+function abrirConfirmacaoPendente(){
+  const b=getActiveClientBooking();
+  if(!b||!isConfStatus(b.status))return;
+  const iso=String(b.data||b.iso||'').substring(0,10);
+  const clock=String(b.horario||b.clock||'').substring(0,5);
+  const df=formatManausLabel(iso,{weekday:'long',day:'2-digit',month:'long'}).replace(/^\w/,c=>c.toUpperCase());
+  showConfirmacaoPendente(b.name||b.cliente||'',iso,clock,df,b.codigo||b.token||'',b.reservedUntil||b.expiraEm||'');
+}
+/** Admin: reservas aguardando o comprovante (aba Confirmações pendentes). */
+function renderConfirmacoes(){
+  const admVisao=isAdmin&&!isUserView;
+  const lista=admVisao?srvConf:[];
+  const cnt=document.getElementById('navCntConfirm');if(cnt)cnt.textContent=String(lista.length);
+  const box=document.getElementById('confLista');
+  if(!box)return;
+  if(!admVisao){box.innerHTML='';return;}
+  if(!lista.length){box.innerHTML='<div class="info-box">Nenhuma reserva aguardando confirmação. Quando uma cliente reservar com sinal PIX, ela aparece aqui com o prazo para a confirmação.</div>';return;}
+  box.innerHTML=lista.map(r=>{
+    const iso=String(r.data).substring(0,10),clock=String(r.horario).substring(0,5);
+    const tel=String(r.telefone||'').replace(/\D/g,'');
+    const phoneFull=tel?(tel.startsWith('55')?tel:'55'+tel):'';
+    const msg=encWaText(`Olá, ${r.cliente||''}! Aqui é do Studio Julie Barroso. Recebemos o seu comprovante do PIX? Assim que confirmarmos, seu horário de ${brData(iso)} às ${clock} fica garantido.`);
+    const btnWa=phoneFull?`<button type="button" class="wa-contact-btn" onclick="openWaContact('${phoneFull}','${msg}','normal')">💬 WhatsApp</button>`:'';
+    const vencido=new Date(r.expiraEm).getTime()<=Date.now();
+    const prazo=vencido?'<span>Prazo encerrado; o horário será liberado em instantes.</span>':`<span>Tempo para confirmar:</span> <strong class="conf-cd" data-expira="${htmlEsc(r.expiraEm)}">--:--</strong>`;
+    return `<div class="log-entry" style="border-left-color:var(--st-aguard)">
+      <strong>${brData(iso)} · ${clock}</strong>
+      <div style="font-weight:600;margin-top:2px;">${htmlEsc(r.cliente||'—')}</div>
+      <div class="log-meta">${htmlEsc(r.telefone||'')} · código ${htmlEsc(r.codigo||'')}</div>
+      <div class="log-meta">${prazo}</div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        ${btnWa}
+        <button type="button" class="wa-contact-btn transf" onclick="confirmarReservaPendente('${iso}','${clock}')">✅ Confirmar</button>
+        <button type="button" class="wa-contact-btn" onclick="recusarReservaPendente('${iso}','${clock}')">✖ Recusar e liberar</button>
+      </div>
+    </div>`;
+  }).join('');
+  atualizarContagemConf();
+}
+async function confirmarReservaPendente(iso,clock){
+  if(!confirm(`Confirmar a reserva de ${brData(iso)} às ${clock}?\n\nUse somente depois de receber o comprovante do PIX.`))return;
+  try{
+    const res=await gasCall({action:'conf_confirmar',data:iso,horario:clock});
+    if(res?.status==='OK')toast('Reserva confirmada ✨','ok');
+    else toast(res?.message||'Não foi possível confirmar.','warn',4000);
+  }catch(e){toast('Falha de conexão. Tente novamente.','warn',4000);}
+  await syncData();
+}
+async function recusarReservaPendente(iso,clock){
+  if(!confirm(`Recusar a reserva de ${brData(iso)} às ${clock} e liberar o horário?`))return;
+  try{
+    const res=await gasCall({action:'conf_recusar',data:iso,horario:clock});
+    if(res?.status==='OK')toast('Horário liberado.','ok');
+    else toast(res?.message||'Não foi possível recusar.','warn',4000);
+  }catch(e){toast('Falha de conexão. Tente novamente.','warn',4000);}
+  await syncData();
+}
+
 function getNextOccupiedBooking(){const curIso=getManausIsoDate(new Date());const curMins=getManausMinutes(new Date());return db.filter(r=>r.status==='Ocupado').map(r=>{const[h,m]=String(r.horario||'00:00').split(':').map(Number);return{...r,mins:h*60+m};}).filter(r=>r.data>curIso||(r.data===curIso&&r.mins>=curMins)).sort((a,b)=>a.data===b.data?a.mins-b.mins:a.data.localeCompare(b.data))[0]||null;}
 
 function getFutureBookings(){const curIso=getManausIsoDate(new Date());const curMins=getManausMinutes(new Date());return db.filter(r=>r.status==='Ocupado').map(r=>{const[h,m]=String(r.horario||'00:00').split(':').map(Number);return{...r,mins:h*60+m};}).filter(r=>r.data>curIso||(r.data===curIso&&r.mins>=curMins)).sort((a,b)=>a.data===b.data?a.mins-b.mins:a.data.localeCompare(b.data));}
@@ -5285,13 +5436,15 @@ function renderGrid(iso,targetId){
     card.dataset.status=st;
     let expiredHtml='';
     if(isMyBooking&&!isAdmin&&st==='Aguardando Pagamento'&&reservedUntil)expiredHtml=`<div class="slot-expira">Expira em <strong class="expira-cd" data-expira="${htmlEsc(reservedUntil)}">--:--</strong> · toque para ver o PIX</div>`;
+    if(isMyBooking&&!isAdmin&&isConfStatus(st)&&reservedUntil)expiredHtml=`<div class="slot-expira">Confirma em <strong class="conf-cd" data-expira="${htmlEsc(reservedUntil)}">--:--</strong> · toque para enviar o comprovante</div>`;
     if(isAdmin&&logMsg)logs.push({time:clock,msg:logMsg,client:reg.cliente,phone:reg.telefone,token:reg.codigo});
-    const pipColor={'Livre':'var(--st-livre)','Aguardando Pagamento':'var(--st-aguard)','Ocupado':'var(--st-ocupado)','Bloqueado':'var(--st-block)','Desmarcado':'var(--st-desm,#D9822B)'}[st]||'var(--st-block)';
+    const pipColor={'Livre':'var(--st-livre)','Aguardando Pagamento':'var(--st-aguard)','Aguardando Confirmação':'var(--st-aguard)','Ocupado':'var(--st-ocupado)','Bloqueado':'var(--st-block)','Desmarcado':'var(--st-desm,#D9822B)'}[st]||'var(--st-block)';
     const durLabel=durMin>=60?`${Math.floor(durMin/60)}h${durMin%60>0?' '+durMin%60+'min':''}`:durMin+' min';
-    const stLabels={'Livre':'DISPONÍVEL','Aguardando Pagamento':'AGUARDANDO','Ocupado':'OCUPADO','Bloqueado':'BLOQUEADO','Desmarcado':'DESMARCADO'};
+    const stLabels={'Livre':'DISPONÍVEL','Aguardando Pagamento':'AGUARDANDO','Aguardando Confirmação':'A CONFIRMAR','Ocupado':'OCUPADO','Bloqueado':'BLOQUEADO','Desmarcado':'DESMARCADO'};
     const stLabel=stLabels[st]||st;
     let clientName='Horário disponível';
     if(st==='Ocupado'||st==='Aguardando Pagamento'||st==='Desmarcado')clientName=(isMyBooking&&!isAdmin)?'Seu agendamento':(reg.cliente||'—');
+    if(isConfStatus(st))clientName=(isMyBooking&&!isAdmin)?'Seu agendamento':(isAdmin?(reg.cliente||'—'):'Reservado');
     if(st==='Bloqueado')clientName='Indisponível';
     let capacityHtml='';
     if(isAdmin&&st==='Livre'){
@@ -5333,6 +5486,7 @@ function handleSlotClick(event,card,iso,clock,st,rUntil,reg){
     const isMy=lb&&lb.iso===iso&&lb.clock===clock;
     if(isMy){
       if(lb.pendente){abrirPixPendente();return;}
+      if(lb.confirmacao){abrirConfirmacaoPendente();return;}
       const df=formatManausLabel(iso,{weekday:'long',day:'2-digit',month:'long'}).replace(/^\w/,c=>c.toUpperCase());
       showConfirmationSheet(lb.name||reg?.cliente||'',reg?.telefone||lb.phone||'',iso,clock,df,reg?.codigo||lb.token,false);
     }
@@ -5431,15 +5585,21 @@ async function confirmBooking(iso,clock,df){
   }
 
   const savedToken=res.booking.codigo||token;
+  const aguardando=res.booking.status===CONF_STATUS;
+  const expiraConf=res.booking.reservedUntil||'';
   db=db.filter(r=>!(String(r.data).substring(0,10)===iso&&String(r.horario).substring(0,5)===clock));
-  db.push({...res.booking,data:iso,horario:clock,status:'Ocupado',cliente:name,telefone:phone,codigo:savedToken,duration:duracaoDoDia(iso)});
+  db.push({...res.booking,data:iso,horario:clock,status:aguardando?CONF_STATUS:'Ocupado',cliente:name,telefone:phone,codigo:savedToken,duration:duracaoDoDia(iso),reservedUntil:expiraConf});
 
-  // Salva no localStorage (controla o bloqueio de 12h e o banner)
-  localStorage.setItem('last_booking_v3',JSON.stringify({token:savedToken,iso,clock,phone:normalizedPhone,name}));
+  // Salva no localStorage (controla o bloqueio de 12h e o banner); reserva pendente leva a flag confirmacao
+  localStorage.setItem('last_booking_v3',JSON.stringify({token:savedToken,iso,clock,phone:normalizedPhone,name,...(aguardando?{confirmacao:true,expiraEm:expiraConf}:{})}));
   localStorage.setItem('last_booking_timestamp',Date.now().toString());
 
-  // Mostra a tela de confirmação com PIX como informativo
-  showConfirmationSheet(name,phone,iso,clock,df,savedToken,true);
+  if(aguardando){
+    showConfirmacaoPendente(name,iso,clock,df,savedToken,expiraConf);
+  }else{
+    // Sem sinal PIX: confirmado na hora, com o PIX só como informativo
+    showConfirmationSheet(name,phone,iso,clock,df,savedToken,true);
+  }
   renderMyBookingBanner(); // atualiza o banner já
   if(currentDay)renderGrid(currentDay);
   syncData();
@@ -7001,7 +7161,8 @@ async function initSchedule(){
     if(publicMainTab==='dezembro') renderDezSection();
     renderMyBookingBanner();
   },60000);
-  setInterval(()=>{ atualizarContagemDez(); vigiarPixPendente(); },1000);
+  setInterval(()=>{ atualizarContagemDez(); atualizarContagemConf(); vigiarPixPendente(); },1000);
+  setInterval(()=>{ if(precisaSyncConf())syncData(); },15000);
   setInterval(()=>{ if(pixVisivel()) atualizarCronoPix(); },1000);
 }
 
